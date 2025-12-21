@@ -58,12 +58,12 @@ namespace BambuMan.Shared
         /// <summary>
         /// All external filaments
         /// </summary>
-        public List<ExternalFilament> AllExternalFilaments { get; set; } = new();
+        public List<ExternalFilament> AllExternalFilaments { get; set; } = [];
 
         /// <summary>
         /// Bambu lab's external filaments
         /// </summary>
-        public List<ExternalFilament> BambuLabExternalFilaments { get; set; } = new();
+        public List<ExternalFilament> BambuLabExternalFilaments { get; set; } = [];
 
         /// <summary>
         /// Unknown filament, if no filament is found or multiple result where found, return this
@@ -375,7 +375,7 @@ namespace BambuMan.Shared
             var opacity = info.Color?.Substring(6).StringToByteArray().FirstOrDefault() ?? 255;
             var transparent = opacity < 255;
             var color = hexColor;
-            
+
             var query = BambuLabExternalFilaments.AsQueryable();
 
             query = query.Where(x => x.Material.EqualsCI(info.FilamentType) ||
@@ -404,8 +404,8 @@ namespace BambuMan.Shared
 
             var resultWitColor = query.ToArray();
 #endif
-            
-            query = query.Where(x => (transparentFilaments.Contains(x.Id) && transparent) ||  x.Translucent == transparent || x.Translucent == null && !transparent);
+
+            query = query.Where(x => (transparentFilaments.Contains(x.Id) && transparent) || x.Translucent == transparent || x.Translucent == null && !transparent);
 
 #if DEBUG
             var resultWitTransparency = query.ToArray();

@@ -42,10 +42,10 @@ jobs:
           $keystore = [System.Convert]::FromBase64String($keystorebase64)
           Set-Content "${{ github.workspace }}/bambuman.keystore" -Value $keystore -AsByteStream
 
-      - name: Setup .NET 9
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
           
       - name: Install MAUI Workload
         run: dotnet workload install maui --ignore-failed-sources
@@ -57,13 +57,13 @@ jobs:
         run: echo "Version ${{ env.GITHUB_VERSION }}"
 
       - name: Build MAUI Android
-        run: dotnet publish src/BambuMan/BambuMan.csproj -c Release -p:DefineConstants="BUILD_TYPE_LIVE" -p:GITHUB_CI=1 -p:GITHUB_VERSION_CODE="${{ env.GITHUB_VERSION_CODE }}" -p:GITHUB_VERSION="${{ env.GITHUB_VERSION }}" -p:AndroidKeyStore=True -p:AndroidSigningKeyStore="${{ github.workspace }}/bambuman.keystore" -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYPASSWORD }} -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEYSTOREALIAS }} -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTOREPASSWORD }} -f net9.0-android --no-restore
+        run: dotnet publish src/BambuMan/BambuMan.csproj -c Release -p:DefineConstants="BUILD_TYPE_LIVE" -p:GITHUB_CI=1 -p:GITHUB_VERSION_CODE="${{ env.GITHUB_VERSION_CODE }}" -p:GITHUB_VERSION="${{ env.GITHUB_VERSION }}" -p:AndroidKeyStore=True -p:AndroidSigningKeyStore="${{ github.workspace }}/bambuman.keystore" -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYPASSWORD }} -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEYSTOREALIAS }} -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTOREPASSWORD }} -f net10.0-android --no-restore
         
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4.6.2
         with:
           name: bambuman-android-ci-build
-          path: src/BambuMan/bin/Release/net9.0-android/*Signed.apk
+          path: src/BambuMan/bin/Release/net10.0-android/*Signed.apk
           retention-days: 2
 
 # .net desktop application
@@ -80,10 +80,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET 9
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
           
       - name: Restore Dependencies
         run: dotnet restore src/BambuMan.Desktop/BambuMan.Desktop.csproj
@@ -98,5 +98,5 @@ jobs:
         uses: actions/upload-artifact@v4.6.2
         with:
           name: bambuman-desktop-ci-build
-          path: src/BambuMan.Desktop/bin/Release/net9.0-windows/publish/win-x64/*.exe
+          path: src/BambuMan.Desktop/bin/Release/net10.0-windows/publish/win-x64/*.exe
           retention-days: 2

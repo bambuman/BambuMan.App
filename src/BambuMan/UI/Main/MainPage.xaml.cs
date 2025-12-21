@@ -1,5 +1,6 @@
 ﻿using BambuMan.Interfaces;
 using BambuMan.Shared;
+using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Nfc;
 using BambuMan.UI.Settings;
@@ -11,7 +12,6 @@ using SpoolMan.Api.Model;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
-using BambuMan.Shared.Enums;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.UI.Main
@@ -208,7 +208,7 @@ namespace BambuMan.UI.Main
         /// <param name="message">Message to be displayed</param>
         /// <param name="title">Alert title</param>
         /// <returns>The task to be performed</returns>
-        private Task ShowAlert(string message, string? title = null) => DisplayAlert(string.IsNullOrWhiteSpace(title) ? "NFC" : title, message, "OK");
+        private Task ShowAlert(string message, string? title = null) => DisplayAlertAsync(string.IsNullOrWhiteSpace(title) ? "NFC" : title, message, "OK");
 
 
         #endregion
