@@ -12,7 +12,7 @@ namespace BambuMan.Shared
         private const string Stamp = "/xxMTXigeJVKuhfYeWFlwF1tjnFlcDFGLmAWuzIZMOs="; // Same as server
 #else
         private const string ApiUrl = "https://bambuman.ee/api/";
-        private const string Secret = "___HMAC_SECRET_PLACEHOLDER___";
+        private const string Stamp = "___HMAC_SECRET_PLACEHOLDER___";
 #endif
 
         private readonly HttpClient httpClient;
