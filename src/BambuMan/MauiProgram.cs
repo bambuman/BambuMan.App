@@ -23,7 +23,7 @@ namespace BambuMan
             MainApplication.SetupSerilog();
 #endif
             var builder = MauiApp.CreateBuilder();
-            
+
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit(options =>
@@ -40,11 +40,11 @@ namespace BambuMan
                     options.Dsn = "https://1881c4151cf22d2ff6c3d92fa5d68d87@o4509141125365760.ingest.de.sentry.io/4509141131198544";
                     options.Environment = BuildVersionModel.SentryEnvironment;
                     options.Release = $"{BuildVersionModel.PackageFullName}@{BuildVersionModel.CurrentBuildVersion}";
-                    
+
                     // Set TracesSampleRate to 1.0 to capture 100% of transactions for tracing.
                     // We recommend adjusting this value in production.
                     options.TracesSampleRate = 0.1;
-                    
+
                     options.AutoSessionTracking = true;
 
                     options.AttachScreenshot = true;
@@ -65,7 +65,7 @@ namespace BambuMan
             AddUi(services);
             AddServices(services);
 
-            
+
 
 #if ANDROID
             MainApplication.SetupImplementations(services);
@@ -75,9 +75,9 @@ namespace BambuMan
             builder.Logging.AddDebug();
 #endif
             builder.Logging.AddSerilog(Log.Logger, dispose: true);
-            
+
             var app = builder.Build();
-            
+
             AppContainer.Services = app.Services;
 
             return app;
@@ -94,6 +94,8 @@ namespace BambuMan
             services.AddTransient<LogsPageViewModel>();
             services.AddTransient<ScanPage>();
             services.AddSingleton<LogService>();
+            services.AddSingleton<TagApiService>();
+            services.AddHttpClient();
         }
 
         private static void AddServices(IServiceCollection services)
@@ -113,14 +115,14 @@ namespace BambuMan
                 .WriteTo.Sentry(o =>
                 {
                     o.InitializeSdk = false;
-                    
+
                     // Debug and higher are stored as breadcrumbs (default is Information)
-                    #if DEBUG
+#if DEBUG
                     o.MinimumBreadcrumbLevel = LogEventLevel.Debug;
-                    #else
+#else
                     o.MinimumBreadcrumbLevel = LogEventLevel.Information;
-                    #endif
-                    
+#endif
+
                     // Warning and higher is sent as event (default is Error)
                     o.MinimumEventLevel = LogEventLevel.Warning;
                 });

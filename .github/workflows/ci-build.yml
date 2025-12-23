@@ -2,13 +2,13 @@ name: CI Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, tag-sharing ]
     paths-ignore:
       - '**/*.md'
       - '**/*.gitignore'
       - '**/*.gitattributes'
   pull_request:
-    branches: [ main ]
+    branches: [ main, tag-sharing ]
   workflow_dispatch:
 
 permissions:
@@ -35,6 +35,14 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+          
+      - name: Inject Production Secrets
+        shell: pwsh
+        run: |
+          $clientFile = "${{ github.workspace }}/src/BambuMan.Shared/TagApiService.cs"
+          (Get-Content $clientFile) `
+            -replace '___HMAC_SECRET_PLACEHOLDER___', '${{ secrets.ANDROID_HMAC_KEY }}' |
+          Set-Content $clientFile
         
       - name: Decode keystore file
         run: |
@@ -79,6 +87,14 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+          
+      - name: Inject Production Secrets
+        shell: pwsh
+        run: |
+          $clientFile = "${{ github.workspace }}/src/BambuMan.Shared/TagApiService.cs"
+          (Get-Content $clientFile) `
+            -replace '___HMAC_SECRET_PLACEHOLDER___', '${{ secrets.ANDROID_HMAC_KEY }}' |
+          Set-Content $clientFile
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4

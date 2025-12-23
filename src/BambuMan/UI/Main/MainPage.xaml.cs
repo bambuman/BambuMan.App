@@ -24,10 +24,11 @@ namespace BambuMan.UI.Main
         private readonly ILogger<MainPage> logger;
         private readonly IToneGenerator? toneGenerator;
         private readonly IInvokeIndent invokeIndent;
+        private readonly TagApiService tagApiService;
         private Spool? currentSpool;
         private BambuFillamentInfo? currentBambuFillamentInfo;
 
-        public MainPage(MainPageViewModel viewModel, SpoolmanManager spoolmanManager, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent)
+        public MainPage(MainPageViewModel viewModel, SpoolmanManager spoolmanManager, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService)
         {
             InitializeComponent();
 
@@ -36,11 +37,25 @@ namespace BambuMan.UI.Main
             this.logger = logger;
             this.toneGenerator = toneGenerator;
             this.invokeIndent = invokeIndent;
+            this.tagApiService = tagApiService;
+            this.tagApiService.LogAction = async void (level, message) =>
+            {
+                try
+                {
+                    await viewModel.AddLog(level, message);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error in TagApiService");
+                }
+            };
+
             this.viewModel = viewModel;
             BindingContext = viewModel;
 
             viewModel.ShowLogsOnMainPage = Preferences.Default.Get(SettingsPage.ShowLogsOnMainPage, true);
             viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
+            viewModel.FullTagScanAndUpload = Preferences.Default.Get(SettingsPage.FullTagScanAndUpload, false);
 
             spoolmanManager.AppVersion = BuildVersionModel.CurrentBuildVersion;
             spoolmanManager.ShowLogs = true;
@@ -291,6 +306,7 @@ namespace BambuMan.UI.Main
 
             viewModel.EventsAlreadySubscribed = true;
 
+            CrossNfc.Current.FullTagScanAndUpload = viewModel.FullTagScanAndUpload;
             CrossNfc.Current.OnMessageReceived += Current_OnMessageReceived;
             CrossNfc.Current.OnNfcStatusChanged += Current_OnNfcStatusChanged;
             CrossNfc.Current.OnTagListeningStatusChanged += Current_OnTagListeningStatusChanged;
@@ -365,6 +381,10 @@ namespace BambuMan.UI.Main
 
                 if (tagInfo is BambuFillamentInfo bambuFillamentInfo)
                 {
+#if DEBUG
+                    await viewModel.AddLog(LogLevel.Information, $"Nfc read time: {bambuFillamentInfo.ReadTime:0.###}ms");
+#endif
+
                     var json = JsonConvert.SerializeObject(bambuFillamentInfo, Formatting.Indented);
                     await viewModel.AddLog(LogLevel.Information, json);
 
@@ -375,6 +395,9 @@ namespace BambuMan.UI.Main
 
                     await viewModel.ClearMessages();
                     await spoolmanManager.InventorySpool(bambuFillamentInfo, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+
+                    if (viewModel.FullTagScanAndUpload) await tagApiService.UploadNfcTagAsync(bambuFillamentInfo);
+
                     return;
                 }
 

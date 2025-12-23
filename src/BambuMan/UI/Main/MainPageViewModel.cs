@@ -1,9 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using BambuMan.Shared;
+﻿using BambuMan.Shared;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SpoolMan.Api.Model;
+using System.Collections.ObjectModel;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.UI.Main
@@ -49,11 +49,13 @@ namespace BambuMan.UI.Main
 
         [ObservableProperty] private bool newVersionAvailable;
         [ObservableProperty] private string? newVersionText = "New version available";
-        
+
         [ObservableProperty] private IEnumerable<string> existingLocations = [];
 
         [ObservableProperty] private bool showLogsOnMainPage;
         [ObservableProperty] private bool showKeyboardOnSpoolRead;
+
+        [ObservableProperty] private bool fullTagScanAndUpload;
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
@@ -134,13 +136,13 @@ namespace BambuMan.UI.Main
 
             if (spoolmanManager.Status >= SpoolmanManagerStatusType.Ready) SpoolmanOk = true;
 
-            if(!SpoolmanConnecting && !NfcIsEnabled)
+            if (!SpoolmanConnecting && !NfcIsEnabled)
                 await ShowErrorMessage("NFC is not enabled. Check if you're phone supports nfc.");
         }
 
         public void InventorySpool(Spool spool, BambuFillamentInfo info)
         {
-            if(info.TrayUid == null) return;
+            if (info.TrayUid == null) return;
 
             HasInventoryItems = true;
 
@@ -159,4 +161,4 @@ namespace BambuMan.UI.Main
             }
         }
     }
-} 
+}

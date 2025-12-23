@@ -1,12 +1,13 @@
 ﻿// ReSharper disable LocalizableElement
 
-using PCSC.Monitoring;
+using BambuMan.Shared;
+using Newtonsoft.Json;
 using PCSC;
 using PCSC.Exceptions;
 using PCSC.Iso7816;
+using PCSC.Monitoring;
+using System.Diagnostics;
 using System.Security.Cryptography;
-using Newtonsoft.Json;
-using BambuMan.Shared;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.Desktop;
@@ -26,6 +27,8 @@ public class NfcReader
     public bool ShowLogs { get; set; }
 
     public bool WriteJsonFiles { get; set; }
+
+    public bool FullTagScanAndUpload { get; set; }
 
     public void Start()
     {
@@ -60,81 +63,83 @@ public class NfcReader
 
             var atr = BitConverter.ToString(args.Atr);
 
-            if (atr == "3B-8F-80-01-80-4F-0C-A0-00-00-03-06-03-00-01-00-00-00-00-6A" || atr == "3B-8B-80-01-00-12-23-3F-53-65-49-44-0F-90-00-A0")
-            {
-                using (reader.Transaction(SCardReaderDisposition.Leave))
-                {
-                    var start = DateTime.Now;
-
-                    var uidData = SendCmd("Get card UID:", reader, [0xff, 0xCA, 0x00, 0x00, 0x00]);
-
-                    if (uidData != null)
-                    {
-                        var fillamentInfo = new BambuFillamentInfo(uidData);
-
-                        OnLogMessage?.Invoke(LogLevel.Information, $"NFC with UID: {fillamentInfo.SerialNumber}");
-
-                        #region Generate Keys
-
-                        var master = new byte[] { 0x9a, 0x75, 0x9c, 0xf2, 0xc4, 0xf7, 0xca, 0xff, 0x22, 0x2c, 0xb9, 0x76, 0x9b, 0x41, 0xbc, 0x96 };
-                        var context = "RFID-A\0"u8.ToArray();
-
-                        var primary = HKDF.Extract(HashAlgorithmName.SHA256, uidData, salt: master);
-                        var dest = HKDF.Expand(HashAlgorithmName.SHA256, primary, 6 * 16, context);
-
-                        var keys = Enumerable.Range(0, 16).Select(x => dest[new Range(x * 6, x * 6 + 6)]).ToArray();
-
-                        if (ShowLogs) OnLogMessage?.Invoke(LogLevel.Debug, $"Mifare nfc keys: {string.Join(", ", keys.Select(key => BitConverter.ToString(key).Replace("-", "").ToLower()))}");
-
-                        #endregion
-
-                        #region Read Blocks
-
-                        var blockData = new byte[20][];
-
-                        var blockNum = 0;
-
-                        for (var i = 0; i < 5; i++)
-                        {
-                            SendCmd("Load Key: ", reader, new byte[] { 0xFF, 0x82, 0x00, 0x00, 0x06 }.Concat(keys[i]).ToArray());
-                            SendCmd("Authenticate: ", reader, [0xFF, 0x86, 0x00, 0x00, 0x05, 0x01, 0x00, (byte)blockNum, 0x60, 0x00]);
-
-                            for (var ii = 0; ii < 3; ii++)
-                            {
-                                blockData[blockNum] = SendCmd("Read Binary: ", reader, [0xFF, 0xB0, 0x00, (byte)blockNum, 0x10]) ?? [16];
-                                blockNum++;
-                            }
-
-                            blockNum++;
-                        }
-
-                        #endregion
-
-                        #region Parse tag data
-
-                        fillamentInfo.ParseData(blockData);
-
-                        #endregion
-
-                        if (WriteJsonFiles)
-                        {
-                            if (!Directory.Exists("bambu_nfc_jsons")) Directory.CreateDirectory("bambu_nfc_jsons");
-                            File.WriteAllText(Path.Combine("bambu_nfc_jsons", $"{DateTime.Now:yyyy-MM-dd_HHmmss}_{fillamentInfo.TrayUid}.json"), JsonConvert.SerializeObject(fillamentInfo, Formatting.Indented));
-                        }
-
-                        OnSpoolFound?.Invoke(fillamentInfo);
-                    }
-                    else
-                    {
-                        OnLogMessage?.Invoke(LogLevel.Error, "Can't get UID");
-                    }
-
-                    if (ShowLogs) OnLogMessage?.Invoke(LogLevel.Debug, $"Time taken: {(DateTime.Now - start).TotalMilliseconds:0.###}ms");
-                }
-            }
-            else
+            if (atr != "3B-8F-80-01-80-4F-0C-A0-00-00-03-06-03-00-01-00-00-00-00-6A" && atr != "3B-8B-80-01-00-12-23-3F-53-65-49-44-0F-90-00-A0")
             {
                 OnLogMessage?.Invoke(LogLevel.Warning, $"Non mifare nfc! ATR: {atr} ");
+                return;
+            }
+
+            using (reader.Transaction(SCardReaderDisposition.Leave))
+            {
+                var start = DateTime.Now;
+
+                var uidData = SendCmd("Get card UID:", reader, [0xff, 0xCA, 0x00, 0x00, 0x00]);
+
+                if (uidData == null)
+                {
+                    OnLogMessage?.Invoke(LogLevel.Error, "Can't get UID");
+                    return;
+                }
+
+                var bambuTagInfo = new BambuFillamentInfo(uidData);
+
+                OnLogMessage?.Invoke(LogLevel.Information, $"NFC with UID: {bambuTagInfo.SerialNumber}");
+
+                #region Generate Keys
+
+                var master = new byte[] { 0x9a, 0x75, 0x9c, 0xf2, 0xc4, 0xf7, 0xca, 0xff, 0x22, 0x2c, 0xb9, 0x76, 0x9b, 0x41, 0xbc, 0x96 };
+                var context = "RFID-A\0"u8.ToArray();
+
+                var primary = HKDF.Extract(HashAlgorithmName.SHA256, uidData, salt: master);
+                var dest = HKDF.Expand(HashAlgorithmName.SHA256, primary, 6 * 16, context);
+
+                var keys = Enumerable.Range(0, 16).Select(x => dest[new Range(x * 6, x * 6 + 6)]).ToArray();
+
+                if (ShowLogs) OnLogMessage?.Invoke(LogLevel.Debug, $"Mifare nfc keys: {string.Join(", ", keys.Select(key => BitConverter.ToString(key).Replace("-", "").ToLower()))}");
+
+                #endregion
+
+                #region Read Blocks
+
+                var tagReadStart = DateTime.Now;
+
+                var blockData = FullTagScanAndUpload ? new byte[64][] : new byte[20][];
+
+                for (var i = 0; i < (FullTagScanAndUpload ? 16 : 5); i++)
+                {
+                    var blockNum = i * 4;
+
+                    SendCmd("Load Key: ", reader, new byte[] { 0xFF, 0x82, 0x00, 0x00, 0x06 }.Concat(keys[i]).ToArray());
+                    SendCmd("Authenticate: ", reader, [0xFF, 0x86, 0x00, 0x00, 0x05, 0x01, 0x00, (byte)blockNum, 0x60, 0x00]);
+
+                    for (var ii = 0; ii < (FullTagScanAndUpload ? 4 : 3); ii++)
+                    {
+                        blockData[blockNum] = SendCmd("Read Binary: ", reader, [0xFF, 0xB0, 0x00, (byte)blockNum, 0x10]) ?? [16];
+                        blockNum++;
+                    }
+                }
+
+                #endregion
+
+                #region Parse tag data
+
+                bambuTagInfo.ReadTime = (DateTime.Now - tagReadStart).TotalMilliseconds;
+                bambuTagInfo.ParseData(blockData, keys, fullRead: FullTagScanAndUpload);
+
+                Debug.WriteLine($"Nfc read time: {bambuTagInfo.ReadTime:0.###}ms");
+
+                #endregion
+
+                if (WriteJsonFiles)
+                {
+                    if (!Directory.Exists("bambu_nfc_jsons")) Directory.CreateDirectory("bambu_nfc_jsons");
+                    File.WriteAllText(Path.Combine("bambu_nfc_jsons", $"{DateTime.Now:yyyy-MM-dd_HHmmss}_{bambuTagInfo.TrayUid}.json"), JsonConvert.SerializeObject(bambuTagInfo, Formatting.Indented));
+                }
+
+                OnSpoolFound?.Invoke(bambuTagInfo);
+
+                if (ShowLogs) OnLogMessage?.Invoke(LogLevel.Debug, $"Time taken: {(DateTime.Now - start).TotalMilliseconds:0.###}ms");
+                else Debug.WriteLine($"Time taken: {(DateTime.Now - start).TotalMilliseconds:0.###}ms");
             }
         }
         catch (UnresponsiveCardException)
