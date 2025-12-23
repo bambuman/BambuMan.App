@@ -7,12 +7,12 @@ namespace BambuMan.Shared
 {
     public class TagApiService
     {
-#if !DEBUG
+#if DEBUG
         public const string ApiUrl = "https://test.bambuman.ee/api/";
-        private const string Secret = "/xxMTXigeJVKuhfYeWFlwF1tjnFlcDFGLmAWuzIZMOs="; // Same as server
+        private const string Stamp = "/xxMTXigeJVKuhfYeWFlwF1tjnFlcDFGLmAWuzIZMOs="; // Same as server
 #else
         public const string ApiUrl = "https://bambuman.ee/api/";
-        private const string Secret =
+        private const string Stamp =
 #if INJECT_SECRET
         HMAC_SECRET_VALUE;
 #else
@@ -61,7 +61,7 @@ namespace BambuMan.Shared
             message.AddRange(bambuFillamentInfo.BlockData ?? []);
             message.AddRange(bambuFillamentInfo.Keys ?? []);
 
-            using var hmac = new System.Security.Cryptography.HMACSHA256(Encoding.UTF8.GetBytes(Secret));
+            using var hmac = new System.Security.Cryptography.HMACSHA256(Encoding.UTF8.GetBytes(Stamp));
             var hash = hmac.ComputeHash(message.ToArray());
 
             return Convert.ToBase64String(hash);
