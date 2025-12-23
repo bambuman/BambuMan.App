@@ -22,7 +22,7 @@ namespace BambuMan.Shared
 
         private readonly HttpClient httpClient;
 
-        public Action<LogLevel, string> LogAction { get; set; }
+        public Action<LogLevel, string>? LogAction { get; set; }
 
         public TagApiService(HttpClient httpClient)
         {
@@ -37,7 +37,7 @@ namespace BambuMan.Shared
                 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 var signature = ComputeSignature(timestamp, bambuFillamentInfo);
 
-                var upload = new NfcTagUpload(timestamp, signature, bambuFillamentInfo.SerialNumber, bambuFillamentInfo.Identifier, bambuFillamentInfo.BlockData);
+                var upload = new NfcTagUpload(timestamp, signature, bambuFillamentInfo.SerialNumber, bambuFillamentInfo.Identifier, bambuFillamentInfo.BlockData ?? []);
 
                 var response = await httpClient.PutAsJsonAsync("nfc", upload);
 
