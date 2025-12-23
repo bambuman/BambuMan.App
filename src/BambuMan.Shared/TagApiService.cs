@@ -8,16 +8,11 @@ namespace BambuMan.Shared
     public class TagApiService
     {
 #if DEBUG
-        public const string ApiUrl = "https://test.bambuman.ee/api/";
+        private const string ApiUrl = "https://test.bambuman.ee/api/";
         private const string Stamp = "/xxMTXigeJVKuhfYeWFlwF1tjnFlcDFGLmAWuzIZMOs="; // Same as server
 #else
-        public const string ApiUrl = "https://bambuman.ee/api/";
-        private const string Stamp =
-#if INJECT_SECRET
-        HMAC_SECRET_VALUE;
-#else
-        ""; // Fallback - will cause runtime error if not injected
-#endif
+        private const string ApiUrl = "https://bambuman.ee/api/";
+        private const string Secret = "___HMAC_SECRET_PLACEHOLDER___";
 #endif
 
         private readonly HttpClient httpClient;

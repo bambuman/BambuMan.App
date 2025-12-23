@@ -16,10 +16,6 @@
 		<PublishReadyToRun>false</PublishReadyToRun>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'Release' AND '$(HmacSecret)' != ''">
-		<DefineConstants>$(DefineConstants);INJECT_SECRET;HMAC_SECRET_VALUE="$(HmacSecret)"</DefineConstants>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<Content Include="appiconv2.ico" />
 	</ItemGroup>
