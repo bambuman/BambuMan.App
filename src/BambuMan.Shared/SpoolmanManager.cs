@@ -365,6 +365,35 @@ namespace BambuMan.Shared
 
         public async Task<ExternalFilament?> FindExternalFilament(BambuFillamentInfo info)
         {
+            var result = await FindExternalFilament(BambuLabExternalFilaments, info);
+
+            var spoolmanErrorLevel = UnknownFilamentEnabled ? SpoolmanManagerStatusType.Ready : SpoolmanManagerStatusType.Error;
+            var logLevel = UnknownFilamentEnabled ? LogLevel.Warning : LogLevel.Error;
+
+            switch (result.Count)
+            {
+                case > 1:
+                    {
+                        foreach (var item in result)
+                        {
+                            await Log(LogLevel.Debug, item.ToString());
+                        }
+
+                        await LogAndSetStatus(spoolmanErrorLevel, logLevel, "Found more then 1 matching filament", new Exception($"{JsonConvert.SerializeObject(info)}\r\n{string.Join("\t\n", result.Select(x => x.ToString()))}"));
+                        OnPlayErrorTone?.Invoke();
+                        return null;
+                    }
+                case 0:
+                    await LogAndSetStatus(spoolmanErrorLevel, logLevel, "No matching filament found", new Exception($"{JsonConvert.SerializeObject(info)}"));
+                    OnPlayErrorTone?.Invoke();
+                    return null;
+            }
+
+            return result.First();
+        }
+
+        public static Task<List<ExternalFilament>> FindExternalFilament(List<ExternalFilament> externalFilaments, BambuFillamentInfo info)
+        {
             var transparentFilaments = new[]
             {
                 "bambulab_pc_clearblack_1000_175_n",
@@ -376,7 +405,7 @@ namespace BambuMan.Shared
             var transparent = opacity < 255;
             var color = hexColor;
 
-            var query = BambuLabExternalFilaments.AsQueryable();
+            var query = externalFilaments.AsQueryable();
 
             query = query.Where(x => x.Material.EqualsCI(info.FilamentType) ||
                                      info.DetailedFilamentType.EqualsCI("PA6-GF") && x.Material.EqualsCI("PA6-GF") ||
@@ -405,7 +434,7 @@ namespace BambuMan.Shared
             var resultWitColor = query.ToArray();
 #endif
 
-            query = query.Where(x => (transparentFilaments.Contains(x.Id) && transparent) || x.Translucent == transparent || x.Translucent == null && !transparent);
+            query = query.Where(x => (transparentFilaments.AsEnumerable().Contains(x.Id) && transparent) || x.Translucent == transparent || x.Translucent == null && !transparent);
 
 #if DEBUG
             var resultWitTransparency = query.ToArray();
@@ -432,7 +461,7 @@ namespace BambuMan.Shared
                     hexColor = "FFFFFF";
                 }
 
-                query = BambuLabExternalFilaments
+                query = externalFilaments
                     .Where(x => x.Name.StartsWithCI(nameToSearch) || x.Name.StartsWithCI(nameToSearchDe))
                     .Where(x => x.ColorHex.EqualsCI(hexColor)).AsQueryable();
             }
@@ -449,7 +478,7 @@ namespace BambuMan.Shared
                 if (info.MaterialVariantIdentifier.EqualsCI("A00-M5")) colors = ["6FCAEF", "8573DD"];
                 if (info.MaterialVariantIdentifier.EqualsCI("A00-M6")) colors = ["ED9558", "CE4406"];
 
-                query = BambuLabExternalFilaments
+                query = externalFilaments
                     .Where(x => x.Material == info.FilamentType)
                     .Where(x => x.ColorHexes != null && colors.All(c => x.ColorHexes.Contains(c, StringComparer.OrdinalIgnoreCase))).AsQueryable();
             }
@@ -512,29 +541,7 @@ namespace BambuMan.Shared
 
             #endregion
 
-            var spoolmanErrorLevel = UnknownFilamentEnabled ? SpoolmanManagerStatusType.Ready : SpoolmanManagerStatusType.Error;
-            var logLevel = UnknownFilamentEnabled ? LogLevel.Warning : LogLevel.Error;
-
-            switch (result.Count)
-            {
-                case > 1:
-                    {
-                        foreach (var item in result)
-                        {
-                            await Log(LogLevel.Debug, item.ToString());
-                        }
-
-                        await LogAndSetStatus(spoolmanErrorLevel, logLevel, "Found more then 1 matching filament", new Exception($"{JsonConvert.SerializeObject(info)}\r\n{string.Join("\t\n", result.Select(x => x.ToString()))}"));
-                        OnPlayErrorTone?.Invoke();
-                        return null;
-                    }
-                case 0:
-                    await LogAndSetStatus(spoolmanErrorLevel, logLevel, "No matching filament found", new Exception($"{JsonConvert.SerializeObject(info)}"));
-                    OnPlayErrorTone?.Invoke();
-                    return null;
-            }
-
-            return result.First();
+            return Task.FromResult(result);
         }
 
         private async Task<Filament?> AddOrUpdateFilament(ExternalFilament externalFilament, decimal? price, BambuFillamentInfo info)
