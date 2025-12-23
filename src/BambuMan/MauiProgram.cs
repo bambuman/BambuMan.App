@@ -95,6 +95,7 @@ namespace BambuMan
             services.AddTransient<ScanPage>();
             services.AddSingleton<LogService>();
             services.AddSingleton<TagApiService>();
+            services.AddHttpClient();
         }
 
         private static void AddServices(IServiceCollection services)
