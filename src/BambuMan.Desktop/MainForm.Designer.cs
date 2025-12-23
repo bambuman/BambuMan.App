@@ -38,6 +38,7 @@
             writeJsonFilesOnReadToolStripMenuItem = new ToolStripMenuItem();
             logSpoolmanApiToolStripMenuItem = new ToolStripMenuItem();
             unknownFilamentEnabledToolStripMenuItem = new ToolStripMenuItem();
+            fullTagScanAndUploadToolStripMenuItem = new ToolStripMenuItem();
             clearLogsToolStripMenuItem = new ToolStripMenuItem();
             testTagToolStripMenuItem = new ToolStripMenuItem();
             txtSpoolmanUrl = new TextBox();
@@ -108,7 +109,7 @@
             // 
             // optionsToolStripMenuItem
             // 
-            optionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { showNfcLogsToolStripMenuItem, showADBCommandsToolStripMenuItem, writeJsonFilesOnReadToolStripMenuItem, logSpoolmanApiToolStripMenuItem, unknownFilamentEnabledToolStripMenuItem });
+            optionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { showNfcLogsToolStripMenuItem, showADBCommandsToolStripMenuItem, writeJsonFilesOnReadToolStripMenuItem, logSpoolmanApiToolStripMenuItem, unknownFilamentEnabledToolStripMenuItem, fullTagScanAndUploadToolStripMenuItem });
             optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             optionsToolStripMenuItem.Size = new Size(61, 20);
             optionsToolStripMenuItem.Text = "Options";
@@ -162,6 +163,14 @@
             unknownFilamentEnabledToolStripMenuItem.Size = new Size(219, 22);
             unknownFilamentEnabledToolStripMenuItem.Text = "Unknown Filament Enabled";
             unknownFilamentEnabledToolStripMenuItem.CheckStateChanged += unknownFilamentEnabledToolStripMenuItem_CheckStateChanged;
+            // 
+            // fullTagScanAndUploadToolStripMenuItem
+            // 
+            fullTagScanAndUploadToolStripMenuItem.CheckOnClick = true;
+            fullTagScanAndUploadToolStripMenuItem.Name = "fullTagScanAndUploadToolStripMenuItem";
+            fullTagScanAndUploadToolStripMenuItem.Size = new Size(219, 22);
+            fullTagScanAndUploadToolStripMenuItem.Text = "Full tag scan and upload";
+            fullTagScanAndUploadToolStripMenuItem.CheckStateChanged += fullTagScanAndUploadToolStripMenuItem_CheckStateChanged;
             // 
             // clearLogsToolStripMenuItem
             // 
@@ -588,5 +597,6 @@
         private DateTimePicker dtpSpoolBuyDate;
         private ToolStripMenuItem testTagToolStripMenuItem;
         private ToolStripMenuItem unknownFilamentEnabledToolStripMenuItem;
+        private ToolStripMenuItem fullTagScanAndUploadToolStripMenuItem;
     }
 }

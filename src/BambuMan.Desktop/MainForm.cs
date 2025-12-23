@@ -1,10 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using BambuMan.Shared;
 using BambuMan.Shared.Enums;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using SpoolMan.Api.Model;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.Desktop;
@@ -18,6 +18,7 @@ public partial class MainForm : Form
     private const string RegKeyLogSpoolmanApi = "LogSpoolmanApi";
     private const string RegKeySpoolmanUrl = "SpoolmanUrl";
     private const string RegKeyUnknownFilamentEnabled = "UnknownFilamentEnabled";
+    private const string RegKeyFullTagScanAndUpload = "FullTagScanAndUpload";
 
     private const string RegKeyPrice = "Price";
     private const string RegKeyLocation = "Location";
@@ -40,6 +41,7 @@ public partial class MainForm : Form
         writeJsonFilesOnReadToolStripMenuItem.Checked = GetRegistryValue(RegKeyWriteJsonFiles, false);
         logSpoolmanApiToolStripMenuItem.Checked = GetRegistryValue(RegKeyLogSpoolmanApi, false);
         unknownFilamentEnabledToolStripMenuItem.Checked = GetRegistryValue(RegKeyUnknownFilamentEnabled, true);
+        fullTagScanAndUploadToolStripMenuItem.Checked = GetRegistryValue(RegKeyFullTagScanAndUpload, false);
         txtSpoolmanUrl.Text = GetRegistryValue(RegKeySpoolmanUrl, string.Empty);
         nudPrice.Value = GetRegistryValue(RegKeyPrice, 12.0m);
         txtLocation.Text = GetRegistryValue(RegKeyLocation, string.Empty);
@@ -48,7 +50,8 @@ public partial class MainForm : Form
         {
             ShowLogs = showNfcLogsToolStripMenuItem.Checked,
             ShowApduCommands = showADBCommandsToolStripMenuItem.Checked,
-            WriteJsonFiles = writeJsonFilesOnReadToolStripMenuItem.Checked
+            WriteJsonFiles = writeJsonFilesOnReadToolStripMenuItem.Checked,
+            FullTagScanAndUpload = fullTagScanAndUploadToolStripMenuItem.Checked,
         };
 
         nfcReader.OnLogMessage += NfcReaderOnOnLogMessage;
@@ -229,6 +232,12 @@ public partial class MainForm : Form
         if (spoolmanManager != null) spoolmanManager.UnknownFilamentEnabled = value;
     }
 
+    private void fullTagScanAndUploadToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
+    {
+        var value = SetRegistryValue(RegKeyFullTagScanAndUpload, fullTagScanAndUploadToolStripMenuItem.Checked);
+        if (nfcReader != null) nfcReader.FullTagScanAndUpload = value;
+    }
+
     private void nudPrice_ValueChanged(object sender, EventArgs e)
     {
         SetRegistryValue(RegKeyPrice, nudPrice.Value);
@@ -334,79 +343,79 @@ public partial class MainForm : Form
     {
         #region Decode raw files
 
-//        try
-//        {
-//            var files = new DirectoryInfo(@"C:\_Repos\_bambuman\Bambu-Lab-RFID-Library\bin").GetFiles("*", SearchOption.AllDirectories);
+        //        try
+        //        {
+        //            var files = new DirectoryInfo(@"C:\_Repos\_bambuman\Bambu-Lab-RFID-Library\bin").GetFiles("*", SearchOption.AllDirectories);
 
-//            var classes = new List<string>();
+        //            var classes = new List<string>();
 
-//            foreach (var materialGroup in files.GroupBy(x => x.Directory?.Parent?.Parent?.Name ?? ""))
-//            {
-//                var className = ConvertToCamelCase(materialGroup.Key);
+        //            foreach (var materialGroup in files.GroupBy(x => x.Directory?.Parent?.Parent?.Name ?? ""))
+        //            {
+        //                var className = ConvertToCamelCase(materialGroup.Key);
 
-//                var methods = new List<string>();
+        //                var methods = new List<string>();
 
-//                foreach (var typeGroup in materialGroup.GroupBy(x => x.Directory?.Parent?.Name ?? ""))
-//                {
-//                    var methodName = ConvertToCamelCase(typeGroup.Key);
+        //                foreach (var typeGroup in materialGroup.GroupBy(x => x.Directory?.Parent?.Name ?? ""))
+        //                {
+        //                    var methodName = ConvertToCamelCase(typeGroup.Key);
 
-//                    var dataFile = typeGroup.First();
+        //                    var dataFile = typeGroup.First();
 
-//                    var data = await File.ReadAllBytesAsync(dataFile.FullName);
+        //                    var data = await File.ReadAllBytesAsync(dataFile.FullName);
 
-//                    var blockData = new byte[20][];
+        //                    var blockData = new byte[20][];
 
-//                    var blockNum = 0;
+        //                    var blockNum = 0;
 
-//                    for (var i = 0; i < 5; i++)
-//                    {
-//                        for (var ii = 0; ii < 3; ii++)
-//                        {
-//                            blockData[blockNum] = data.Skip(blockNum * 16).Take(16).ToArray();
-//                            //SendCmd("Read Binary: ", reader, [0xFF, 0xB0, 0x00, (byte)blockNum, 0x10]) ?? [16];
-//                            blockNum++;
-//                        }
+        //                    for (var i = 0; i < 5; i++)
+        //                    {
+        //                        for (var ii = 0; ii < 3; ii++)
+        //                        {
+        //                            blockData[blockNum] = data.Skip(blockNum * 16).Take(16).ToArray();
+        //                            //SendCmd("Read Binary: ", reader, [0xFF, 0xB0, 0x00, (byte)blockNum, 0x10]) ?? [16];
+        //                            blockNum++;
+        //                        }
 
-//                        blockNum++;
-//                    }
+        //                        blockNum++;
+        //                    }
 
-//                    var info = new BambuFillamentInfo();
-//                    info.ParseData(blockData, true);
+        //                    var info = new BambuFillamentInfo();
+        //                    info.ParseData(blockData, true);
 
-//                    var infoJson = JsonConvert.SerializeObject(info, Formatting.None);
+        //                    var infoJson = JsonConvert.SerializeObject(info, Formatting.None);
 
-//                    methods.Add(@$"
-//        [Fact(DisplayName = ""{methodName}"")]
-//        public async Task {methodName}()
-//        {{
-//            var json = ""{infoJson.Replace("\"", "\\\"")}"";
+        //                    methods.Add(@$"
+        //        [Fact(DisplayName = ""{methodName}"")]
+        //        public async Task {methodName}()
+        //        {{
+        //            var json = ""{infoJson.Replace("\"", "\\\"")}"";
 
-//            var (_, external) = await GetExternalFilament(json);
-            
-//            Assert.Equal(""{typeGroup.Key}"", external?.Name);
-//            Assert.Equal(""{info.DetailedFilamentType}"", external?.Material);
-//        }}");
-//                }
+        //            var (_, external) = await GetExternalFilament(json);
 
-
-//                classes.Add(@$"namespace BambuMan.Shared.Test.Filaments
-//{{
-//    [Trait(""Category"", ""{materialGroup.Key}"")]
-//    public class {className}Test : BaseTest
-//    {{
-//{string.Join("\r\n", methods)}
-//    }}
-//}}
-//");
-//            }
+        //            Assert.Equal(""{typeGroup.Key}"", external?.Name);
+        //            Assert.Equal(""{info.DetailedFilamentType}"", external?.Material);
+        //        }}");
+        //                }
 
 
-//            File.WriteAllText("D:\\tests.txt", string.Join("\r\n", classes));
-//        }
-//        catch (Exception ex)
-//        {
-//            AppendText(LogLevel.Error, ex.ToString());
-//        }
+        //                classes.Add(@$"namespace BambuMan.Shared.Test.Filaments
+        //{{
+        //    [Trait(""Category"", ""{materialGroup.Key}"")]
+        //    public class {className}Test : BaseTest
+        //    {{
+        //{string.Join("\r\n", methods)}
+        //    }}
+        //}}
+        //");
+        //            }
+
+
+        //            File.WriteAllText("D:\\tests.txt", string.Join("\r\n", classes));
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            AppendText(LogLevel.Error, ex.ToString());
+        //        }
 
         #endregion
 
@@ -420,7 +429,7 @@ public partial class MainForm : Form
         //var json = "{\"SerialNumber\":\"5B1449F6\",\"TagManufacturerData\":\"8AgEAATrOVf5DLaQ\",\"MaterialVariantIdentifier\":\"A16-G0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"918669FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"4663E9ADF9CC454380EB58CE627BFE72\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-11T00:38:00\",\"ProductionDateTimeShort\":\"25_03_11_00\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-G0-1.75-1000\"}";
         //var json = "{\"SerialNumber\":\"C3DB40A2\",\"TagManufacturerData\":\"+ggEAARS8na7x5uQ\",\"MaterialVariantIdentifier\":\"A00-D0\",\"UniqueMaterialIdentifier\":\"FA00\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Basic\",\"Color\":\"8E9089FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":55,\"DryingTime\":8,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"0AfQB+gD6AOamRk/\",\"NozzleDiameter\":0.2,\"TrayUid\":\"F1FACEE5124249F6AEB7DCEC0AAE0C4F\",\"SpoolWidth\":2875,\"ProductionDateTime\":\"2025-01-20T19:14:00\",\"ProductionDateTimeShort\":\"20250120\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A00-D0-1.75-1000\"}";
         //var json = "{\"SerialNumber\":\"83EC9A1C\",\"TagManufacturerData\":\"6QgEAAR8EZ2x4zmQ\",\"MaterialVariantIdentifier\":\"A17-R1\",\"UniqueMaterialIdentifier\":\"FA17\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Translucent\",\"Color\":\"F5B6CD80\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":55,\"DryingTime\":8,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":240,\"MinTemperatureForHotend\":200,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"2DC9E553D1924FA89FBB893C9E921DBA\",\"SpoolWidth\":666,\"ProductionDateTime\":\"2024-12-20T09:40:00\",\"ProductionDateTimeShort\":\"20241220\",\"FilamentLength\":345,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A17-R1-1.75-1000\"}";
-        
+
         var json = "{\"SerialNumber\":\"5B1449F6\",\"TagManufacturerData\":\"8AgEAATrOVf5DLaQ\",\"MaterialVariantIdentifier\":\"A16-G0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"918669FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"4663E9ADF9CC454380EB58CE627BFE72\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-11T00:38:00\",\"ProductionDateTimeShort\":\"25_03_11_00\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-G0-1.75-1000\"}";
 
         var bambuFillamentInfo = JsonConvert.DeserializeObject<BambuFillamentInfo>(json);

@@ -3,13 +3,13 @@ using Android.App;
 using Android.Content;
 using Android.Nfc;
 using Android.Nfc.Tech;
+using BambuMan.Shared;
+using BambuMan.Shared.Nfc;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
-using BambuMan.Shared;
 using Activity = Android.App.Activity;
 using Debug = System.Diagnostics.Debug;
-using BambuMan.Shared.Nfc;
 
 #pragma warning disable CS0067
 
@@ -46,6 +46,8 @@ namespace BambuMan
         /// </summary>
         Activity? CurrentActivity => CrossNfc.GetCurrentActivity(true);
 
+        public bool FullTagScanAndUpload { get; set; }
+
         /// <summary>
         /// Checks if NFC Feature is available
         /// </summary>
@@ -72,7 +74,7 @@ namespace BambuMan
         /// NFC configuration
         /// </summary>
         public NfcConfiguration Configuration { get; } = NfcConfiguration.GetDefaultConfiguration();
-        
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -421,16 +423,18 @@ namespace BambuMan
 
                     #region Read Blocks
 
-                    var blockData = new byte[20][];
+                    var tagReadStart = DateTime.Now;
 
-                    for (var i = 0; i < 5; i++)
+                    var blockData = FullTagScanAndUpload ? new byte[64][] : new byte[20][];
+
+                    for (var i = 0; i < (FullTagScanAndUpload ? 16 : 5); i++)
                     {
                         var blockNum = i * 4;
 
                         var authA = mfc.AuthenticateSectorWithKeyA(i, keys[i]);
                         if (!authA) continue;
 
-                        for (var ii = 0; ii < 3; ii++)
+                        for (var ii = 0; ii < (FullTagScanAndUpload ? 4 : 3); ii++)
                         {
                             try
                             {
@@ -445,13 +449,17 @@ namespace BambuMan
                         }
                     }
 
-                    bambuTagInfo.ParseData(blockData);
+                    bambuTagInfo.ReadTime = (DateTime.Now - tagReadStart).TotalMilliseconds;
+                    bambuTagInfo.ParseData(blockData, fullRead: FullTagScanAndUpload);
 
                     #endregion
 
-                    var json = JsonConvert.SerializeObject(bambuTagInfo, Formatting.Indented);
+                    Debug.WriteLine($"Nfc read time: {bambuTagInfo.ReadTime:0.###}ms");
 
+#if DEBUG
+                    var json = JsonConvert.SerializeObject(bambuTagInfo, Formatting.Indented);
                     Debug.WriteLine(json);
+#endif
 
                     return bambuTagInfo;
                 }

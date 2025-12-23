@@ -20,6 +20,7 @@ public partial class SettingsPage
     public const string UnknownFilamentEnabled = "unknown_filament_enabled";
     public const string ShowLogsOnMainPage = "show_logs_on_main_page";
     public const string ShowKeyboardOnSpoolRead = "show_keyboard_on_spool_read";
+    public const string FullTagScanAndUpload = "full_tag_scan_and_upload";
 
     private readonly SettingsPageViewModel viewModel;
     private readonly ILogger<SettingsPage> logger;
@@ -47,6 +48,7 @@ public partial class SettingsPage
         viewModel.UnknownFilamentEnabled = Preferences.Default.Get(UnknownFilamentEnabled, true);
         viewModel.ShowLogsOnMainPage = Preferences.Default.Get(ShowLogsOnMainPage, true);
         viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(ShowKeyboardOnSpoolRead, true);
+        viewModel.FullTagScanAndUpload = Preferences.Default.Get(FullTagScanAndUpload, false);
 
         try
         {
@@ -75,7 +77,7 @@ public partial class SettingsPage
                     });
                 })
                 .Build();
-            
+
             var settingApi = apiHost.Services.GetRequiredService<ISettingApi>();
 
             var locationsRequest = settingApi.GetSettingSettingKeyGetOrDefaultAsync("locations").Result;
@@ -129,6 +131,8 @@ public partial class SettingsPage
         if (TfShowLogsOnMainPage.IsValid) Preferences.Default.Set(ShowLogsOnMainPage, viewModel.ShowLogsOnMainPage);
 
         if (TfShowKeyboardOnSpoolRead.IsValid) Preferences.Default.Set(ShowKeyboardOnSpoolRead, viewModel.ShowKeyboardOnSpoolRead);
+
+        if (TfFullTagScanAndUpload.IsValid) Preferences.Default.Set(FullTagScanAndUpload, viewModel.FullTagScanAndUpload);
 
         base.OnNavigatingFrom(args);
     }

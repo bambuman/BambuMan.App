@@ -41,6 +41,7 @@ namespace BambuMan.UI.Main
 
             viewModel.ShowLogsOnMainPage = Preferences.Default.Get(SettingsPage.ShowLogsOnMainPage, true);
             viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
+            viewModel.FullTagScanAndUpload = Preferences.Default.Get(SettingsPage.FullTagScanAndUpload, false);
 
             spoolmanManager.AppVersion = BuildVersionModel.CurrentBuildVersion;
             spoolmanManager.ShowLogs = true;
@@ -291,6 +292,7 @@ namespace BambuMan.UI.Main
 
             viewModel.EventsAlreadySubscribed = true;
 
+            CrossNfc.Current.FullTagScanAndUpload = viewModel.FullTagScanAndUpload;
             CrossNfc.Current.OnMessageReceived += Current_OnMessageReceived;
             CrossNfc.Current.OnNfcStatusChanged += Current_OnNfcStatusChanged;
             CrossNfc.Current.OnTagListeningStatusChanged += Current_OnTagListeningStatusChanged;
@@ -365,6 +367,10 @@ namespace BambuMan.UI.Main
 
                 if (tagInfo is BambuFillamentInfo bambuFillamentInfo)
                 {
+#if DEBUG
+                    await viewModel.AddLog(LogLevel.Information, $"Nfc read time: {bambuFillamentInfo.ReadTime:0.###}ms");
+#endif
+
                     var json = JsonConvert.SerializeObject(bambuFillamentInfo, Formatting.Indented);
                     await viewModel.AddLog(LogLevel.Information, json);
 

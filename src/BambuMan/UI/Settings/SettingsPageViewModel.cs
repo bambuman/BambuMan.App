@@ -12,8 +12,9 @@ namespace BambuMan.UI.Settings
         [ObservableProperty] private bool unknownFilamentEnabled;
         [ObservableProperty] private bool showLogsOnMainPage;
         [ObservableProperty] private bool showKeyboardOnSpoolRead;
+        [ObservableProperty] private bool fullTagScanAndUpload;
         [ObservableProperty] private IEnumerable<string> existingLocations = [];
-        
+
         [ObservableProperty] private bool locationsFetched;
 
         public async void ApplyQueryAttributes(IDictionary<string, object> query)

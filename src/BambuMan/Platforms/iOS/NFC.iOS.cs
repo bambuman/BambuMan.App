@@ -1,9 +1,9 @@
-﻿using CoreFoundation;
+﻿using BambuMan.Shared.Nfc;
+using CoreFoundation;
 using CoreNFC;
 using Foundation;
 using System.Text;
 using UIKit;
-using BambuMan.Shared.Nfc;
 // ReSharper disable ConvertTypeCheckPatternToNullCheck
 // ReSharper disable ParameterHidesMember
 // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
@@ -41,6 +41,8 @@ namespace BambuMan
         private INFCTag? tag;
 
         NFCTagReaderSession? NfcSession { get; set; }
+
+        public bool FullTagScanAndUpload { get; set; }
 
         /// <summary>
         /// Checks if NFC Feature is available
@@ -474,6 +476,8 @@ namespace BambuMan
         public event EventHandler? OnTagIntentReceived;
 
         NFCNdefReaderSession? NfcSession { get; set; }
+
+        public bool FullTagScanAndUpload { get; set; }
 
         /// <summary>
         /// Checks if NFC Feature is available
