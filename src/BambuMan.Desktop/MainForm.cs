@@ -25,6 +25,7 @@ public partial class MainForm : Form
 
     private readonly NfcReader? nfcReader;
     private readonly SpoolmanManager? spoolmanManager;
+    private readonly TagApiService? tagApiService;
     private Spool? currentSpool;
     private BambuFillamentInfo? currentBambuFillamentInfo;
 
@@ -69,6 +70,8 @@ public partial class MainForm : Form
         spoolmanManager.OnStatusChanged += SpoolmanManagerOnStatusChanged;
         spoolmanManager.OnLogMessage += SpoolmanManagerOnLogMessage;
         spoolmanManager.OnSpoolFound += SpoolmanManagerOnSpoolFound;
+
+        tagApiService = new TagApiService(new HttpClient()) { LogAction = AppendText };
     }
 
     protected override async void OnLoad(EventArgs e)
@@ -100,6 +103,7 @@ public partial class MainForm : Form
             AppendText(LogLevel.Information, json);
 
             if (spoolmanManager != null) await spoolmanManager.InventorySpool(info, dtpBuyDate.Value, nudPrice.Value, txtLotNr.Text, txtLocation.Text);
+            if (fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null) await tagApiService.UploadNfcTagAsync(info);
         }
         catch (Exception ex)
         {

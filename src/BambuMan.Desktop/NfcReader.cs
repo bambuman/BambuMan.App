@@ -124,7 +124,7 @@ public class NfcReader
                 #region Parse tag data
 
                 bambuTagInfo.ReadTime = (DateTime.Now - tagReadStart).TotalMilliseconds;
-                bambuTagInfo.ParseData(blockData, fullRead: FullTagScanAndUpload);
+                bambuTagInfo.ParseData(blockData, keys, fullRead: FullTagScanAndUpload);
 
                 Debug.WriteLine($"Nfc read time: {bambuTagInfo.ReadTime:0.###}ms");
 

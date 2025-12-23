@@ -24,10 +24,11 @@ namespace BambuMan.UI.Main
         private readonly ILogger<MainPage> logger;
         private readonly IToneGenerator? toneGenerator;
         private readonly IInvokeIndent invokeIndent;
+        private readonly TagApiService tagApiService;
         private Spool? currentSpool;
         private BambuFillamentInfo? currentBambuFillamentInfo;
 
-        public MainPage(MainPageViewModel viewModel, SpoolmanManager spoolmanManager, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent)
+        public MainPage(MainPageViewModel viewModel, SpoolmanManager spoolmanManager, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService)
         {
             InitializeComponent();
 
@@ -36,6 +37,19 @@ namespace BambuMan.UI.Main
             this.logger = logger;
             this.toneGenerator = toneGenerator;
             this.invokeIndent = invokeIndent;
+            this.tagApiService = tagApiService;
+            this.tagApiService.LogAction = async void (level, message) =>
+            {
+                try
+                {
+                    await viewModel.AddLog(level, message);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error in TagApiService");
+                }
+            };
+
             this.viewModel = viewModel;
             BindingContext = viewModel;
 
@@ -381,6 +395,9 @@ namespace BambuMan.UI.Main
 
                     await viewModel.ClearMessages();
                     await spoolmanManager.InventorySpool(bambuFillamentInfo, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+
+                    if (viewModel.FullTagScanAndUpload) await tagApiService.UploadNfcTagAsync(bambuFillamentInfo);
+
                     return;
                 }
 

@@ -176,11 +176,21 @@ public class BambuFillamentInfo : ITagInfo
     /// Byte data read from nfc tag. Only filled when full read is enabled
     /// </summary>
     [JsonIgnore]
-    public byte[][]? BlockData { get; set; }
+    public byte[]? BlockData { get; set; }
 
-    public void ParseData(byte[][] blockData, bool fillSerial = false, bool fullRead = true)
+    /// <summary>
+    /// Keys used to access nfc tag. Only filled when full read is enabled
+    /// </summary>
+    [JsonIgnore]
+    public byte[]? Keys { get; set; }
+
+    public void ParseData(byte[][] blockData, byte[][] keys, bool fillSerial = false, bool fullRead = true)
     {
-        if (fullRead) BlockData = blockData;
+        if (fullRead)
+        {
+            BlockData = blockData.SelectMany(x => x).ToArray();
+            Keys = keys.SelectMany(x => x).ToArray();
+        }
 
         if (fillSerial) SerialNumber = BitConverter.ToString(blockData[0][..4]).Replace("-", "");
 

@@ -450,7 +450,7 @@ namespace BambuMan
                     }
 
                     bambuTagInfo.ReadTime = (DateTime.Now - tagReadStart).TotalMilliseconds;
-                    bambuTagInfo.ParseData(blockData, fullRead: FullTagScanAndUpload);
+                    bambuTagInfo.ParseData(blockData, keys, fullRead: FullTagScanAndUpload);
 
                     #endregion
 

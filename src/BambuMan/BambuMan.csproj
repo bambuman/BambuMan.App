@@ -39,6 +39,10 @@
 		<Product>BambuMan</Product>
 		<PackageId>BambuMan</PackageId>
 	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release' AND '$(HmacSecret)' != ''">
+		<DefineConstants>$(DefineConstants);INJECT_SECRET;HMAC_SECRET_VALUE="$(HmacSecret)"</DefineConstants>
+	</PropertyGroup>
 	
 	<ItemGroup>
 		<PackageReference Include="BarcodeScanning.Native.Maui" Version="2.2.1" />
