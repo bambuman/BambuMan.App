@@ -2,13 +2,13 @@ name: CI Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, tag-sharing ]
     paths-ignore:
       - '**/*.md'
       - '**/*.gitignore'
       - '**/*.gitattributes'
   pull_request:
-    branches: [ main ]
+    branches: [ main, tag-sharing ]
   workflow_dispatch:
 
 permissions:
