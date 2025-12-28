@@ -462,7 +462,8 @@ public partial class MainForm : Form
     {
         try
         {
-            var files = new DirectoryInfo(@"C:\_Repos\_bambuman\Bambu-Lab-RFID-Library\PLA\PLA Tough").GetFiles("*.bin", SearchOption.AllDirectories);
+            var files = new DirectoryInfo(@"C:\_Repos\_bambuman\Bambu-Lab-RFID-Library\").GetFiles("*.bin", SearchOption.AllDirectories);
+            //var files = new DirectoryInfo(@"C:\_Repos\_bambuman\non_match_nfc\").GetFiles("*.bin", SearchOption.AllDirectories);
 
             foreach (var file in files)
             {
@@ -473,7 +474,13 @@ public partial class MainForm : Form
                 var bambuFillamentInfo = new BambuFillamentInfo(uid);
                 bambuFillamentInfo.ParseData(data);
 
-                if (spoolmanManager != null) await spoolmanManager.InventorySpool(bambuFillamentInfo, DateTime.Today, 12, string.Empty, string.Empty);
+                if (spoolmanManager != null)
+                {
+                    var ok = await spoolmanManager.InventorySpool(bambuFillamentInfo, DateTime.Today, 12, string.Empty, string.Empty);
+                    if (!ok) File.Copy(file.FullName, Path.Combine("C:\\_Repos\\_bambuman\\non_match_nfc", $"{DateTime.Now:yyyy-MM-dd_HHmmss}_{file.Name}"));
+                    //if (ok) File.Delete(file.FullName);
+                }
+
                 await Task.Delay(1000);
             }
         }

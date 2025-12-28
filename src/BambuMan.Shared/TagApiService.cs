@@ -9,7 +9,7 @@ namespace BambuMan.Shared
     {
 #if DEBUG
         private const string ApiUrl = "https://test.bambuman.ee/api/";
-        private const string Stamp = "/xxMTXigeJVKuhfYeWFlwF1tjnFlcDFGLmAWuzIZMOs="; // Same as server
+        private const string Stamp = "/xxMTXigeJVKuhfYeWFlwF1tjnFlcDFGLmAWuzIZMOs=";
 #else
         private const string ApiUrl = "https://bambuman.ee/api/";
         private const string Stamp = "___HMAC_SECRET_PLACEHOLDER___";

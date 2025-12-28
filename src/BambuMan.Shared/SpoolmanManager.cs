@@ -322,25 +322,27 @@ namespace BambuMan.Shared
             #endregion
         }
 
-        public async Task InventorySpool(BambuFillamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
+        public async Task<bool> InventorySpool(BambuFillamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
-            if (apiHost == null) return;
+            if (apiHost == null) return false;
 
+            var result = true;
             var externalFilament = await FindExternalFilament(info);
 
             switch (UnknownFilamentEnabled)
             {
                 case false when externalFilament == null:
-                    return;
+                    return false;
                 case true when externalFilament == null:
                     externalFilament = UnknownFilament;
+                    result = false;
                     break;
             }
 
             await Log(LogLevel.Debug, externalFilament.ToString());
 
             var filament = await AddOrUpdateFilament(externalFilament, price, info);
-            if (filament == null) return;
+            if (filament == null) return false;
 
             var spoolApi = apiHost.Services.GetRequiredService<ISpoolApi>();
             var spoolQuery = await spoolApi.FindSpoolSpoolGetAsync(filamentId2: new Option<string?>($"{filament.Id}"), allowArchived: new Option<bool>(true));
@@ -361,6 +363,8 @@ namespace BambuMan.Shared
             {
                 await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't load existing spools. Api response: {spoolQuery.RawContent}");
             }
+
+            return result;
         }
 
         public async Task<ExternalFilament?> FindExternalFilament(BambuFillamentInfo info)
@@ -442,28 +446,31 @@ namespace BambuMan.Shared
 
             if (info.DetailedFilamentType.ContainsCI("Support"))
             {
+                var idToSearch = string.Empty;
                 var nameToSearch = info.DetailedFilamentType;
-                var nameToSearchDe = info.DetailedFilamentType;
 
                 //white translucent Support for PLA is identified as black. Don't know if black is same 
                 if (info.DetailedFilamentType.EqualsCI("Support for PLA") && info.MaterialVariantIdentifier.EqualsCI("S05-C0"))
                 {
-                    nameToSearch = "Support for PLA/PETG Nature";
-                    nameToSearchDe = "Support for PLA/PETG Natur";
-                    hexColor = "FFFFFF";
+                    idToSearch = "bambulab_pla_supportforpla/petgnature_500_175_n";
                 }
 
                 //white translucent Support for PLA is identified as black. Don't know if black is same 
-                if (info.DetailedFilamentType.EqualsCI("Support W") && info.MaterialVariantIdentifier.EqualsCI("S00-W0"))
+                if ((info.DetailedFilamentType.EqualsCI("Support W") && info.MaterialVariantIdentifier.EqualsCI("S00-W0")) ||
+                    (info.DetailedFilamentType.EqualsCI("Support for PLA") && info.MaterialVariantIdentifier.EqualsCI("S02-W1")) ||
+                    (info.DetailedFilamentType.EqualsCI("Support for PLA") && info.MaterialVariantIdentifier.EqualsCI("S02-W0")))
                 {
-                    nameToSearch = "Support for PLA White";
-                    nameToSearchDe = "Support for PLA Weiß";
-                    hexColor = "FFFFFF";
+                    idToSearch = "bambulab_pla_supportforplawhite_500_175_n";
                 }
 
-                query = externalFilaments
-                    .Where(x => x.Name.StartsWithCI(nameToSearch) || x.Name.StartsWithCI(nameToSearchDe))
-                    .Where(x => x.ColorHex.EqualsCI(hexColor)).AsQueryable();
+                //white translucent Support for PLA is identified as black. Don't know if black is same 
+                if (info.DetailedFilamentType.EqualsCI("Support For PA") && info.MaterialVariantIdentifier.EqualsCI("S03-G1"))
+                {
+                    idToSearch = "bambulab_pa_supportforpa/pet_500_175_n";
+                }
+
+                if (idToSearch.IsNotNullOrEmpty()) query = externalFilaments.Where(x => x.Id.EqualsCI(idToSearch)).AsQueryable();
+                else query = externalFilaments.Where(x => x.Name.StartsWithCI(nameToSearch)).Where(x => x.ColorHex.EqualsCI(hexColor)).AsQueryable();
             }
             else if (info.ColorCount.GetValueOrDefault() > 1 && query.Count() != 1) //multi color spool
             {
@@ -486,18 +493,20 @@ namespace BambuMan.Shared
 
             query = info.DetailedFilamentType switch
             {
+                var type when type.EqualsCI("PETG Basic") => query.Where(x => x.Name.StartsWithCI("Basic ")),
+                var type when type.EqualsCI("PETG HF") => query.Where(x => x.Name.StartsWithCI("HF ")),
+                var type when type.EqualsCI("PC FR") => query.Where(x => x.Name.StartsWithCI("FR ")),
+
                 var type when type.ContainsCI("Basic") => query.Where(x => x.Finish == null && x.Pattern == null && !x.Name.ContainsCI("Aero") && !x.Name.ContainsCI("Tough+")),
                 var type when type.ContainsCI("Matte") => query.Where(x => x.Finish == Finish.Matte),
                 var type when type.ContainsCI("Glow") => query.Where(x => x.Glow == true),
                 var type when type.ContainsCI("Silk+") => query.Where(x => x.Name.ContainsCI("Silk+")),
                 var type when type.ContainsCI("Tough+") => query.Where(x => x.Name.ContainsCI("Tough+")),
                 var type when type.ContainsCI("Aero") => query.Where(x => x.Name.ContainsCI("Aero")),
+                var type when type.ContainsCI("Sparkle") => query.Where(x => x.Name.ContainsCI("Sparkle")),
                 var type when type.ContainsCI("Silk") ||
                               type.ContainsCI("Metallic") ||
                               type.ContainsCI("Galaxy") => query.Where(x => x.Finish == Finish.Glossy),
-
-                var type when type.EqualsCI("PETG HF") => query.Where(x => x.Name.StartsWithCI("HF ")),
-                var type when type.EqualsCI("PC FR") => query.Where(x => x.Name.StartsWithCI("FR ")),
 
                 _ => query
             };
@@ -510,7 +519,9 @@ namespace BambuMan.Shared
                 if (color == "FFFFFF" && !info.UniqueMaterialIdentifier.EqualsCI("FC00")) query = query.Where(x => x.Name.EqualsCI("Transparent"));
             }
 
-            if (info.MaterialVariantIdentifier.EqualsCI("A00-W1")) query = query.Where(x => x.Id.EqualsCI("bambulab_pla_jadewhite_1000_175_n"));
+            if (info.MaterialVariantIdentifier.EqualsCI("A00-W1") || info.MaterialVariantIdentifier.EqualsCI("A00-W01")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_jadewhite_1000_175_n")).AsQueryable();
+
+            if (info.DetailedFilamentType.EqualsCI("PLA Basic") && color.EqualsCI("84754E")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_bronze_1000_175_n")).AsQueryable();
 
             var result = query.ToList();
 
@@ -748,7 +759,15 @@ namespace BambuMan.Shared
 
         private Task ExtendWithMissingFilaments(List<ExternalFilament> bambuLabExternalFilaments)
         {
-            var fillamentInfos = JsonConvert.DeserializeObject<FilamentData[]>(Constants.BambuLabExternalFilaments);
+            var assembly = typeof(SpoolmanManager).Assembly;
+            using var stream = assembly.GetManifestResourceStream("BambuMan.Shared.Resources.filaments.json");
+
+            if (stream == null) throw new FileNotFoundException("Embedded resource not found");
+
+            using var reader = new StreamReader(stream);
+            var json = reader.ReadToEnd();
+
+            var fillamentInfos = JsonConvert.DeserializeObject<FilamentData[]>(json);
             if (fillamentInfos == null) return Task.CompletedTask;
 
             foreach (var fillamentInfo in fillamentInfos)
