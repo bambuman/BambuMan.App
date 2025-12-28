@@ -233,4 +233,12 @@ public class BambuFillamentInfo : ITagInfo
 
         SkuStart = $"{MaterialVariantIdentifier}-{$"{FilamentDiameter:0.00}".Replace(",", ".")}-{SpoolWeight:####}";
     }
+
+    public void ParseData(byte[] blockData)
+    {
+        var data = Enumerable.Range(0, 64).Select(x => blockData[new Range(x * 16, x * 16 + 16)]).ToArray();
+        var keys = blockData[..4].GetBambuKeys();
+
+        ParseData(data, keys, fullRead: true);
+    }
 }

@@ -73,6 +73,7 @@
             gbImportSettings = new GroupBox();
             lblSpoolmanUrl = new Label();
             btnSetUrl = new Button();
+            testTagsToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudPrice).BeginInit();
@@ -86,7 +87,7 @@
             // 
             // menuStrip1
             // 
-            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, optionsToolStripMenuItem, clearLogsToolStripMenuItem, testTagToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, optionsToolStripMenuItem, clearLogsToolStripMenuItem, testTagToolStripMenuItem, testTagsToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1300, 24);
@@ -520,6 +521,13 @@
             btnSetUrl.UseVisualStyleBackColor = true;
             btnSetUrl.Click += btnSetUrl_Click;
             // 
+            // testTagsToolStripMenuItem
+            // 
+            testTagsToolStripMenuItem.Name = "testTagsToolStripMenuItem";
+            testTagsToolStripMenuItem.Size = new Size(65, 20);
+            testTagsToolStripMenuItem.Text = "Test tags";
+            testTagsToolStripMenuItem.Click += testTagsToolStripMenuItem_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -598,5 +606,6 @@
         private ToolStripMenuItem testTagToolStripMenuItem;
         private ToolStripMenuItem unknownFilamentEnabledToolStripMenuItem;
         private ToolStripMenuItem fullTagScanAndUploadToolStripMenuItem;
+        private ToolStripMenuItem testTagsToolStripMenuItem;
     }
 }

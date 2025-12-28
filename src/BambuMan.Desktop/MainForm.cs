@@ -3,6 +3,7 @@ using BambuMan.Shared.Enums;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using SpoolMan.Api.Model;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
@@ -35,6 +36,7 @@ public partial class MainForm : Form
 
 #if !DEBUG
         testTagToolStripMenuItem.Visible = false;
+        testTagsToolStripMenuItem.Visible = false;
 #endif
 
         showADBCommandsToolStripMenuItem.Checked = GetRegistryValue(RegKeyShowApduCommands, false);
@@ -455,13 +457,29 @@ public partial class MainForm : Form
         if (spoolmanManager != null) await spoolmanManager.InventorySpool(bambuFillamentInfo!, DateTime.Today, 12, string.Empty, string.Empty);
     }
 
-    static string ConvertToCamelCase(string input)
+    [SuppressMessage("ReSharper", "StringLiteralTypo")]
+    private async void testTagsToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        string[] words = input.Split(' ');
-        for (int i = 1; i < words.Length; i++)
+        try
         {
-            words[i] = char.ToUpper(words[i][0]) + words[i].Substring(1).ToLower();
+            var files = new DirectoryInfo(@"C:\_Repos\_bambuman\Bambu-Lab-RFID-Library\PLA\PLA Tough").GetFiles("*.bin", SearchOption.AllDirectories);
+
+            foreach (var file in files)
+            {
+                var data = await File.ReadAllBytesAsync(file.FullName);
+                if (data.Length != 1024) continue;
+
+                var uid = data[..4];
+                var bambuFillamentInfo = new BambuFillamentInfo(uid);
+                bambuFillamentInfo.ParseData(data);
+
+                if (spoolmanManager != null) await spoolmanManager.InventorySpool(bambuFillamentInfo, DateTime.Today, 12, string.Empty, string.Empty);
+                await Task.Delay(1000);
+            }
         }
-        return string.Join("", words);
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.ToString());
+        }
     }
 }

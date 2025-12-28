@@ -486,10 +486,11 @@ namespace BambuMan.Shared
 
             query = info.DetailedFilamentType switch
             {
-                var type when type.ContainsCI("Basic") => query.Where(x => x.Finish == null && x.Pattern == null && !x.Name.ContainsCI("Aero")),
+                var type when type.ContainsCI("Basic") => query.Where(x => x.Finish == null && x.Pattern == null && !x.Name.ContainsCI("Aero") && !x.Name.ContainsCI("Tough+")),
                 var type when type.ContainsCI("Matte") => query.Where(x => x.Finish == Finish.Matte),
                 var type when type.ContainsCI("Glow") => query.Where(x => x.Glow == true),
                 var type when type.ContainsCI("Silk+") => query.Where(x => x.Name.ContainsCI("Silk+")),
+                var type when type.ContainsCI("Tough+") => query.Where(x => x.Name.ContainsCI("Tough+")),
                 var type when type.ContainsCI("Aero") => query.Where(x => x.Name.ContainsCI("Aero")),
                 var type when type.ContainsCI("Silk") ||
                               type.ContainsCI("Metallic") ||

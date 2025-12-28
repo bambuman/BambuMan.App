@@ -7,7 +7,6 @@ using PCSC.Exceptions;
 using PCSC.Iso7816;
 using PCSC.Monitoring;
 using System.Diagnostics;
-using System.Security.Cryptography;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.Desktop;
@@ -87,13 +86,7 @@ public class NfcReader
 
                 #region Generate Keys
 
-                var master = new byte[] { 0x9a, 0x75, 0x9c, 0xf2, 0xc4, 0xf7, 0xca, 0xff, 0x22, 0x2c, 0xb9, 0x76, 0x9b, 0x41, 0xbc, 0x96 };
-                var context = "RFID-A\0"u8.ToArray();
-
-                var primary = HKDF.Extract(HashAlgorithmName.SHA256, uidData, salt: master);
-                var dest = HKDF.Expand(HashAlgorithmName.SHA256, primary, 6 * 16, context);
-
-                var keys = Enumerable.Range(0, 16).Select(x => dest[new Range(x * 6, x * 6 + 6)]).ToArray();
+                var keys = uidData.GetBambuKeys();
 
                 if (ShowLogs) OnLogMessage?.Invoke(LogLevel.Debug, $"Mifare nfc keys: {string.Join(", ", keys.Select(key => BitConverter.ToString(key).Replace("-", "").ToLower()))}");
 
