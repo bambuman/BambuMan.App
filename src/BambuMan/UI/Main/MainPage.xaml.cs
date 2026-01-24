@@ -3,7 +3,9 @@ using BambuMan.Shared;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Nfc;
+using BambuMan.UI.Consent;
 using BambuMan.UI.Settings;
+using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Core.Platform;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -25,10 +27,11 @@ namespace BambuMan.UI.Main
         private readonly IToneGenerator? toneGenerator;
         private readonly IInvokeIndent invokeIndent;
         private readonly TagApiService tagApiService;
+        private readonly IPopupService popupService;
         private Spool? currentSpool;
         private BambuFillamentInfo? currentBambuFillamentInfo;
 
-        public MainPage(MainPageViewModel viewModel, SpoolmanManager spoolmanManager, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService)
+        public MainPage(MainPageViewModel viewModel, SpoolmanManager spoolmanManager, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IPopupService popupService)
         {
             InitializeComponent();
 
@@ -38,6 +41,7 @@ namespace BambuMan.UI.Main
             this.toneGenerator = toneGenerator;
             this.invokeIndent = invokeIndent;
             this.tagApiService = tagApiService;
+            this.popupService = popupService;
             this.tagApiService.LogAction = async void (level, message) =>
             {
                 try
@@ -61,13 +65,6 @@ namespace BambuMan.UI.Main
             spoolmanManager.ShowLogs = true;
             spoolmanManager.ApiUrl = Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
             spoolmanManager.UnknownFilamentEnabled = Preferences.Default.Get(SettingsPage.UnknownFilamentEnabled, true);
-
-            spoolmanManager.OnStatusChanged += SpoolmanManagerOnStatusChanged;
-            spoolmanManager.OnLogMessage += SpoolmanManagerOnLogMessage;
-            spoolmanManager.OnShowMessage += SpoolmanManagerOnShowMessage;
-            spoolmanManager.OnSpoolFound += SpoolmanManagerOnSpoolFound;
-            spoolmanManager.OnPlayErrorTone += SpoolmanManagerOnPlayErrorTone;
-            spoolmanManager.OnLocationsLoaded += SpoolmanManagerOnLocationsLoaded;
         }
 
         private async void SpoolmanManagerOnPlayErrorTone()
@@ -162,6 +159,15 @@ namespace BambuMan.UI.Main
             {
                 base.OnAppearing();
 
+                spoolmanManager.OnStatusChanged += SpoolmanManagerOnStatusChanged;
+                spoolmanManager.OnLogMessage += SpoolmanManagerOnLogMessage;
+                spoolmanManager.OnShowMessage += SpoolmanManagerOnShowMessage;
+                spoolmanManager.OnSpoolFound += SpoolmanManagerOnSpoolFound;
+                spoolmanManager.OnPlayErrorTone += SpoolmanManagerOnPlayErrorTone;
+                spoolmanManager.OnLocationsLoaded += SpoolmanManagerOnLocationsLoaded;
+
+                await ShowConsentPopupIfNeeded();
+
                 viewModel.ShowSpoolEdit = false;
                 currentSpool = null;
                 currentBambuFillamentInfo = null;
@@ -203,6 +209,18 @@ namespace BambuMan.UI.Main
             }
         }
 
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+
+            spoolmanManager.OnStatusChanged -= SpoolmanManagerOnStatusChanged;
+            spoolmanManager.OnLogMessage -= SpoolmanManagerOnLogMessage;
+            spoolmanManager.OnShowMessage -= SpoolmanManagerOnShowMessage;
+            spoolmanManager.OnSpoolFound -= SpoolmanManagerOnSpoolFound;
+            spoolmanManager.OnPlayErrorTone -= SpoolmanManagerOnPlayErrorTone;
+            spoolmanManager.OnLocationsLoaded -= SpoolmanManagerOnLocationsLoaded;
+        }
+
         protected override bool OnBackButtonPressed()
         {
             Task.Run(StopListening);
@@ -210,6 +228,25 @@ namespace BambuMan.UI.Main
         }
 
         #region Helpers
+
+        private async Task ShowConsentPopupIfNeeded()
+        {
+            var consentShown = Preferences.Default.Get(SettingsPage.TagUploadConsentShown, false);
+            if (consentShown) return;
+
+            var popupResult = await popupService.ShowPopupAsync<TagUploadConsentPopup, bool>(Shell.Current, new PopupOptions
+            {
+                CanBeDismissedByTappingOutsideOfPopup = false
+            });
+
+            Preferences.Default.Set(SettingsPage.TagUploadConsentShown, true);
+
+            if (popupResult is { WasDismissedByTappingOutsideOfPopup: false })
+            {
+                Preferences.Default.Set(SettingsPage.FullTagScanAndUpload, popupResult.Result);
+                viewModel.FullTagScanAndUpload = popupResult.Result;
+            }
+        }
 
         /// <summary>
         /// Write a debug message in the debug console
@@ -396,7 +433,14 @@ namespace BambuMan.UI.Main
                     await viewModel.ClearMessages();
                     await spoolmanManager.InventorySpool(bambuFillamentInfo, buyDate, defaultPrice, defaultLotNr, defaultLocation);
 
-                    if (viewModel.FullTagScanAndUpload) await tagApiService.UploadNfcTagAsync(bambuFillamentInfo);
+                    if (viewModel.FullTagScanAndUpload)
+                    {
+                        var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(bambuFillamentInfo);
+                        if (rateLimited)
+                        {
+                            await viewModel.ShowErrorMessage("Daily upload limit reached (1000 tags/day). Try again tomorrow.");
+                        }
+                    }
 
                     return;
                 }

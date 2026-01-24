@@ -21,6 +21,7 @@ public partial class SettingsPage
     public const string ShowLogsOnMainPage = "show_logs_on_main_page";
     public const string ShowKeyboardOnSpoolRead = "show_keyboard_on_spool_read";
     public const string FullTagScanAndUpload = "full_tag_scan_and_upload";
+    public const string TagUploadConsentShown = "tag_upload_consent_shown";
 
     private readonly SettingsPageViewModel viewModel;
     private readonly ILogger<SettingsPage> logger;

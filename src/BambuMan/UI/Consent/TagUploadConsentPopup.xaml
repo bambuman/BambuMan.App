@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+               x:Class="BambuMan.UI.Consent.TagUploadConsentPopup"
+               x:TypeArguments="x:Boolean"
+               BackgroundColor="White">
+
+    <VerticalStackLayout Padding="0" Spacing="12" WidthRequest="340">
+
+        <!-- Title with Icon -->
+        <HorizontalStackLayout HorizontalOptions="Start" Spacing="8">
+            <Image HeightRequest="38" VerticalOptions="Center">
+                <Image.Source>
+                    <FontImageSource FontFamily="MaterialSharp"
+                                     Glyph="{x:Static m:MaterialSharp.Science}"
+                                     Color="{StaticResource Primary}"
+                                     Size="38" />
+                </Image.Source>
+            </Image>
+            <Label Text="Research Data Contribution"
+                   FontAttributes="Bold"
+                   FontSize="20"
+                   VerticalOptions="Center"
+                   TextColor="{StaticResource Primary}" />
+        </HorizontalStackLayout>
+
+        <!-- Description -->
+        <Label FontSize="14"
+               HorizontalTextAlignment="Start"
+               TextColor="{StaticResource Gray600}">
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span Text="Help improve Bambu Lab filament research by uploading NFC tag data to the "></Span>
+                    <Span Text="Bambu-Lab-RFID-Library" TextColor="DodgerBlue" TextDecorations="Underline">
+                        <Span.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnLibraryLinkTapped" />
+                        </Span.GestureRecognizers>
+                    </Span>
+                    <Span Text="."></Span>
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+
+        <!-- Batch download info -->
+        <Label FontSize="14"
+               HorizontalTextAlignment="Start"
+               TextColor="{StaticResource Gray600}">
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span Text="The uploaded data will also be available at "></Span>
+                    <Span Text="bambuman.ee" TextColor="DodgerBlue" TextDecorations="Underline">
+                        <Span.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBambuManLinkTapped" />
+                        </Span.GestureRecognizers>
+                    </Span>
+                    <Span Text=" as a downloadable archive."></Span>
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+
+        <!-- What is uploaded section -->
+        <Border Stroke="{StaticResource Gray300}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 5"
+                Padding="10"
+                BackgroundColor="{StaticResource Gray100}">
+            <VerticalStackLayout Spacing="4">
+                <Label FontSize="13" TextColor="{StaticResource Gray900}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="What is uploaded: "></Span>
+                            <Span Text="Full NFC tag data with keys" FontAttributes="Bold"></Span>
+                            <Span Text="."></Span>
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Warning - public data -->
+        <Border Stroke="#F44336"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 5"
+                Padding="10"
+                BackgroundColor="#FFEBEE">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <Image Grid.Column="0" HeightRequest="20" VerticalOptions="Start">
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialSharp"
+                                         Glyph="{x:Static m:MaterialSharp.Warning}"
+                                         Color="#F44336"
+                                         Size="20" />
+                    </Image.Source>
+                </Image>
+                <Label Grid.Column="1"
+                       Text="The uploaded data will be PUBLIC and published under MIT license."
+                       FontSize="12"
+                       TextColor="#C62828"
+                       VerticalOptions="Center" />
+            </Grid>
+        </Border>
+
+        <!-- Info section -->
+        <Border Stroke="#FFC107"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 5"
+                Padding="10"
+                BackgroundColor="#FFF8E1">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <Image Grid.Column="0" HeightRequest="20" VerticalOptions="Start">
+                    <Image.Source>
+                        <FontImageSource FontFamily="MaterialSharp"
+                                         Glyph="{x:Static m:MaterialSharp.Info}"
+                                         Color="#F9A825"
+                                         Size="20" />
+                    </Image.Source>
+                </Image>
+                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                        <Label Grid.Column="0" Text="•" FontSize="12" TextColor="#6D4C00" VerticalOptions="Start" />
+                        <Label Grid.Column="1" Text="Please scan both sides of the spool — each tag contains unique data."
+                               FontSize="12"
+                               TextColor="#6D4C00" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                        <Label Grid.Column="0" Text="•" FontSize="12" TextColor="#6D4C00" VerticalOptions="Start" />
+                        <Label Grid.Column="1" Text="Limited to 1000 tag uploads per day."
+                               FontSize="12"
+                               TextColor="#6D4C00" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <!-- Settings note -->
+        <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
+            <Image HeightRequest="16" VerticalOptions="Center">
+                <Image.Source>
+                    <FontImageSource FontFamily="MaterialSharp"
+                                     Glyph="{x:Static m:MaterialSharp.Settings}"
+                                     Color="{StaticResource Gray600}"
+                                     Size="16" />
+                </Image.Source>
+            </Image>
+            <Label Text="You can opt out anytime in Settings."
+                   FontSize="12"
+                   VerticalOptions="Center"
+                   TextColor="{StaticResource Gray600}" />
+        </HorizontalStackLayout>
+
+        <!-- Buttons -->
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,8,0,0">
+            <Button Grid.Column="0"
+                    Text="No Thanks"
+                    BackgroundColor="{StaticResource Gray200}"
+                    TextColor="{StaticResource Gray900}"
+                    Clicked="OnDeclineClicked" />
+            <Button Grid.Column="1"
+                    Text="Participate"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"
+                    Clicked="OnAcceptClicked" />
+        </Grid>
+
+    </VerticalStackLayout>
+</toolkit:Popup>

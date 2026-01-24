@@ -20,7 +20,9 @@ namespace BambuMan.UI.Settings
         public async void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             await Task.Delay(500);
-            SpoolmanUrl = query["url"] as string ?? Preferences.Default.Get("spoolman_url", string.Empty);
+            SpoolmanUrl = query.TryGetValue("url", out var url)
+                ? url as string ?? Preferences.Default.Get("spoolman_url", string.Empty)
+                : Preferences.Default.Get("spoolman_url", string.Empty);
         }
     }
 }

@@ -29,7 +29,7 @@
                 </ImageButton>
             </Grid>
 
-            <material:CheckBox x:Name="TfFullTagScanAndUpload" Text="Upload tag info to public DB [experimental]" IsChecked="{Binding FullTagScanAndUpload, Mode=TwoWay}" Margin="10,5,10,0"></material:CheckBox>
+            <material:CheckBox x:Name="TfFullTagScanAndUpload" Text="Participate in NFC data upload [beta]" IsChecked="{Binding FullTagScanAndUpload, Mode=TwoWay}" Margin="10,5,10,0"></material:CheckBox>
 
             <material:CheckBox x:Name="TfUnknownFilamentEnabled" Text="Import unknown filament" IsChecked="{Binding UnknownFilamentEnabled, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
 

@@ -25,7 +25,7 @@ namespace BambuMan.Shared
             this.httpClient.BaseAddress = new Uri(ApiUrl);
         }
 
-        public async Task<bool> UploadNfcTagAsync(BambuFillamentInfo bambuFillamentInfo)
+        public async Task<(bool Success, bool RateLimited)> UploadNfcTagAsync(BambuFillamentInfo bambuFillamentInfo)
         {
             try
             {
@@ -36,7 +36,13 @@ namespace BambuMan.Shared
 
                 var response = await httpClient.PutAsJsonAsync("nfc", upload);
 
-                return response.IsSuccessStatusCode;
+                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                {
+                    LogAction?.Invoke(LogLevel.Warning, "Daily tag upload limit reached (1000/day)");
+                    return (false, true);
+                }
+
+                return (response.IsSuccessStatusCode, false);
             }
             catch (Exception e)
             {
@@ -44,7 +50,7 @@ namespace BambuMan.Shared
                 LogAction?.Invoke(LogLevel.Error, "Error on nfc upload");
             }
 
-            return false;
+            return (false, false);
         }
 
         private string ComputeSignature(long timestamp, BambuFillamentInfo bambuFillamentInfo)

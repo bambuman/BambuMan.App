@@ -1,4 +1,5 @@
 ﻿using BambuMan.Shared;
+using BambuMan.UI.Consent;
 using BambuMan.UI.Logs;
 using BambuMan.UI.Main;
 using BambuMan.UI.Scan;
@@ -95,12 +96,13 @@ namespace BambuMan
             services.AddTransient<ScanPage>();
             services.AddSingleton<LogService>();
             services.AddSingleton<TagApiService>();
+            services.AddTransient<TagUploadConsentPopup>();
             services.AddHttpClient();
         }
 
         private static void AddServices(IServiceCollection services)
         {
-            services.AddTransient<SpoolmanManager>();
+            services.AddSingleton<SpoolmanManager>();
         }
 
         public static void SetupSerilog(LoggerConfiguration loggerConfiguration, string? version, string? packageName, string? deviceId)
