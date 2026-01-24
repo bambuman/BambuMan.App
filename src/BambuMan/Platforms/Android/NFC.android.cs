@@ -402,11 +402,13 @@ namespace BambuMan
 
                     #region Generate Keys
 
-                    var keys = uidData.GetBambuKeys();
+                    var aKeys = uidData.GetBambuAKeys();
+                    var bKeys = uidData.GetBambuBKeys();
+                    var keys = aKeys.Concat(bKeys).ToArray();
 
                     if (showLogs)
                     {
-                        foreach (var key in keys)
+                        foreach (var key in aKeys)
                         {
                             Debug.WriteLine(BitConverter.ToString(key).Replace("-", "").ToLower());
                         }
@@ -424,7 +426,7 @@ namespace BambuMan
                     {
                         var blockNum = i * 4;
 
-                        var authA = mfc.AuthenticateSectorWithKeyA(i, keys[i]);
+                        var authA = mfc.AuthenticateSectorWithKeyA(i, aKeys[i]);
                         if (!authA) continue;
 
                         for (var ii = 0; ii < (FullTagScanAndUpload ? 4 : 3); ii++)
@@ -441,6 +443,18 @@ namespace BambuMan
                             blockNum++;
                         }
                     }
+
+                    #region Fill in keys
+
+                    var index = 0;
+
+                    for (var i = 3; i < blockData.Length; i += 4)
+                    {
+                        blockData[i] = aKeys[index].Concat(blockData[i][6..10]).Concat(bKeys[index]).ToArray();
+                        index++;
+                    }
+
+                    #endregion
 
                     bambuTagInfo.ReadTime = (DateTime.Now - tagReadStart).TotalMilliseconds;
                     bambuTagInfo.ParseData(blockData, keys, fullRead: FullTagScanAndUpload);

@@ -477,6 +477,9 @@ public partial class MainForm : Form
                 if (spoolmanManager != null)
                 {
                     var ok = await spoolmanManager.InventorySpool(bambuFillamentInfo, DateTime.Today, 12, string.Empty, string.Empty);
+
+                    if (ok && fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null) await tagApiService.UploadNfcTagAsync(bambuFillamentInfo);
+
                     if (!ok) File.Copy(file.FullName, Path.Combine("C:\\_Repos\\_bambuman\\non_match_nfc", $"{DateTime.Now:yyyy-MM-dd_HHmmss}_{file.Name}"));
                     //if (ok) File.Delete(file.FullName);
                 }

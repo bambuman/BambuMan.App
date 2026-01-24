@@ -86,9 +86,11 @@ public class NfcReader
 
                 #region Generate Keys
 
-                var keys = uidData.GetBambuKeys();
+                var aKeys = uidData.GetBambuAKeys();
+                var bKeys = uidData.GetBambuBKeys();
+                var keys = aKeys.Concat(bKeys).ToArray();
 
-                if (ShowLogs) OnLogMessage?.Invoke(LogLevel.Debug, $"Mifare nfc keys: {string.Join(", ", keys.Select(key => BitConverter.ToString(key).Replace("-", "").ToLower()))}");
+                if (ShowLogs) OnLogMessage?.Invoke(LogLevel.Debug, $"Mifare nfc keys: {string.Join(", ", aKeys.Select(key => BitConverter.ToString(key).Replace("-", "").ToLower()))}");
 
                 #endregion
 
@@ -102,7 +104,7 @@ public class NfcReader
                 {
                     var blockNum = i * 4;
 
-                    SendCmd("Load Key: ", reader, new byte[] { 0xFF, 0x82, 0x00, 0x00, 0x06 }.Concat(keys[i]).ToArray());
+                    SendCmd("Load Key: ", reader, new byte[] { 0xFF, 0x82, 0x00, 0x00, 0x06 }.Concat(aKeys[i]).ToArray());
                     SendCmd("Authenticate: ", reader, [0xFF, 0x86, 0x00, 0x00, 0x05, 0x01, 0x00, (byte)blockNum, 0x60, 0x00]);
 
                     for (var ii = 0; ii < (FullTagScanAndUpload ? 4 : 3); ii++)
@@ -110,6 +112,18 @@ public class NfcReader
                         blockData[blockNum] = SendCmd("Read Binary: ", reader, [0xFF, 0xB0, 0x00, (byte)blockNum, 0x10]) ?? [16];
                         blockNum++;
                     }
+                }
+
+                #endregion
+
+                #region Fill in keys
+
+                var index = 0;
+
+                for (var i = 3; i < blockData.Length; i += 4)
+                {
+                    blockData[i] = aKeys[index].Concat(blockData[i][6..10]).Concat(bKeys[index]).ToArray();
+                    index++;
                 }
 
                 #endregion
