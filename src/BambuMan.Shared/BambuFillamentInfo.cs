@@ -237,7 +237,7 @@ public class BambuFillamentInfo : ITagInfo
     public void ParseData(byte[] blockData)
     {
         var data = Enumerable.Range(0, 64).Select(x => blockData[new Range(x * 16, x * 16 + 16)]).ToArray();
-        var keys = blockData[..4].GetBambuKeys();
+        var keys = blockData[..4].GetBambuAKeys();
 
         ParseData(data, keys, fullRead: true);
     }

@@ -170,14 +170,30 @@ namespace BambuMan.Shared
             return source.StartsWith(value, StringComparison.OrdinalIgnoreCase);
         }
 
-        public static byte[][] GetBambuKeys(this byte[] uid)
+        public static byte[][] GetBambuAKeys(this byte[] uid)
+        {
+            return uid.GetBambuKeys(BambuKeyType.AKeys);
+        }
+
+        public static byte[][] GetBambuBKeys(this byte[] uid)
+        {
+            return uid.GetBambuKeys(BambuKeyType.BKeys);
+        }
+
+        public static byte[][] GetBambuKeys(this byte[] uid, BambuKeyType type)
         {
             var master = new byte[] { 0x9a, 0x75, 0x9c, 0xf2, 0xc4, 0xf7, 0xca, 0xff, 0x22, 0x2c, 0xb9, 0x76, 0x9b, 0x41, 0xbc, 0x96 };
 
             var primary = HKDF.Extract(HashAlgorithmName.SHA256, uid, salt: master);
-            var dest = HKDF.Expand(HashAlgorithmName.SHA256, primary, 6 * 16, "RFID-A\0"u8.ToArray());
+            var dest = HKDF.Expand(HashAlgorithmName.SHA256, primary, 6 * 16, type == BambuKeyType.AKeys ? "RFID-A\0"u8.ToArray() : "RFID-B\0"u8.ToArray());
 
             return Enumerable.Range(0, 16).Select(x => dest[new Range(x * 6, x * 6 + 6)]).ToArray();
+        }
+
+        public enum BambuKeyType
+        {
+            AKeys = 0,
+            BKeys = 1,
         }
     }
 }
