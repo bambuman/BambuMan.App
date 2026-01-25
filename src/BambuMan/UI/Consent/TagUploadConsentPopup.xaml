@@ -27,7 +27,7 @@
         </HorizontalStackLayout>
 
         <!-- Description -->
-        <Label FontSize="14"
+        <Label FontSize="15"
                HorizontalTextAlignment="Start"
                TextColor="{StaticResource Gray600}">
             <Label.FormattedText>
@@ -44,7 +44,7 @@
         </Label>
 
         <!-- Batch download info -->
-        <Label FontSize="14"
+        <Label FontSize="15"
                HorizontalTextAlignment="Start"
                TextColor="{StaticResource Gray600}">
             <Label.FormattedText>
@@ -67,7 +67,7 @@
                 Padding="10"
                 BackgroundColor="{StaticResource Gray100}">
             <VerticalStackLayout Spacing="4">
-                <Label FontSize="13" TextColor="{StaticResource Gray900}">
+                <Label FontSize="15" TextColor="{StaticResource Gray900}">
                     <Label.FormattedText>
                         <FormattedString>
                             <Span Text="What is uploaded: "></Span>
@@ -86,17 +86,17 @@
                 Padding="10"
                 BackgroundColor="#FFEBEE">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                <Image Grid.Column="0" HeightRequest="20" VerticalOptions="Start">
+                <Image Grid.Column="0" HeightRequest="26" VerticalOptions="Start">
                     <Image.Source>
                         <FontImageSource FontFamily="MaterialSharp"
                                          Glyph="{x:Static m:MaterialSharp.Warning}"
                                          Color="#F44336"
-                                         Size="20" />
+                                         Size="26" />
                     </Image.Source>
                 </Image>
                 <Label Grid.Column="1"
                        Text="The uploaded data will be PUBLIC and published under MIT license."
-                       FontSize="12"
+                       FontSize="15"
                        TextColor="#C62828"
                        VerticalOptions="Center" />
             </Grid>
@@ -109,25 +109,25 @@
                 Padding="10"
                 BackgroundColor="#FFF8E1">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                <Image Grid.Column="0" HeightRequest="20" VerticalOptions="Start">
+                <Image Grid.Column="0" HeightRequest="26" VerticalOptions="Start">
                     <Image.Source>
                         <FontImageSource FontFamily="MaterialSharp"
                                          Glyph="{x:Static m:MaterialSharp.Info}"
                                          Color="#F9A825"
-                                         Size="20" />
+                                         Size="26" />
                     </Image.Source>
                 </Image>
                 <VerticalStackLayout Grid.Column="1" Spacing="4">
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
                         <Label Grid.Column="0" Text="•" FontSize="12" TextColor="#6D4C00" VerticalOptions="Start" />
                         <Label Grid.Column="1" Text="Please scan both sides of the spool — each tag contains unique data."
-                               FontSize="12"
+                               FontSize="15"
                                TextColor="#6D4C00" />
                     </Grid>
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
                         <Label Grid.Column="0" Text="•" FontSize="12" TextColor="#6D4C00" VerticalOptions="Start" />
                         <Label Grid.Column="1" Text="Limited to 1000 tag uploads per day."
-                               FontSize="12"
+                               FontSize="15"
                                TextColor="#6D4C00" />
                     </Grid>
                 </VerticalStackLayout>
@@ -136,16 +136,16 @@
 
         <!-- Settings note -->
         <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
-            <Image HeightRequest="16" VerticalOptions="Center">
+            <Image HeightRequest="20" Margin="0,2,0,0" VerticalOptions="Center">
                 <Image.Source>
                     <FontImageSource FontFamily="MaterialSharp"
                                      Glyph="{x:Static m:MaterialSharp.Settings}"
                                      Color="{StaticResource Gray600}"
-                                     Size="16" />
+                                     Size="20" />
                 </Image.Source>
             </Image>
             <Label Text="You can opt out anytime in Settings."
-                   FontSize="12"
+                   FontSize="15"
                    VerticalOptions="Center"
                    TextColor="{StaticResource Gray600}" />
         </HorizontalStackLayout>
