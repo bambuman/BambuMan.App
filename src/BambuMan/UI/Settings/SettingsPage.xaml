@@ -29,7 +29,14 @@
                 </ImageButton>
             </Grid>
 
-            <material:CheckBox x:Name="TfFullTagScanAndUpload" Text="Participate in NFC data upload [beta]" IsChecked="{Binding FullTagScanAndUpload, Mode=TwoWay}" Margin="10,5,10,0"></material:CheckBox>
+            <Grid ColumnDefinitions="*,40">
+                <material:CheckBox x:Name="TfFullTagScanAndUpload" Grid.Column="0" Text="Participate in NFC data upload [beta]" IsChecked="{Binding FullTagScanAndUpload, Mode=TwoWay}" Margin="10,5,0,0" />
+                <ImageButton Grid.Column="1" HeightRequest="24" WidthRequest="24" Margin="0,8,10,0" Padding="2" Clicked="InfoButton_OnClicked" VerticalOptions="Start">
+                    <ImageButton.Source>
+                        <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Info}" Color="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
+                    </ImageButton.Source>
+                </ImageButton>
+            </Grid>
 
             <material:CheckBox x:Name="TfUnknownFilamentEnabled" Text="Import unknown filament" IsChecked="{Binding UnknownFilamentEnabled, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
 

@@ -1,4 +1,6 @@
+using BambuMan.UI.Consent;
 using BambuMan.UI.Scan;
+using CommunityToolkit.Maui;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -25,19 +27,21 @@ public partial class SettingsPage
 
     private readonly SettingsPageViewModel viewModel;
     private readonly ILogger<SettingsPage> logger;
+    private readonly IPopupService popupService;
 
     private IHost? apiHost;
 
-    public SettingsPage(SettingsPageViewModel viewModel, ILogger<SettingsPage> logger)
+    public SettingsPage(SettingsPageViewModel viewModel, ILogger<SettingsPage> logger, IPopupService popupService)
     {
         InitializeComponent();
 
         this.viewModel = viewModel;
         this.logger = logger;
+        this.popupService = popupService;
         BindingContext = viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
 
@@ -50,6 +54,8 @@ public partial class SettingsPage
         viewModel.ShowLogsOnMainPage = Preferences.Default.Get(ShowLogsOnMainPage, true);
         viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(ShowKeyboardOnSpoolRead, true);
         viewModel.FullTagScanAndUpload = Preferences.Default.Get(FullTagScanAndUpload, false);
+
+        await ShowConsentPopupIfNeeded();
 
         try
         {
@@ -104,6 +110,46 @@ public partial class SettingsPage
         catch (Exception ex)
         {
             logger.LogError(ex, "Error navigating to qrcode scanner");
+        }
+    }
+
+    private async Task ShowConsentPopupIfNeeded()
+    {
+        var consentShown = Preferences.Default.Get(TagUploadConsentShown, false);
+        if (consentShown) return;
+
+        var popupResult = await popupService.ShowPopupAsync<TagUploadConsentPopup, bool>(Shell.Current, new PopupOptions
+        {
+            CanBeDismissedByTappingOutsideOfPopup = false
+        });
+
+        Preferences.Default.Set(TagUploadConsentShown, true);
+
+        if (popupResult is { WasDismissedByTappingOutsideOfPopup: false })
+        {
+            Preferences.Default.Set(FullTagScanAndUpload, popupResult.Result);
+            viewModel.FullTagScanAndUpload = popupResult.Result;
+        }
+    }
+
+    private async void InfoButton_OnClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            var popupResult = await popupService.ShowPopupAsync<TagUploadConsentPopup, bool>(Shell.Current, new PopupOptions
+            {
+                CanBeDismissedByTappingOutsideOfPopup = true
+            });
+
+            if (popupResult is { WasDismissedByTappingOutsideOfPopup: false })
+            {
+                Preferences.Default.Set(FullTagScanAndUpload, popupResult.Result);
+                viewModel.FullTagScanAndUpload = popupResult.Result;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error showing consent popup");
         }
     }
 

@@ -9,6 +9,11 @@ namespace BambuMan
             Routing.RegisterRoute(nameof(ScanPage), typeof(ScanPage));
 
             InitializeComponent();
+
+            if (string.IsNullOrWhiteSpace(Preferences.Default.Get("spoolman_url", string.Empty)))
+            {
+                Dispatcher.DispatchAsync(async () => await GoToAsync("//SettingsPage"));
+            }
         }
         protected override bool OnBackButtonPressed()
         {
