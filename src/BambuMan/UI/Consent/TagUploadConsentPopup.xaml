@@ -5,7 +5,7 @@
                xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
                x:Class="BambuMan.UI.Consent.TagUploadConsentPopup"
                x:TypeArguments="x:Boolean"
-               BackgroundColor="White">
+               BackgroundColor="{AppThemeBinding Light={StaticResource PopupBackground}, Dark={StaticResource PopupBackgroundDark}}">
 
     <VerticalStackLayout Padding="0" Spacing="12" WidthRequest="340">
 
@@ -15,7 +15,7 @@
                 <Image.Source>
                     <FontImageSource FontFamily="MaterialSharp"
                                      Glyph="{x:Static m:MaterialSharp.Science}"
-                                     Color="{StaticResource Primary}"
+                                     Color="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                                      Size="38" />
                 </Image.Source>
             </Image>
@@ -23,17 +23,17 @@
                    FontAttributes="Bold"
                    FontSize="20"
                    VerticalOptions="Center"
-                   TextColor="{StaticResource Primary}" />
+                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
         </HorizontalStackLayout>
 
         <!-- Description -->
         <Label FontSize="15"
                HorizontalTextAlignment="Start"
-               TextColor="{StaticResource Gray600}">
+               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}">
             <Label.FormattedText>
                 <FormattedString>
                     <Span Text="Help improve Bambu Lab filament research by uploading NFC tag data to the "></Span>
-                    <Span Text="Bambu-Lab-RFID-Library" TextColor="DodgerBlue" TextDecorations="Underline">
+                    <Span Text="Bambu-Lab-RFID-Library" TextColor="{AppThemeBinding Light={StaticResource LinkText}, Dark={StaticResource LinkTextDark}}" TextDecorations="Underline">
                         <Span.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnLibraryLinkTapped" />
                         </Span.GestureRecognizers>
@@ -46,11 +46,11 @@
         <!-- Batch download info -->
         <Label FontSize="15"
                HorizontalTextAlignment="Start"
-               TextColor="{StaticResource Gray600}">
+               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}">
             <Label.FormattedText>
                 <FormattedString>
                     <Span Text="The uploaded data will also be available at "></Span>
-                    <Span Text="bambuman.ee" TextColor="DodgerBlue" TextDecorations="Underline">
+                    <Span Text="bambuman.ee" TextColor="{AppThemeBinding Light={StaticResource LinkText}, Dark={StaticResource LinkTextDark}}" TextDecorations="Underline">
                         <Span.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnBambuManLinkTapped" />
                         </Span.GestureRecognizers>
@@ -61,13 +61,13 @@
         </Label>
 
         <!-- What is uploaded section -->
-        <Border Stroke="{StaticResource Gray300}"
+        <Border Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                 StrokeThickness="1"
                 StrokeShape="RoundRectangle 5"
                 Padding="10"
-                BackgroundColor="{StaticResource Gray100}">
+                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}">
             <VerticalStackLayout Spacing="4">
-                <Label FontSize="15" TextColor="{StaticResource Gray900}">
+                <Label FontSize="15" TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray200}}">
                     <Label.FormattedText>
                         <FormattedString>
                             <Span Text="What is uploaded: "></Span>
@@ -80,55 +80,55 @@
         </Border>
 
         <!-- Warning - public data -->
-        <Border Stroke="#F44336"
+        <Border Stroke="{AppThemeBinding Light={StaticResource WarningBannerStroke}, Dark={StaticResource WarningBannerStrokeDark}}"
                 StrokeThickness="1"
                 StrokeShape="RoundRectangle 5"
                 Padding="10"
-                BackgroundColor="#FFEBEE">
+                BackgroundColor="{AppThemeBinding Light={StaticResource WarningBannerBackground}, Dark={StaticResource WarningBannerBackgroundDark}}">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
                 <Image Grid.Column="0" HeightRequest="26" VerticalOptions="Start">
                     <Image.Source>
                         <FontImageSource FontFamily="MaterialSharp"
                                          Glyph="{x:Static m:MaterialSharp.Warning}"
-                                         Color="#F44336"
+                                         Color="{AppThemeBinding Light={StaticResource WarningBannerIcon}, Dark={StaticResource WarningBannerIconDark}}"
                                          Size="26" />
                     </Image.Source>
                 </Image>
                 <Label Grid.Column="1"
                        Text="The uploaded data will be PUBLIC and published under MIT license."
                        FontSize="15"
-                       TextColor="#C62828"
+                       TextColor="{AppThemeBinding Light={StaticResource WarningBannerText}, Dark={StaticResource WarningBannerTextDark}}"
                        VerticalOptions="Center" />
             </Grid>
         </Border>
 
         <!-- Info section -->
-        <Border Stroke="#FFC107"
+        <Border Stroke="{AppThemeBinding Light={StaticResource CautionBannerStroke}, Dark={StaticResource CautionBannerStrokeDark}}"
                 StrokeThickness="1"
                 StrokeShape="RoundRectangle 5"
                 Padding="10"
-                BackgroundColor="#FFF8E1">
+                BackgroundColor="{AppThemeBinding Light={StaticResource CautionBannerBackground}, Dark={StaticResource CautionBannerBackgroundDark}}">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
                 <Image Grid.Column="0" HeightRequest="26" VerticalOptions="Start">
                     <Image.Source>
                         <FontImageSource FontFamily="MaterialSharp"
                                          Glyph="{x:Static m:MaterialSharp.Info}"
-                                         Color="#F9A825"
+                                         Color="{AppThemeBinding Light={StaticResource CautionBannerIcon}, Dark={StaticResource CautionBannerIconDark}}"
                                          Size="26" />
                     </Image.Source>
                 </Image>
                 <VerticalStackLayout Grid.Column="1" Spacing="4">
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
-                        <Label Grid.Column="0" Text="•" FontSize="12" TextColor="#6D4C00" VerticalOptions="Start" />
+                        <Label Grid.Column="0" Text="&#x2022;" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource CautionBannerText}, Dark={StaticResource CautionBannerTextDark}}" VerticalOptions="Start" />
                         <Label Grid.Column="1" Text="Please scan both sides of the spool — each tag contains unique data."
                                FontSize="15"
-                               TextColor="#6D4C00" />
+                               TextColor="{AppThemeBinding Light={StaticResource CautionBannerText}, Dark={StaticResource CautionBannerTextDark}}" />
                     </Grid>
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
-                        <Label Grid.Column="0" Text="•" FontSize="12" TextColor="#6D4C00" VerticalOptions="Start" />
+                        <Label Grid.Column="0" Text="&#x2022;" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource CautionBannerText}, Dark={StaticResource CautionBannerTextDark}}" VerticalOptions="Start" />
                         <Label Grid.Column="1" Text="Limited to 1000 tag uploads per day."
                                FontSize="15"
-                               TextColor="#6D4C00" />
+                               TextColor="{AppThemeBinding Light={StaticResource CautionBannerText}, Dark={StaticResource CautionBannerTextDark}}" />
                     </Grid>
                 </VerticalStackLayout>
             </Grid>
@@ -140,27 +140,27 @@
                 <Image.Source>
                     <FontImageSource FontFamily="MaterialSharp"
                                      Glyph="{x:Static m:MaterialSharp.Settings}"
-                                     Color="{StaticResource Gray600}"
+                                     Color="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
                                      Size="20" />
                 </Image.Source>
             </Image>
             <Label Text="You can opt out anytime in Settings."
                    FontSize="15"
                    VerticalOptions="Center"
-                   TextColor="{StaticResource Gray600}" />
+                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
         </HorizontalStackLayout>
 
         <!-- Buttons -->
         <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,8,0,0">
             <Button Grid.Column="0"
                     Text="No Thanks"
-                    BackgroundColor="{StaticResource Gray200}"
-                    TextColor="{StaticResource Gray900}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray200}}"
                     Clicked="OnDeclineClicked" />
             <Button Grid.Column="1"
                     Text="Participate"
-                    BackgroundColor="{StaticResource Primary}"
-                    TextColor="White"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    TextColor="{AppThemeBinding Light=White, Dark={StaticResource PrimaryDarkText}}"
                     Clicked="OnAcceptClicked" />
         </Grid>
 

@@ -140,6 +140,7 @@
     </Style>
 
     <Style TargetType="Label">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}" />
         <Setter Property="FontFamily" Value="OpenSansRegular" />
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>

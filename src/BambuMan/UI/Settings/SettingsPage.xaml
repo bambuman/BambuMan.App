@@ -15,21 +15,31 @@
     <VerticalStackLayout Padding="10">
 
         <input:FormView Spacing="10">
-            <Grid ColumnDefinitions="*,45">
-                <material:TextField x:Name="TfSpoolmanUrl" Title="Spoolman url:" Grid.Column="0" 
-                                    Text="{Binding SpoolmanUrl,Mode=TwoWay}" 
+            <Grid ColumnDefinitions="*,Auto">
+                <material:TextField x:Name="TfSpoolmanUrl" Title="Spoolman url:" Grid.Column="0"
+                                    Text="{Binding SpoolmanUrl,Mode=TwoWay}"
                                     Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}}">
                     <validation:RequiredValidation />
                     <validation:RegexValidation Message="Invalid url, must start with http:// or https://" Pattern="{x:Static constants:Constants.UrlValidation }" />
                 </material:TextField>
-                <ImageButton Grid.Column="1" HeightRequest="35" WidthRequest="35" Margin="4,8,2,2" Padding="2" Clicked="ImageButton_OnClicked" VerticalOptions="Start">
+                <Button Grid.Column="1" Text="Scan QR" Clicked="ImageButton_OnClicked"
+                        VerticalOptions="Start" Margin="6,7,0,0" Padding="10,4"
+                        HeightRequest="46" FontSize="14"
+                        BackgroundColor="Transparent"
+                        TextColor="Crimson"
+                        BorderColor="Crimson" BorderWidth="1"
+                        CornerRadius="6"
+                        ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Qr_code_scanner}, Color=Crimson, Size=18}" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,40">
+                <material:CheckBox x:Name="TfFullTagScanAndUpload" Grid.Column="0" Text="Participate in NFC data upload [beta]" IsChecked="{Binding FullTagScanAndUpload, Mode=TwoWay}" Margin="10,5,0,0" />
+                <ImageButton Grid.Column="1" HeightRequest="24" WidthRequest="24" Margin="0,8,10,0" Padding="2" Clicked="InfoButton_OnClicked" VerticalOptions="Start">
                     <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Qr_code_scanner}" Color="Crimson" />
+                        <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Info}" Color="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
                     </ImageButton.Source>
                 </ImageButton>
             </Grid>
-
-            <material:CheckBox x:Name="TfFullTagScanAndUpload" Text="Participate in NFC data upload [beta]" IsChecked="{Binding FullTagScanAndUpload, Mode=TwoWay}" Margin="10,5,10,0"></material:CheckBox>
 
             <material:CheckBox x:Name="TfUnknownFilamentEnabled" Text="Import unknown filament" IsChecked="{Binding UnknownFilamentEnabled, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
 
@@ -55,5 +65,12 @@
             <!--<Button StyleClass="FilledButton" Text="Save changes" input:FormView.IsSubmitButton="True"/>-->
 
         </input:FormView>
+
+        <Button Text="Back to Main" Clicked="BackToMain_OnClicked"
+                Margin="0,20,0,10"
+                StyleClass="FilledButton"
+                ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Arrow_back}, Color={AppThemeBinding Light={StaticResource OnSurfaceDark}, Dark={StaticResource OnSurfaceDark}}, Size=18}"
+                />
+
     </VerticalStackLayout>
 </ContentPage>

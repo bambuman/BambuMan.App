@@ -20,7 +20,7 @@ public partial class LogsPage
         this.invokeIndent = invokeIndent;
         BindingContext = viewModel;
     }
-    
+
     private void ClearLogs_OnClicked(object? sender, EventArgs e)
     {
         logService.Logs.Clear();
