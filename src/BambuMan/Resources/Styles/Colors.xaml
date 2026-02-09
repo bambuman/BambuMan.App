@@ -6,43 +6,6 @@
 
     <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
 
-    <!--<Color x:Key="Primary">#7E570E</Color>
-    <Color x:Key="PrimaryDark">#ac99ea</Color>
-    <Color x:Key="PrimaryDarkText">#242424</Color>
-    <Color x:Key="Secondary">#6E5B40</Color>
-    <Color x:Key="SecondaryDarkText">#9880e5</Color>
-    <Color x:Key="Tertiary">#506441</Color>
-
-    <Color x:Key="White">White</Color>
-    <Color x:Key="Black">Black</Color>
-    <Color x:Key="Magenta">#D600AA</Color>
-    <Color x:Key="MidnightBlue">#190649</Color>
-    <Color x:Key="OffBlack">#1f1f1f</Color>
-
-    <Color x:Key="Gray100">#E1E1E1</Color>
-    <Color x:Key="Gray200">#C8C8C8</Color>
-    <Color x:Key="Gray300">#ACACAC</Color>
-    <Color x:Key="Gray400">#919191</Color>
-    <Color x:Key="Gray500">#6E6E6E</Color>
-    <Color x:Key="Gray600">#404040</Color>
-    <Color x:Key="Gray900">#212121</Color>
-    <Color x:Key="Gray950">#141414</Color>
-
-    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
-    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
-    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
-    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
-    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
-
-    <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
-    <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
-    <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}"/>
-    <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}"/>
-    <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}"/>
-    <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
-    <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
-    <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>-->
-
     <Color x:Key="Primary">#7E570E</Color>
     <Color x:Key="PrimaryDark">#ac99ea</Color>
     <Color x:Key="PrimaryDarkText">#242424</Color>
@@ -126,6 +89,98 @@
 
     <Color x:Key="Scrim">#000000</Color>
     <Color x:Key="ScrimDark">#000000</Color>
+
+    <!--APP SEMANTIC COLORS-->
+
+    <!-- Status bar -->
+    <Color x:Key="StatusBar">#EADFDF</Color>
+    <Color x:Key="StatusBarDark">#1C1B1F</Color>
+
+    <!-- Shell icons -->
+    <Color x:Key="ShellIcon">#1C1B1F</Color>
+    <Color x:Key="ShellIconDark">#E6E1E5</Color>
+
+    <!-- Separators -->
+    <Color x:Key="Separator">#C8C8C8</Color>
+    <Color x:Key="SeparatorDark">#49454F</Color>
+
+    <!-- Spool info card -->
+    <Color x:Key="SpoolCardBackground">#F5EDE0</Color>
+    <Color x:Key="SpoolCardBackgroundDark">#2C2520</Color>
+    <Color x:Key="SpoolCardStroke">#7E570E</Color>
+    <Color x:Key="SpoolCardStrokeDark">#D4A96A</Color>
+
+    <!-- Error banner -->
+    <Color x:Key="ErrorBannerStroke">#D32F2F</Color>
+    <Color x:Key="ErrorBannerStrokeDark">#EF5350</Color>
+    <Color x:Key="ErrorBannerBackground">Transparent</Color>
+    <Color x:Key="ErrorBannerBackgroundDark">#2C1212</Color>
+    <Color x:Key="ErrorBannerText">#C62828</Color>
+    <Color x:Key="ErrorBannerTextDark">#EF9A9A</Color>
+
+    <!-- Success banner -->
+    <Color x:Key="SuccessBannerStroke">#2E7D32</Color>
+    <Color x:Key="SuccessBannerStrokeDark">#66BB6A</Color>
+    <Color x:Key="SuccessBannerBackground">#E8F5E9</Color>
+    <Color x:Key="SuccessBannerBackgroundDark">#1B2E1B</Color>
+    <Color x:Key="SuccessBannerText">#1B5E20</Color>
+    <Color x:Key="SuccessBannerTextDark">#A5D6A7</Color>
+
+    <!-- Info banner -->
+    <Color x:Key="InfoBannerStroke">#0288D1</Color>
+    <Color x:Key="InfoBannerStrokeDark">#4FC3F7</Color>
+    <Color x:Key="InfoBannerBackground">#E1F5FE</Color>
+    <Color x:Key="InfoBannerBackgroundDark">#0D2137</Color>
+    <Color x:Key="InfoBannerText">#01579B</Color>
+    <Color x:Key="InfoBannerTextDark">#81D4FA</Color>
+
+    <!-- Version banner -->
+    <Color x:Key="VersionBannerStroke">#2E7D32</Color>
+    <Color x:Key="VersionBannerStrokeDark">#66BB6A</Color>
+    <Color x:Key="VersionBannerBackground">#DEFFD1</Color>
+    <Color x:Key="VersionBannerBackgroundDark">#1B2E1B</Color>
+    <Color x:Key="VersionBannerText">#1B5E20</Color>
+    <Color x:Key="VersionBannerTextDark">#A5D6A7</Color>
+
+    <!-- Secondary buttons (blue-tinted: Email logs, Clear inventory) -->
+    <Color x:Key="SecondaryButtonBackground">#D6E4F0</Color>
+    <Color x:Key="SecondaryButtonBackgroundDark">#2A3545</Color>
+    <Color x:Key="SecondaryButtonText">#1C1B1F</Color>
+    <Color x:Key="SecondaryButtonTextDark">#E6E1E5</Color>
+
+    <!-- Tertiary buttons (gray: Cancel, Clear logs) -->
+    <Color x:Key="TertiaryButtonBackground">#E0E0E0</Color>
+    <Color x:Key="TertiaryButtonBackgroundDark">#3A3A3A</Color>
+    <Color x:Key="TertiaryButtonText">#1C1B1F</Color>
+    <Color x:Key="TertiaryButtonTextDark">#E6E1E5</Color>
+
+    <!-- Popup -->
+    <Color x:Key="PopupBackground">#FFFFFF</Color>
+    <Color x:Key="PopupBackgroundDark">#2C2C2C</Color>
+
+    <!-- Warning banner (consent popup) -->
+    <Color x:Key="WarningBannerStroke">#F44336</Color>
+    <Color x:Key="WarningBannerStrokeDark">#EF5350</Color>
+    <Color x:Key="WarningBannerBackground">#FFEBEE</Color>
+    <Color x:Key="WarningBannerBackgroundDark">#3B1515</Color>
+    <Color x:Key="WarningBannerText">#C62828</Color>
+    <Color x:Key="WarningBannerTextDark">#EF9A9A</Color>
+    <Color x:Key="WarningBannerIcon">#F44336</Color>
+    <Color x:Key="WarningBannerIconDark">#EF5350</Color>
+
+    <!-- Caution banner (consent popup) -->
+    <Color x:Key="CautionBannerStroke">#FFC107</Color>
+    <Color x:Key="CautionBannerStrokeDark">#FFD54F</Color>
+    <Color x:Key="CautionBannerBackground">#FFF8E1</Color>
+    <Color x:Key="CautionBannerBackgroundDark">#3B3012</Color>
+    <Color x:Key="CautionBannerText">#6D4C00</Color>
+    <Color x:Key="CautionBannerTextDark">#FFE082</Color>
+    <Color x:Key="CautionBannerIcon">#F9A825</Color>
+    <Color x:Key="CautionBannerIconDark">#FFD54F</Color>
+
+    <!-- Links -->
+    <Color x:Key="LinkText">DodgerBlue</Color>
+    <Color x:Key="LinkTextDark">#64B5F6</Color>
 
     <!--DARK COLORS-->
 

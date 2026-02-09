@@ -12,7 +12,7 @@
     Title="BambuMan">
 
     <Shell.Behaviors>
-        <toolkit:StatusBarBehavior StatusBarColor="#EADFDF" StatusBarStyle="DarkContent" />
+        <toolkit:StatusBarBehavior StatusBarColor="{AppThemeBinding Light={StaticResource StatusBar}, Dark={StaticResource StatusBarDark}}" StatusBarStyle="{AppThemeBinding Light=DarkContent, Dark=LightContent}" />
     </Shell.Behaviors>
 
     <Shell.ItemTemplate>
@@ -26,17 +26,17 @@
 
     <ShellContent Title="Main" ContentTemplate="{DataTemplate main:MainPage}" Route="MainPage">
         <ShellContent.Icon>
-            <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.House}" Color="Black" />
+            <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.House}" Color="{AppThemeBinding Light={StaticResource ShellIcon}, Dark={StaticResource ShellIconDark}}" />
         </ShellContent.Icon>
     </ShellContent>
     <ShellContent Title="Settings" ContentTemplate="{DataTemplate settings:SettingsPage}" Route="SettingsPage">
         <ShellContent.Icon>
-            <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Settings}" Color="Black" />
+            <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Settings}" Color="{AppThemeBinding Light={StaticResource ShellIcon}, Dark={StaticResource ShellIconDark}}" />
         </ShellContent.Icon>
     </ShellContent>
     <ShellContent Title="Logs" ContentTemplate="{DataTemplate logs:LogsPage}" Route="LogsPage">
         <ShellContent.Icon>
-            <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Bug_report}" Color="Black" />
+            <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Bug_report}" Color="{AppThemeBinding Light={StaticResource ShellIcon}, Dark={StaticResource ShellIconDark}}" />
         </ShellContent.Icon>
     </ShellContent>
 
