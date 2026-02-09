@@ -153,6 +153,11 @@ public partial class SettingsPage
         }
     }
 
+    private async void BackToMain_OnClicked(object? sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("//MainPage");
+    }
+
     protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
     {
         if (TfSpoolmanUrl.IsValid) Preferences.Default.Set(KeySpoolmanUrl, viewModel.SpoolmanUrl);

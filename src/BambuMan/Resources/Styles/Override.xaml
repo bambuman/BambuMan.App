@@ -9,21 +9,21 @@
          TitleColor/BorderColor = unfocused state, AccentColor = focused state (border + label). -->
     <Style TargetType="material:TextField" ApplyToDerivedTypes="True">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}" />
-        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
+        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource OutlineText}, Dark={StaticResource OutlineDark}}" />
         <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
         <Setter Property="AccentColor" Value="{AppThemeBinding Light={StaticResource DarkGold}, Dark={StaticResource LighterPurple}}" />
     </Style>
 
     <Style TargetType="material:DatePickerField" ApplyToDerivedTypes="True">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}" />
-        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
+        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource OutlineText}, Dark={StaticResource OutlineDark}}" />
         <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
         <Setter Property="AccentColor" Value="{AppThemeBinding Light={StaticResource DarkGold}, Dark={StaticResource LighterPurple}}" />
     </Style>
 
     <Style TargetType="material:AutoCompleteTextField" ApplyToDerivedTypes="True">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}" />
-        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
+        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource OutlineText}, Dark={StaticResource OutlineDark}}" />
         <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
         <Setter Property="AccentColor" Value="{AppThemeBinding Light={StaticResource DarkGold}, Dark={StaticResource LighterPurple}}" />
     </Style>

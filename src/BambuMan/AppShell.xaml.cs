@@ -12,13 +12,14 @@ namespace BambuMan
 
             if (string.IsNullOrWhiteSpace(Preferences.Default.Get("spoolman_url", string.Empty)))
             {
-                Dispatcher.DispatchAsync(async () => await GoToAsync("//SettingsPage"));
+                CurrentItem = Items.First(x => x.Title == "Settings");
+                //Dispatcher.DispatchAsync(async () => await GoToAsync("//SettingsPage"));
             }
         }
         protected override bool OnBackButtonPressed()
         {
             if (Current.CurrentState.Location.OriginalString == "//MainPage") return false;
-            
+
             Current.GoToAsync("//MainPage", true);
             return true;
         }

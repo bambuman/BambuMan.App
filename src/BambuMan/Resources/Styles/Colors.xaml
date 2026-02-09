@@ -71,6 +71,7 @@
     <Color x:Key="OnBackgroundDark">#E6E1E5</Color>
 
     <Color x:Key="Outline">#646168</Color>
+    <Color x:Key="OutlineText">#49474C</Color>
     <Color x:Key="OutlineDark">#B6B1BC</Color>
 
     <Color x:Key="OutlineVariant">#C4C7C5</Color>
