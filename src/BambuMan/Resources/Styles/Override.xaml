@@ -5,17 +5,27 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material">
 
-    <!-- Ensure UraniumUI text fields are readable in both themes -->
+    <!-- UraniumUI InputField color overrides for both themes.
+         TitleColor/BorderColor = unfocused state, AccentColor = focused state (border + label). -->
     <Style TargetType="material:TextField" ApplyToDerivedTypes="True">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}" />
+        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
+        <Setter Property="AccentColor" Value="{AppThemeBinding Light={StaticResource DarkGold}, Dark={StaticResource LighterPurple}}" />
     </Style>
 
     <Style TargetType="material:DatePickerField" ApplyToDerivedTypes="True">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}" />
+        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
+        <Setter Property="AccentColor" Value="{AppThemeBinding Light={StaticResource DarkGold}, Dark={StaticResource LighterPurple}}" />
     </Style>
 
     <Style TargetType="material:AutoCompleteTextField" ApplyToDerivedTypes="True">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}" />
+        <Setter Property="TitleColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
+        <Setter Property="AccentColor" Value="{AppThemeBinding Light={StaticResource DarkGold}, Dark={StaticResource LighterPurple}}" />
     </Style>
 
 </ResourceDictionary>

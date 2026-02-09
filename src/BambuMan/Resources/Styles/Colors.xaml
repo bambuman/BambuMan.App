@@ -11,8 +11,11 @@
     <Color x:Key="PrimaryDarkText">#242424</Color>
     <Color x:Key="SecondaryDarkText">#9880e5</Color>
 
+    <Color x:Key="LighterPurple">#AB95D6</Color>
+    <Color x:Key="DarkGold">#916925</Color>
+
     <Color x:Key="PrimaryContainer">#EADDFF</Color>
-    <Color x:Key="PrimaryContainerDark">#4F378B</Color>
+    <Color x:Key="PrimaryContainerDark">#6443B7</Color>
 
     <Color x:Key="Secondary">#6E5B40</Color>
     <Color x:Key="SecondaryDark">#CCC2DC</Color>
@@ -67,8 +70,8 @@
     <Color x:Key="OnBackground">#1C1B1F</Color>
     <Color x:Key="OnBackgroundDark">#E6E1E5</Color>
 
-    <Color x:Key="Outline">#79747E</Color>
-    <Color x:Key="OutlineDark">#938F99</Color>
+    <Color x:Key="Outline">#646168</Color>
+    <Color x:Key="OutlineDark">#B6B1BC</Color>
 
     <Color x:Key="OutlineVariant">#C4C7C5</Color>
     <Color x:Key="OutlineVariantDark">#444746</Color>

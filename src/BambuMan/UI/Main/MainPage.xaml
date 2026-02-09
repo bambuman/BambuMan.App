@@ -36,7 +36,7 @@
             </Border>
 
             <Grid ColumnDefinitions="*,*,*" RowDefinitions="*" Margin="0,0,0,5">
-                <Border Grid.Column="0" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5"  HeightRequest="26" >
+                <Border Grid.Column="0" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
                     <HorizontalStackLayout>
                         <!-- BackgroundColor="{Binding SettingsOk, Converter={StaticResource BoolToColorConverter}}" -->
                         <Image HeightRequest="10" Margin="10,0,0,0">
@@ -48,7 +48,7 @@
                         <Label Margin="0" Padding="8,4,8,4" FontSize="13" HeightRequest="26" HorizontalTextAlignment="Center" Text="SETTINGS"></Label>
                     </HorizontalStackLayout>
                 </Border>
-                <Border Grid.Column="1" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" HeightRequest="26" >
+                <Border Grid.Column="1" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
                     <HorizontalStackLayout>
                         <!-- BackgroundColor="{Binding SpoolmanOk, Converter={StaticResource BoolToColorConverter}}" -->
                         <Image HeightRequest="10" Margin="10,0,0,0">
@@ -60,7 +60,7 @@
                         <Label Margin="0" Padding="8,4,8,4" FontSize="13" HeightRequest="26" HorizontalTextAlignment="Center" Text="SPOOLMAN"></Label>
                     </HorizontalStackLayout>
                 </Border>
-                <Border Grid.Column="2" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" HeightRequest="26" >
+                <Border Grid.Column="2" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
                     <HorizontalStackLayout>
                         <!-- BackgroundColor="{Binding NfcIsEnabled, Converter={StaticResource BoolToColorConverter}}" -->
                         <Image HeightRequest="10" Margin="10,0,0,0">
@@ -181,14 +181,13 @@
 
                             <Button Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="1" StyleClass="FilledButton" Text="Save changes" Clicked="SaveChanges_OnClicked"/>
 
-
                         </Grid>
                     </input:FormView>
                 </VerticalStackLayout>
             </Border>
 
             <VerticalStackLayout Margin="0,0,0,5" IsVisible="{Binding IsTest}">
-                <Button Clicked="Button_OnClicked" Text="Test Tag" />
+                <Button Clicked="Button_OnClicked" Text="Test Tag" StyleClass="FilledButton" />
             </VerticalStackLayout>
 
             <Border HeightRequest="2" BackgroundColor="{AppThemeBinding Light={StaticResource Separator}, Dark={StaticResource SeparatorDark}}" Margin="0,5,0,5" IsVisible="{Binding ShowLogsOnMainPage}"></Border>
