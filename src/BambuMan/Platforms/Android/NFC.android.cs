@@ -323,6 +323,48 @@ namespace BambuMan
         #region Private
 
         /// <summary>
+        /// Authenticates a sector with up to 3 retries
+        /// </summary>
+        bool AuthenticateWithRetry(MifareClassic mfc, int sector, byte[] key, int blockNum, int maxRetries = 3)
+        {
+            for (var attempt = 0; attempt < maxRetries; attempt++)
+            {
+                if (mfc.AuthenticateSectorWithKeyA(sector, key)) return true;
+                Thread.Sleep(2);
+                Debug.WriteLine($"b{blockNum}: reauth{(attempt > 0 ? (attempt + 1).ToString() : "")}");
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Reads a single block with up to 3 retries, re-authenticating on failure
+        /// </summary>
+        byte[] ReadBlockWithRetry(MifareClassic mfc, int blockNum, int sector, byte[] key, int maxRetries = 3)
+        {
+            for (var attempt = 0; attempt < maxRetries; attempt++)
+            {
+                try
+                {
+                    var data = mfc.ReadBlock(blockNum);
+
+                    Debug.WriteLine(attempt == 0 ? $"b{blockNum}: {data?.Length} {BitConverter.ToString(data ?? [0]).Replace("-", " ").ToLower()}" : $"b{blockNum}: reread");
+
+                    if (data is { Length: 16 }) return data;
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"b{blockNum}: read error - {e.Message}");
+                }
+
+                Thread.Sleep(2);
+                mfc.AuthenticateSectorWithKeyA(sector, key);
+            }
+
+            return [16];
+        }
+
+        /// <summary>
         /// Stops publishing and throws error
         /// </summary>
         /// <param name="message">message</param>
@@ -419,42 +461,30 @@ namespace BambuMan
                     #region Read Blocks
 
                     var tagReadStart = DateTime.Now;
+                    var sectorCount = FullTagScanAndUpload ? 16 : 5;
+                    var blockData = new byte[sectorCount * 4][];
 
-                    var blockData = FullTagScanAndUpload ? new byte[64][] : new byte[20][];
-
-                    for (var i = 0; i < (FullTagScanAndUpload ? 16 : 5); i++)
+                    for (var i = 0; i < sectorCount; i++)
                     {
                         var blockNum = i * 4;
 
-                        var authA = mfc.AuthenticateSectorWithKeyA(i, aKeys[i]);
-                        if (!authA) continue;
+                        if (!AuthenticateWithRetry(mfc, i, aKeys[i], blockNum)) continue;
 
-                        for (var ii = 0; ii < (FullTagScanAndUpload ? 4 : 3); ii++)
+                        for (var ii = 0; ii < 3; ii++)
                         {
-                            try
-                            {
-                                blockData[blockNum] = mfc.ReadBlock(blockNum) ?? [16];
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e.ToString());
-                            }
-
+                            blockData[blockNum] = ReadBlockWithRetry(mfc, blockNum, i, aKeys[i]);
                             blockNum++;
                         }
                     }
 
-                    #region Fill in keys
+                    // Fill in keys
+                    for (var i = 0; i < sectorCount; i++)
+                        blockData[i * 4 + 3] = aKeys[i].Concat(new byte[] { 0x87, 0x87, 0x87, 0x69 }).Concat(bKeys[i]).ToArray();
 
-                    var index = 0;
-
-                    for (var i = 3; i < blockData.Length; i += 4)
-                    {
-                        blockData[i] = aKeys[index].Concat(blockData[i][6..10]).Concat(bKeys[index]).ToArray();
-                        index++;
-                    }
-
-                    #endregion
+#if DEBUG
+                    for (var i = 0; i < blockData.Length; i++)
+                        Debug.WriteLine($"{i}:{BitConverter.ToString(blockData[i] ?? [0]).Replace("-", " ").ToLower()}");
+#endif
 
                     bambuTagInfo.ReadTime = (DateTime.Now - tagReadStart).TotalMilliseconds;
                     bambuTagInfo.ParseData(blockData, keys, fullRead: FullTagScanAndUpload);
