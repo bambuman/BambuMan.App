@@ -132,7 +132,7 @@ namespace BambuMan
         public void StopListening()
         {
             DisablePublishing();
-            if (nfcAdapter != null)
+            if (nfcAdapter != null && CurrentActivity != null)
                 nfcAdapter.DisableForegroundDispatch(CurrentActivity);
 
             isListening = false;
@@ -242,19 +242,19 @@ namespace BambuMan
                     }
                     catch (TagLostException tlex)
                     {
-                        throw new Exception("Tag Lost Error: " + tlex.Message);
+                        throw new Exception("Tag Lost Error: " + tlex.Message, tlex);
                     }
                     catch (Java.IO.IOException ioex)
                     {
-                        throw new Exception("Tag IO Error: " + ioex.Message);
+                        throw new Exception("Tag IO Error: " + ioex.Message, ioex);
                     }
                     catch (Android.Nfc.FormatException fe)
                     {
-                        throw new Exception("Tag Format Error: " + fe.Message);
+                        throw new Exception("Tag Format Error: " + fe.Message, fe);
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception("Tag Error:" + ex.Message);
+                        throw new Exception("Tag Error: " + ex.Message, ex);
                     }
                     finally
                     {
@@ -503,6 +503,7 @@ namespace BambuMan
                 catch (Exception e)
                 {
                     Debug.WriteLine(e.ToString());
+                    return null;
                 }
                 finally
                 {
