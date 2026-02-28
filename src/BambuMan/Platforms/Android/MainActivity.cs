@@ -2,10 +2,6 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using BambuMan.Shared.Interfaces;
-using BambuMan.Utils;
-using Microsoft.Extensions.Logging;
-using AndroidApplication = Android.App.Application;
 
 namespace BambuMan
 {
@@ -18,6 +14,10 @@ namespace BambuMan
             CrossNfc.Init(this);
 
             base.OnCreate(savedInstanceState);
+
+            // Modern back-press handler: minimizes on MainPage instead of finishing the Activity,
+            // preventing Glide/FontImageSource crash on recreation (dotnet/maui#12513)
+            OnBackPressedDispatcher.AddCallback(this, new BackPressedCallback(this));
         }
 
         protected override void OnResume()

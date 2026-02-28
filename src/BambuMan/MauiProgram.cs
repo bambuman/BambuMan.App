@@ -114,6 +114,7 @@ namespace BambuMan
                 .Enrich.WithProperty("DeviceId", deviceId)
                 .Enrich.FromGlobalLogContext()
                 .Filter.ByExcluding(e => e.Properties.TryGetValue("SourceContext", out var value) && value.ToString().Contains("Microsoft.Maui.Controls.Xaml.Diagnostics.BindingDiagnostics"))
+                .Filter.ByExcluding(e => e.Properties.TryGetValue("SourceContext", out var value) && value.ToString().Contains("Microsoft.Maui.Controls.Platform.AlertManager"))
                 .Filter.ByExcluding(e => e.Exception?.Message.Contains("Font asset not found") ?? false)
                 .WriteTo.Sentry(o =>
                 {
