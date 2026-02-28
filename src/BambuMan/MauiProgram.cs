@@ -66,8 +66,6 @@ namespace BambuMan
             AddUi(services);
             AddServices(services);
 
-
-
 #if ANDROID
             MainApplication.SetupImplementations(services);
 #endif
@@ -88,20 +86,22 @@ namespace BambuMan
         {
             services.AddSingleton<AppShell>();
 
-            services.AddTransient<MainPage>();
             services.AddSingleton<MainPageViewModel>();
+
+            services.AddTransient<MainPage>();
             services.AddTransient<SettingsPage>();
             services.AddTransient<SettingsPageViewModel>();
             services.AddTransient<LogsPageViewModel>();
             services.AddTransient<ScanPage>();
-            services.AddSingleton<LogService>();
-            services.AddSingleton<TagApiService>();
             services.AddTransient<TagUploadConsentPopup>();
+
             services.AddHttpClient();
         }
 
         private static void AddServices(IServiceCollection services)
         {
+            services.AddSingleton<LogService>();
+            services.AddSingleton<TagApiService>();
             services.AddSingleton<SpoolmanManager>();
         }
 
