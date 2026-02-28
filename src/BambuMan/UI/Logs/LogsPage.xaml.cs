@@ -26,6 +26,11 @@ public partial class LogsPage
         logService.Logs.Clear();
     }
     
+    private async void BackToMain_OnClicked(object? sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("//MainPage");
+    }
+
     private async void EmailLogs_OnClicked(object? sender, EventArgs e)
     {
         try

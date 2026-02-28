@@ -4,9 +4,20 @@
              xmlns:main="clr-namespace:BambuMan.UI.Logs"
              xmlns:models="clr-namespace:BambuMan.Shared.Models;assembly=BambuMan.Shared"
              xmlns:converters="clr-namespace:BambuMan.Converters"
+             xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
              x:Class="BambuMan.UI.Logs.LogsPage"
              x:DataType="main:LogsPageViewModel"
              Title="BambuMan Settings">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Home" Clicked="BackToMain_OnClicked" Order="Primary">
+            <ToolbarItem.IconImageSource>
+                <FontImageSource FontFamily="FASolid"
+                                 Glyph="{x:Static fa:Solid.House}"
+                                 Color="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource White}}" />
+            </ToolbarItem.IconImageSource>
+        </ToolbarItem>
+    </ContentPage.ToolbarItems>
 
     <ContentPage.Resources>
         <ResourceDictionary>

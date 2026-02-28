@@ -8,9 +8,20 @@
              xmlns:constants="clr-namespace:BambuMan.Shared;assembly=BambuMan.Shared"
              xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
              xmlns:validation1="clr-namespace:BambuMan.Validation"
+             xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
              x:Class="BambuMan.UI.Settings.SettingsPage"
              x:DataType="main:SettingsPageViewModel"
              Title="BambuMan Settings">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Home" Clicked="BackToMain_OnClicked" Order="Primary">
+            <ToolbarItem.IconImageSource>
+                <FontImageSource FontFamily="FASolid"
+                                 Glyph="{x:Static fa:Solid.House}"
+                                 Color="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource White}}" />
+            </ToolbarItem.IconImageSource>
+        </ToolbarItem>
+    </ContentPage.ToolbarItems>
 
     <VerticalStackLayout Padding="10">
 

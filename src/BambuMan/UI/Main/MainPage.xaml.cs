@@ -617,6 +617,18 @@ namespace BambuMan.UI.Main
 
         #endregion
 
+        private async void Settings_OnClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                await Shell.Current.GoToAsync("//SettingsPage");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error in Settings_OnClicked");
+            }
+        }
+
         private async void SaveChanges_OnClicked(object? sender, EventArgs e)
         {
             try

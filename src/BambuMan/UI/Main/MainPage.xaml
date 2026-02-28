@@ -18,6 +18,16 @@
              Title="BambuMan Reader"
              x:DataType="main:MainPageViewModel">
 
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Settings" Clicked="Settings_OnClicked" Order="Primary">
+            <ToolbarItem.IconImageSource>
+                <FontImageSource FontFamily="FASolid"
+                                 Glyph="{x:Static fa:Solid.Gear}"
+                                 Color="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource White}}" />
+            </ToolbarItem.IconImageSource>
+        </ToolbarItem>
+    </ContentPage.ToolbarItems>
+
     <ContentPage.Resources>
         <ResourceDictionary>
             <toolkit:BoolToObjectConverter x:Key="BoolToColorConverter" TrueObject="{x:Static Colors.Green}" FalseObject="{x:Static Colors.Red}"/>
