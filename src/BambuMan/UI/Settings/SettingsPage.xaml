@@ -60,11 +60,26 @@
 
             <!--<material:TextField x:Name="TfLocation" Title="Location:" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />-->
 
-            <material:AutoCompleteTextField x:Name="TfLocation" Title="Location:" Threshold="1" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" ItemsSource="{Binding ExistingLocations}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
+            <Grid ColumnDefinitions="*,Auto">
+                <material:AutoCompleteTextField x:Name="TfLocation" Grid.Column="0" Title="Location:" Threshold="1" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" ItemsSource="{Binding ExistingLocations}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
+                <Button Grid.Column="1" Clicked="RefreshLocations_OnClicked"
+                        VerticalOptions="Start" Margin="6,7,0,0" Padding="10,4"
+                        HeightRequest="46"
+                        BackgroundColor="Transparent"
+                        BorderColor="Crimson" BorderWidth="1"
+                        CornerRadius="6"
+                        ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Refresh}, Color=Crimson, Size=18}" />
+            </Grid>
 
             <!--<Button StyleClass="FilledButton" Text="Save changes" input:FormView.IsSubmitButton="True"/>-->
 
         </input:FormView>
+
+        <Button Text="Test Spoolman Url" Clicked="TestSpoolmanUrl_OnClicked"
+                Margin="0,20,0,0"
+                StyleClass="OutlinedButton"
+                ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}, Color={AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}, Size=18}"
+                />
 
         <Button Text="Back to Main" Clicked="BackToMain_OnClicked"
                 Margin="0,20,0,10"

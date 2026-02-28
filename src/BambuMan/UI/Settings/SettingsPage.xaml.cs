@@ -30,6 +30,7 @@ public partial class SettingsPage
     private readonly IPopupService popupService;
 
     private IHost? apiHost;
+    private string? apiHostUrl;
 
     public SettingsPage(SettingsPageViewModel viewModel, ILogger<SettingsPage> logger, IPopupService popupService)
     {
@@ -59,38 +60,9 @@ public partial class SettingsPage
 
         try
         {
-            if (string.IsNullOrEmpty(viewModel.SpoolmanUrl))
-            {
-                return;
-            }
+            if (!EnsureApiHost()) return;
 
-            var apiUrl = viewModel.SpoolmanUrl.EndsWith("/") ? viewModel.SpoolmanUrl.Substring(0, viewModel.SpoolmanUrl.Length - 1) : viewModel.SpoolmanUrl;
-            apiUrl = apiUrl.Contains("api/v1") ? apiUrl : $"{apiUrl}/api/v1";
-
-            apiHost = Host.CreateDefaultBuilder([]).ConfigureServices((_, services) =>
-                {
-                    services.AddApi(options =>
-                    {
-                        options.AddApiHttpClients(client =>
-                        {
-                            client.BaseAddress = new Uri(apiUrl);
-                            client.Timeout = TimeSpan.FromSeconds(2);
-
-                            if (!string.IsNullOrEmpty(client.BaseAddress.UserInfo))
-                            {
-                                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(client.BaseAddress.UserInfo)));
-                            }
-                        }, builder =>
-                        {
-                            builder
-                                .AddRetryPolicy(3)
-                                .AddCircuitBreakerPolicy(5, TimeSpan.FromSeconds(30));
-                        });
-                    });
-                })
-                .Build();
-
-            var settingApi = apiHost.Services.GetRequiredService<ISettingApi>();
+            var settingApi = apiHost!.Services.GetRequiredService<ISettingApi>();
 
             var locationsRequest = settingApi.GetSettingSettingKeyGetOrDefaultAsync("locations").Result;
 
@@ -104,6 +76,42 @@ public partial class SettingsPage
         {
             //ignore
         }
+    }
+
+    private bool EnsureApiHost()
+    {
+        if (string.IsNullOrEmpty(viewModel.SpoolmanUrl)) return false;
+
+        if (apiHost != null && apiHostUrl == viewModel.SpoolmanUrl) return true;
+
+        var apiUrl = viewModel.SpoolmanUrl.EndsWith("/") ? viewModel.SpoolmanUrl.Substring(0, viewModel.SpoolmanUrl.Length - 1) : viewModel.SpoolmanUrl;
+        apiUrl = apiUrl.Contains("api/v1") ? apiUrl : $"{apiUrl}/api/v1";
+
+        apiHost = Host.CreateDefaultBuilder([]).ConfigureServices((_, services) =>
+            {
+                services.AddApi(options =>
+                {
+                    options.AddApiHttpClients(client =>
+                    {
+                        client.BaseAddress = new Uri(apiUrl);
+                        client.Timeout = TimeSpan.FromSeconds(2);
+
+                        if (!string.IsNullOrEmpty(client.BaseAddress.UserInfo))
+                        {
+                            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(client.BaseAddress.UserInfo)));
+                        }
+                    }, builder =>
+                    {
+                        builder
+                            .AddRetryPolicy(3)
+                            .AddCircuitBreakerPolicy(5, TimeSpan.FromSeconds(30));
+                    });
+                });
+            })
+            .Build();
+
+        apiHostUrl = viewModel.SpoolmanUrl;
+        return true;
     }
 
     private async void ImageButton_OnClicked(object? sender, EventArgs e)
@@ -155,6 +163,90 @@ public partial class SettingsPage
         catch (Exception ex)
         {
             logger.LogError(ex, "Error showing consent popup");
+        }
+    }
+
+    private async void RefreshLocations_OnClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (!EnsureApiHost())
+            {
+                await CommunityToolkit.Maui.Alerts.Toast.Make("Set a Spoolman URL first").Show();
+                return;
+            }
+
+            var settingApi = apiHost!.Services.GetRequiredService<ISettingApi>();
+            var locationsRequest = await settingApi.GetSettingSettingKeyGetOrDefaultAsync("locations");
+
+            if (locationsRequest != null && locationsRequest.TryOk(out var locations))
+            {
+                viewModel.ExistingLocations = JsonConvert.DeserializeObject<string[]>(locations.Value) ?? [];
+                viewModel.LocationsFetched = true;
+            }
+
+            await CommunityToolkit.Maui.Alerts.Toast.Make("Locations refreshed").Show();
+        }
+        catch (Exception)
+        {
+            await CommunityToolkit.Maui.Alerts.Toast.Make("Failed to refresh locations").Show();
+        }
+    }
+
+    private async void TestSpoolmanUrl_OnClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            var url = viewModel.SpoolmanUrl;
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                await CommunityToolkit.Maui.Alerts.Toast.Make("Spoolman URL is empty").Show();
+                return;
+            }
+
+            var apiUrl = url.EndsWith("/") ? url.Substring(0, url.Length - 1) : url;
+            apiUrl = apiUrl.Contains("api/v1") ? apiUrl : $"{apiUrl}/api/v1";
+
+            var testHost = Host.CreateDefaultBuilder([]).ConfigureServices((_, services) =>
+                {
+                    services.AddApi(options =>
+                    {
+                        options.AddApiHttpClients(client =>
+                        {
+                            client.BaseAddress = new Uri(apiUrl);
+                            client.Timeout = TimeSpan.FromSeconds(2);
+
+                            if (!string.IsNullOrEmpty(client.BaseAddress.UserInfo))
+                                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(client.BaseAddress.UserInfo)));
+                        });
+                    });
+                })
+                .Build();
+
+            var defaultApi = testHost.Services.GetRequiredService<IDefaultApi>();
+            var healthResult = await defaultApi.HealthHealthGetAsync();
+
+            if (healthResult.TryOk(out _))
+                await CommunityToolkit.Maui.Alerts.Toast.Make("Connection successful", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
+            else
+                await CommunityToolkit.Maui.Alerts.Toast.Make($"Connection failed: {healthResult.RawContent}", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
+        }
+        catch (TaskCanceledException)
+        {
+            await CommunityToolkit.Maui.Alerts.Toast.Make("Connection timed out — check the URL and ensure Spoolman is running", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
+        }
+        catch (HttpRequestException)
+        {
+            await CommunityToolkit.Maui.Alerts.Toast.Make("Could not reach Spoolman — check the URL and network connection", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
+        }
+        catch (UriFormatException)
+        {
+            await CommunityToolkit.Maui.Alerts.Toast.Make("Invalid URL format", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug("Test Spoolman URL failed: {Message}", ex.Message);
+            await CommunityToolkit.Maui.Alerts.Toast.Make($"Connection failed: {ex.Message}", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
         }
     }
 
