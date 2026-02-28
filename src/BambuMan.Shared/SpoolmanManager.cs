@@ -391,6 +391,15 @@ namespace BambuMan.Shared
             #endregion
         }
 
+        private void TrackNewLocation(string? location)
+        {
+            if (string.IsNullOrWhiteSpace(location)) return;
+            if (ExistingLocations.Any(l => l.EqualsCI(location))) return;
+
+            ExistingLocations = [.. ExistingLocations, location];
+            OnLocationsLoaded?.Invoke();
+        }
+
         public async Task<bool> InventorySpool(BambuFillamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
             if (apiHost == null) return false;
@@ -721,6 +730,7 @@ namespace BambuMan.Shared
 
                 if (spoolAddResult.TryOk(out var addedSpool))
                 {
+                    TrackNewLocation(location);
                     OnShowMessage?.Invoke(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
                     await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
                     OnSpoolFound?.Invoke(addedSpool, info);
@@ -771,6 +781,7 @@ namespace BambuMan.Shared
 
                 if (spoolUpdateResult.TryOk(out _))
                 {
+                    TrackNewLocation(location);
                     OnShowMessage?.Invoke(false, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
                     await Log(LogLevel.Success, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
                 }
