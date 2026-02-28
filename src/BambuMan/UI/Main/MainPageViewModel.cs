@@ -8,7 +8,7 @@ using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.UI.Main
 {
-    public partial class MainPageViewModel(LogService logService) : ObservableObject, IQueryAttributable
+    public partial class MainPageViewModel(LogService logService, InventoryService inventoryService) : ObservableObject, IQueryAttributable
     {
 
 #if DEBUG
@@ -17,8 +17,8 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private bool isTest = false;
 #endif
 
-        [ObservableProperty] private bool hasInventoryItems;
-        [ObservableProperty] private ObservableCollection<InventoryModel> inventory = new();
+        [ObservableProperty] private bool hasInventoryItems = inventoryService.HasItems;
+        [ObservableProperty] private ObservableCollection<InventoryModel> inventory = inventoryService.Inventory;
 
         [ObservableProperty] private bool deviceIsListening;
         [ObservableProperty] private ObservableCollection<LogModel> logs = logService.Logs;
@@ -142,23 +142,14 @@ namespace BambuMan.UI.Main
 
         public void InventorySpool(Spool spool, BambuFillamentInfo info)
         {
-            if (info.TrayUid == null) return;
+            inventoryService.InventorySpool(spool, info);
+            HasInventoryItems = inventoryService.HasItems;
+        }
 
-            HasInventoryItems = true;
-
-            var inventoryModel = Inventory.FirstOrDefault(x => x.Material == spool.Filament.Material);
-
-            if (inventoryModel == null)
-            {
-                Inventory.Add(new InventoryModel(spool.Filament.Material, info.TrayUid));
-                return;
-            }
-
-            if (!inventoryModel.Tags.Contains(info.TrayUid))
-            {
-                inventoryModel.Quantity++;
-                inventoryModel.Tags.Add(info.TrayUid);
-            }
+        public void ClearInventory()
+        {
+            inventoryService.Clear();
+            HasInventoryItems = false;
         }
     }
 }

@@ -588,8 +588,7 @@ namespace BambuMan.UI.Main
 
         private void ClearInventory_OnClicked(object? sender, EventArgs e)
         {
-            viewModel.HasInventoryItems = false;
-            viewModel.Inventory.Clear();
+            viewModel.ClearInventory();
         }
 
         private async void EmailLogs_OnClicked(object? sender, EventArgs e)

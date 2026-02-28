@@ -86,7 +86,7 @@ namespace BambuMan
         {
             services.AddSingleton<AppShell>();
 
-            services.AddSingleton<MainPageViewModel>();
+            services.AddTransient<MainPageViewModel>();
 
             services.AddTransient<MainPage>();
             services.AddTransient<SettingsPage>();
@@ -103,6 +103,7 @@ namespace BambuMan
             services.AddSingleton<LogService>();
             services.AddSingleton<TagApiService>();
             services.AddSingleton<SpoolmanManager>();
+            services.AddSingleton<InventoryService>();
         }
 
         public static void SetupSerilog(LoggerConfiguration loggerConfiguration, string? version, string? packageName, string? deviceId)
