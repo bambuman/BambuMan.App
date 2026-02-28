@@ -122,10 +122,13 @@ namespace BambuMan.Shared
                             client.BaseAddress = new Uri(apiUrl);
                             client.Timeout = TimeSpan.FromSeconds(5);
 
-                            if (!string.IsNullOrEmpty(client.BaseAddress.UserInfo))
-                            {
-                                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(client.BaseAddress.UserInfo)));
-                            }
+                            if (!string.IsNullOrEmpty(client.BaseAddress.UserInfo)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(client.BaseAddress.UserInfo)));
+
+                        }, builder =>
+                        {
+                            builder
+                                .AddRetryPolicy(3)
+                                .AddCircuitBreakerPolicy(5, TimeSpan.FromSeconds(30));
                         });
                     });
                 })
@@ -494,9 +497,9 @@ namespace BambuMan.Shared
                                      info.DetailedFilamentType.EqualsCI("PLA Wood") && x.Material.EqualsCI("PLA+WOOD") ||
                                      info.DetailedFilamentType.EqualsCI("TPU for AMS") && x.Material.EqualsCI("TPU") && x.Name.StartsWithCI("For AMS"));
 
-#if DEBUG
-            var resultWitType = query.ToArray();
-#endif
+            //#if DEBUG
+            //            var resultWitType = query.ToArray();
+            //#endif
 
             query = query.Where(x => (x.ColorHex.EqualsCI(color)) ||
                                      (x.ColorHexes != null && color != null && x.ColorHexes.Contains(color, StringComparer.OrdinalIgnoreCase)) ||
@@ -508,16 +511,15 @@ namespace BambuMan.Shared
                                      (info.DetailedFilamentType.EqualsCI("PETG HF") && color.EqualsCI("BC0900") && x.ColorHex.EqualsCI("EB3A3A")) || //PETG HF red filament hex color is different on spoolman db vs tag
                                      (info.DetailedFilamentType.EqualsCI("PETG Translucent") && color.EqualsCI("000000") && x.ColorHex.EqualsCI("FFFFFF")));  //PETG Translucent clear filament hex color is different on spoolman db vs tag
 
-#if DEBUG
-
-            var resultWitColor = query.ToArray();
-#endif
+            //#if DEBUG
+            //            var resultWitColor = query.ToArray();
+            //#endif
 
             query = query.Where(x => (transparentFilaments.AsEnumerable().Contains(x.Id) && transparent) || x.Translucent == transparent || x.Translucent == null && !transparent);
 
-#if DEBUG
-            var resultWitTransparency = query.ToArray();
-#endif
+            //#if DEBUG
+            //            var resultWitTransparency = query.ToArray();
+            //#endif
 
             if (info.DetailedFilamentType.ContainsCI("Support"))
             {
@@ -788,7 +790,17 @@ namespace BambuMan.Shared
         private void StartHealthCheckTimer()
         {
             healthCheckTimer?.Dispose();
-            healthCheckTimer = new Timer(async _ => await PerformHealthCheck(), null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+            healthCheckTimer = new Timer(async void (_) =>
+            {
+                try
+                {
+                    await PerformHealthCheck();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+            }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
         }
 
         private async Task PerformHealthCheck()

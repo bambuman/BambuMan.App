@@ -80,6 +80,11 @@ public partial class SettingsPage
                             {
                                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(client.BaseAddress.UserInfo)));
                             }
+                        }, builder =>
+                        {
+                            builder
+                                .AddRetryPolicy(3)
+                                .AddCircuitBreakerPolicy(5, TimeSpan.FromSeconds(30));
                         });
                     });
                 })
