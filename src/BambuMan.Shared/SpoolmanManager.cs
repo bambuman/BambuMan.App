@@ -51,6 +51,8 @@ namespace BambuMan.Shared
 
         public bool UnknownFilamentEnabled { get; set; } = false;
 
+        public bool OverrideLocationOnRead { get; set; }
+
         public SpoolManDefaults Defaults { get; } = new();
 
         public bool IsHealth { get; set; }
@@ -434,6 +436,12 @@ namespace BambuMan.Shared
                     if (spool == null) await AddSpool(info, buyDate, price, lotNr, location, filament, spoolApi);
                     else
                     {
+                        if (OverrideLocationOnRead && !string.IsNullOrWhiteSpace(location) && !string.Equals(spool.Location, location, StringComparison.OrdinalIgnoreCase))
+                        {
+                            spool = await UpdateSpoolLocation(spool, location, spoolApi);
+                            await Log(LogLevel.Success, $"Location updated to '{location}' for spool '{info.TrayUid?.TrimTo(14, "...")}'");
+                        }
+
                         OnShowMessage?.Invoke(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
                         await Log(LogLevel.Success, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
                         OnSpoolFound?.Invoke(spool, info);
@@ -794,6 +802,24 @@ namespace BambuMan.Shared
             {
                 await HandleNetworkError(ex, "Update spool");
             }
+        }
+
+        private async Task<Spool> UpdateSpoolLocation(Spool spool, string location, ISpoolApi spoolApi)
+        {
+            var spoolUpdateParams = new SpoolUpdateParameters(
+                location: new Option<string?>(location)
+            );
+
+            var result = await spoolApi.UpdateSpoolSpoolSpoolIdPatchAsync(spool.Id, spoolUpdateParams);
+
+            if (result.TryOk(out var updatedSpool))
+            {
+                TrackNewLocation(location);
+                return updatedSpool;
+            }
+
+            await Log(LogLevel.Error, $"Failed to update location: {result.RawContent}");
+            return spool;
         }
 
         #region Health check timer

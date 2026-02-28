@@ -57,6 +57,8 @@ namespace BambuMan.UI.Main
 
         [ObservableProperty] private bool fullTagScanAndUpload;
 
+        [ObservableProperty] private bool overrideLocationOnRead;
+
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
 

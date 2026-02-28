@@ -56,7 +56,9 @@
 
             <material:CheckBox x:Name="TfShowLogsOnMainPage" Text="Show logs on main page" IsChecked="{Binding ShowLogsOnMainPage, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
 
-            <material:CheckBox x:Name="TfShowKeyboardOnSpoolRead" Text="Show keyboard on spool read" IsChecked="{Binding ShowKeyboardOnSpoolRead, Mode=TwoWay}" Margin="10,0,10,5"></material:CheckBox>
+            <material:CheckBox x:Name="TfShowKeyboardOnSpoolRead" Text="Show keyboard on spool read" IsChecked="{Binding ShowKeyboardOnSpoolRead, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
+
+            <material:CheckBox x:Name="TfOverrideLocationOnRead" Text="Override location on read" IsChecked="{Binding OverrideLocationOnRead, Mode=TwoWay}" Margin="10,0,10,5"></material:CheckBox>
 
             <material:DatePickerField x:Name="TfBuyDate" Title="Buy date:" Date="{Binding BuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}">
 

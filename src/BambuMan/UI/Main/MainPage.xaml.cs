@@ -158,6 +158,12 @@ namespace BambuMan.UI.Main
             viewModel.ExistingLocations = spoolmanManager?.ExistingLocations ?? [];
         }
 
+        private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MainPageViewModel.OverrideLocationOnRead))
+                spoolmanManager.OverrideLocationOnRead = viewModel.OverrideLocationOnRead;
+        }
+
         protected override async void OnAppearing()
         {
             try
@@ -170,6 +176,7 @@ namespace BambuMan.UI.Main
                 spoolmanManager.OnSpoolFound += SpoolmanManagerOnSpoolFound;
                 spoolmanManager.OnPlayErrorTone += SpoolmanManagerOnPlayErrorTone;
                 spoolmanManager.OnLocationsLoaded += SpoolmanManagerOnLocationsLoaded;
+                viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
                 await ShowConsentPopupIfNeeded();
 
@@ -179,6 +186,7 @@ namespace BambuMan.UI.Main
 
                 viewModel.ShowLogsOnMainPage = Preferences.Default.Get(SettingsPage.ShowLogsOnMainPage, true);
                 viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
+                viewModel.OverrideLocationOnRead = spoolmanManager.OverrideLocationOnRead;
 
                 var newUrl = Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
                 var urlChanged = newUrl != spoolmanManager.ApiUrl;
@@ -230,6 +238,7 @@ namespace BambuMan.UI.Main
             spoolmanManager.OnSpoolFound -= SpoolmanManagerOnSpoolFound;
             spoolmanManager.OnPlayErrorTone -= SpoolmanManagerOnPlayErrorTone;
             spoolmanManager.OnLocationsLoaded -= SpoolmanManagerOnLocationsLoaded;
+            viewModel.PropertyChanged -= ViewModel_PropertyChanged;
         }
 
         protected override bool OnBackButtonPressed()

@@ -13,6 +13,7 @@ namespace BambuMan.UI.Settings
         [ObservableProperty] private bool showLogsOnMainPage;
         [ObservableProperty] private bool showKeyboardOnSpoolRead;
         [ObservableProperty] private bool fullTagScanAndUpload;
+        [ObservableProperty] private bool overrideLocationOnRead;
         [ObservableProperty] private IEnumerable<string> existingLocations = [];
 
         [ObservableProperty] private bool locationsFetched;

@@ -1,3 +1,4 @@
+using BambuMan.Shared;
 using BambuMan.UI.Consent;
 using BambuMan.UI.Scan;
 using CommunityToolkit.Maui;
@@ -28,17 +29,19 @@ public partial class SettingsPage
     private readonly SettingsPageViewModel viewModel;
     private readonly ILogger<SettingsPage> logger;
     private readonly IPopupService popupService;
+    private readonly SpoolmanManager spoolmanManager;
 
     private IHost? apiHost;
     private string? apiHostUrl;
 
-    public SettingsPage(SettingsPageViewModel viewModel, ILogger<SettingsPage> logger, IPopupService popupService)
+    public SettingsPage(SettingsPageViewModel viewModel, ILogger<SettingsPage> logger, IPopupService popupService, SpoolmanManager spoolmanManager)
     {
         InitializeComponent();
 
         this.viewModel = viewModel;
         this.logger = logger;
         this.popupService = popupService;
+        this.spoolmanManager = spoolmanManager;
         BindingContext = viewModel;
     }
 
@@ -55,6 +58,7 @@ public partial class SettingsPage
         viewModel.ShowLogsOnMainPage = Preferences.Default.Get(ShowLogsOnMainPage, true);
         viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(ShowKeyboardOnSpoolRead, true);
         viewModel.FullTagScanAndUpload = Preferences.Default.Get(FullTagScanAndUpload, false);
+        viewModel.OverrideLocationOnRead = spoolmanManager.OverrideLocationOnRead;
 
         await ShowConsentPopupIfNeeded();
 
@@ -282,6 +286,8 @@ public partial class SettingsPage
         if (TfShowKeyboardOnSpoolRead.IsValid) Preferences.Default.Set(ShowKeyboardOnSpoolRead, viewModel.ShowKeyboardOnSpoolRead);
 
         if (TfFullTagScanAndUpload.IsValid) Preferences.Default.Set(FullTagScanAndUpload, viewModel.FullTagScanAndUpload);
+
+        if (TfOverrideLocationOnRead.IsValid) spoolmanManager.OverrideLocationOnRead = viewModel.OverrideLocationOnRead;
 
         base.OnNavigatingFrom(args);
     }
