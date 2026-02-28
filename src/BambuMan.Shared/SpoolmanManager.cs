@@ -500,6 +500,7 @@ namespace BambuMan.Shared
 
             query = query.Where(x => (x.ColorHex.EqualsCI(color)) ||
                                      (x.ColorHexes != null && color != null && x.ColorHexes.Contains(color, StringComparer.OrdinalIgnoreCase)) ||
+                                     (info.DetailedFilamentType.EqualsCI("PLA Matte") && color.EqualsCI("E4BDD0") && x.ColorHex.EqualsCI("E8AFCF")) || //ASA filament hex color is different on spoolman db vs tag
                                      (info.FilamentType.EqualsCI("ASA") && color.EqualsCI("FFFFFF") && x.ColorHex.EqualsCI("FFFAF2")) || //ASA filament hex color is different on spoolman db vs tag
                                      (info.FilamentType.EqualsCI("ASA Aero") && color.EqualsCI("E9E4D9") && x.ColorHex.EqualsCI("F5F1DD")) || //ASA filament hex color is different on spoolman db vs tag
                                      (info.FilamentType.EqualsCI("PC") && color.EqualsCI("000000") && transparent && x.ColorHex.EqualsCI("5A5161")) || //PC Clear Black filament hex color is different on spoolman db vs tag
