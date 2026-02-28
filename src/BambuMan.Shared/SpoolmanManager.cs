@@ -36,6 +36,12 @@ namespace BambuMan.Shared
         public const string ExtraProductionDateTime = "production_time";
 
         private IHost? apiHost;
+        private string? initializedApiUrl;
+        private bool isInitialized;
+        private readonly object filamentLock = new();
+        private List<ExternalFilament> bambuLabExternalFilaments = [];
+        private Timer? healthCheckTimer;
+        private bool healthCheckInProgress;
 
         public string? AppVersion { get; set; }
 
@@ -49,6 +55,8 @@ namespace BambuMan.Shared
 
         public bool IsHealth { get; set; }
 
+        public bool IsInitialized => isInitialized;
+
         public SpoolmanManagerStatusType Status { get; private set; } = SpoolmanManagerStatusType.Initializing;
 
         public Vendor? BambuLabsVendor { get; set; }
@@ -61,9 +69,13 @@ namespace BambuMan.Shared
         public List<ExternalFilament> AllExternalFilaments { get; set; } = [];
 
         /// <summary>
-        /// Bambu lab's external filaments
+        /// Bambu lab's external filaments (thread-safe; updated from background API fetch)
         /// </summary>
-        public List<ExternalFilament> BambuLabExternalFilaments { get; set; } = [];
+        public List<ExternalFilament> BambuLabExternalFilaments
+        {
+            get { lock (filamentLock) return bambuLabExternalFilaments; }
+            set { lock (filamentLock) bambuLabExternalFilaments = value; }
+        }
 
         /// <summary>
         /// Unknown filament, if no filament is found or multiple result where found, return this
@@ -74,13 +86,29 @@ namespace BambuMan.Shared
         {
             if (AppVersion != null) await Log(LogLevel.Information, $"App version {AppVersion}");
 
-            await LogAndSetStatus(SpoolmanManagerStatusType.Initializing, LogLevel.Information, "Initializing ...");
-
             if (string.IsNullOrEmpty(ApiUrl))
             {
-                await LogAndSetStatus(SpoolmanManagerStatusType.ApiUrlMissing, LogLevel.Information, "Api url no set");
+                await LogAndSetStatus(SpoolmanManagerStatusType.ApiUrlMissing, LogLevel.Information, "Api url not set");
                 return;
             }
+
+            // Fast path: already initialized with the same URL — just verify health
+            if (isInitialized && initializedApiUrl == ApiUrl)
+            {
+                try
+                {
+                    if (await CheckHealth())
+                        await LogAndSetStatus(SpoolmanManagerStatusType.Ready, LogLevel.Success, "Ready to inventory fillament");
+                }
+                catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+                {
+                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, $"Health check failed: {ex.Message}");
+                }
+                return;
+            }
+
+            // Full initialization path
+            await LogAndSetStatus(SpoolmanManagerStatusType.Initializing, LogLevel.Information, "Initializing ...");
 
             var apiUrl = ApiUrl.EndsWith("/") ? ApiUrl.Substring(0, ApiUrl.Length - 1) : ApiUrl;
             apiUrl = apiUrl.Contains("api/v1") ? apiUrl : $"{apiUrl}/api/v1";
@@ -105,19 +133,39 @@ namespace BambuMan.Shared
 
             try
             {
-                if (!await CheckHealth()) return;
+                // Health check with retry (up to 3 attempts, 3s delay between)
+                var healthOk = false;
+                for (var attempt = 1; attempt <= 3; attempt++)
+                {
+                    try
+                    {
+                        healthOk = await CheckHealth();
+                        if (healthOk) break;
+                    }
+                    catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+                    {
+                        await Log(LogLevel.Warning, $"Health check attempt {attempt}/3 failed: {ex.Message}");
+                    }
 
-                await Task.Delay(500);
+                    if (attempt < 3) await Task.Delay(3000);
+                }
+
+                if (!healthOk) return;
 
                 await CheckDefaultValues();
 
-                await LoadAllExternalFilaments();
+                await LoadLocalFilaments();
 
                 await LoadLocations();
 
-                await Task.Delay(500);
+                initializedApiUrl = ApiUrl;
+                isInitialized = true;
 
                 await LogAndSetStatus(SpoolmanManagerStatusType.Ready, LogLevel.Success, "Ready to inventory fillament");
+
+                StartHealthCheckTimer();
+
+                _ = LoadExternalFilamentsInBackground();
             }
             catch (HttpRequestException ex)
             {
@@ -274,32 +322,50 @@ namespace BambuMan.Shared
             await LogAndSetStatus(SpoolmanManagerStatusType.DefaultsOk, LogLevel.Success, "Spoolman default setting ok");
         }
 
-        private async Task LoadAllExternalFilaments()
+        private async Task LoadLocalFilaments()
         {
-            if (apiHost == null) return;
+            var localFilaments = new List<ExternalFilament>();
+            await ExtendWithMissingFilaments(localFilaments);
+            BambuLabExternalFilaments = localFilaments;
+            await Log(LogLevel.Information, $"Loaded local filaments: {localFilaments.Count}");
+        }
 
-            #region Load all external fillament
-
-            var externalApi = apiHost.Services.GetRequiredService<IExternalApi>();
-
-            var allExternalFilaments = await externalApi.GetAllExternalFilamentsExternalFilamentGetAsync();
-
-            if (allExternalFilaments.TryOk(out var list))
+        private async Task LoadExternalFilamentsInBackground()
+        {
+            try
             {
-                AllExternalFilaments = list;
-                BambuLabExternalFilaments = list.Where(x => x.Manufacturer == DefaultBambuLabVendor).ToList();
+                if (apiHost == null) return;
 
-                await ExtendWithMissingFilaments(BambuLabExternalFilaments);
+                var externalApi = apiHost.Services.GetRequiredService<IExternalApi>();
+                var allExternalFilaments = await externalApi.GetAllExternalFilamentsExternalFilamentGetAsync();
 
-                await LogAndSetStatus(SpoolmanManagerStatusType.AllExternalFilamentsLoaded, LogLevel.Information, $"Loaded all external filaments: {AllExternalFilaments.Count}");
-                await Log(LogLevel.Information, $"Found '{DefaultBambuLabVendor}' filaments: {BambuLabExternalFilaments.Count}");
+                if (allExternalFilaments.TryOk(out var list))
+                {
+                    AllExternalFilaments = list;
+
+                    // Build merged list: API filaments as base, extend with local-only entries
+                    var apiBambuFilaments = list.Where(x => x.Manufacturer == DefaultBambuLabVendor).ToList();
+                    await ExtendWithMissingFilaments(apiBambuFilaments);
+
+                    // Swap atomically
+                    BambuLabExternalFilaments = apiBambuFilaments;
+
+                    await Log(LogLevel.Information, $"Background: loaded external filaments: {AllExternalFilaments.Count}, merged Bambu Lab: {apiBambuFilaments.Count}");
+                }
+                else
+                {
+                    await Log(LogLevel.Warning, $"Background: error loading external filaments. Api response: {allExternalFilaments.RawContent}");
+                }
             }
-            else
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Error loading all external filaments. Api response: {allExternalFilaments.RawContent}");
+                await Log(LogLevel.Information, $"Background: network error loading external filaments: {ex.Message}");
             }
-
-            #endregion
+            catch (Exception e)
+            {
+                await Log(LogLevel.Information, $"Background: error loading external filaments: {e.Message}");
+                logger?.LogWarning(e, "Background: error loading external filaments");
+            }
         }
 
         private async Task LoadLocations()
@@ -326,45 +392,53 @@ namespace BambuMan.Shared
         {
             if (apiHost == null) return false;
 
-            var result = true;
-            var externalFilament = await FindExternalFilament(info);
-
-            switch (UnknownFilamentEnabled)
+            try
             {
-                case false when externalFilament == null:
-                    return false;
-                case true when externalFilament == null:
-                    externalFilament = UnknownFilament;
-                    result = false;
-                    break;
-            }
+                var result = true;
+                var externalFilament = await FindExternalFilament(info);
 
-            await Log(LogLevel.Debug, externalFilament.ToString());
+                switch (UnknownFilamentEnabled)
+                {
+                    case false when externalFilament == null:
+                        return false;
+                    case true when externalFilament == null:
+                        externalFilament = UnknownFilament;
+                        result = false;
+                        break;
+                }
 
-            var filament = await AddOrUpdateFilament(externalFilament, price, info);
-            if (filament == null) return false;
+                await Log(LogLevel.Debug, externalFilament.ToString());
 
-            var spoolApi = apiHost.Services.GetRequiredService<ISpoolApi>();
-            var spoolQuery = await spoolApi.FindSpoolSpoolGetAsync(filamentId2: new Option<string?>($"{filament.Id}"), allowArchived: new Option<bool>(true));
+                var filament = await AddOrUpdateFilament(externalFilament, price, info);
+                if (filament == null) return false;
 
-            if (spoolQuery.TryOk(out var spools))
-            {
-                var spool = spools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{info.TrayUid}\"", StringComparison.CurrentCultureIgnoreCase));
+                var spoolApi = apiHost.Services.GetRequiredService<ISpoolApi>();
+                var spoolQuery = await spoolApi.FindSpoolSpoolGetAsync(filamentId2: new Option<string?>($"{filament.Id}"), allowArchived: new Option<bool>(true));
 
-                if (spool == null) await AddSpool(info, buyDate, price, lotNr, location, filament, spoolApi);
+                if (spoolQuery.TryOk(out var spools))
+                {
+                    var spool = spools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{info.TrayUid}\"", StringComparison.CurrentCultureIgnoreCase));
+
+                    if (spool == null) await AddSpool(info, buyDate, price, lotNr, location, filament, spoolApi);
+                    else
+                    {
+                        OnShowMessage?.Invoke(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
+                        await Log(LogLevel.Success, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
+                        OnSpoolFound?.Invoke(spool, info);
+                    }
+                }
                 else
                 {
-                    OnShowMessage?.Invoke(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
-                    await Log(LogLevel.Success, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
-                    OnSpoolFound?.Invoke(spool, info);
+                    await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't load existing spools. Api response: {spoolQuery.RawContent}");
                 }
-            }
-            else
-            {
-                await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't load existing spools. Api response: {spoolQuery.RawContent}");
-            }
 
-            return result;
+                return result;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await HandleNetworkError(ex, "Inventory spool");
+                return false;
+            }
         }
 
         public async Task<ExternalFilament?> FindExternalFilament(BambuFillamentInfo info)
@@ -560,87 +634,102 @@ namespace BambuMan.Shared
         {
             if (apiHost == null) return null;
 
-            var filamentApi = apiHost.Services.GetRequiredService<IFilamentApi>();
-
-            var filamentQuery = await filamentApi.FindFilamentsFilamentGetAsync(externalId: externalFilament.Id);
-
-            if (filamentQuery.TryOk(out var list))
+            try
             {
-                if (list.Count != 0) return list.First();
+                var filamentApi = apiHost.Services.GetRequiredService<IFilamentApi>();
 
-                var filamentPost = new FilamentParameters(
-                    externalFilament.Density,
-                    externalFilament.Diameter,
-                    name: new Option<string?>(externalFilament.Name),
-                    vendorId: new Option<int?>(BambuLabsVendor?.Id),
-                    material: new Option<string?>(externalFilament.Material),
-                    price: new Option<decimal?>(price),
-                    weight: new Option<decimal?>(externalFilament.Weight),
-                    spoolWeight: new Option<decimal?>(externalFilament.SpoolWeight),
-                    articleNumber: new Option<string?>(info.SkuStart),
-                    //comment: new Option<string?>(externalFilament.CommentOption),
-                    settingsExtruderTemp: new Option<int?>(externalFilament.ExtruderTemp),
-                    settingsBedTemp: new Option<int?>(externalFilament.BedTemp),
-                    colorHex: new Option<string?>(externalFilament.ColorHex),
-                    multiColorHexes: new Option<string?>(externalFilament.ColorHexes != null ? string.Join(",", externalFilament.ColorHexes) : null),
-                    multiColorDirection: new Option<MultiColorDirectionInput?>((MultiColorDirectionInput?)externalFilament.MultiColorDirection),
-                    externalId: new Option<string?>(externalFilament.Id),
-                    extra: new Option<Dictionary<string, string>?>(new Dictionary<string, string>
-                    {
-                        { "nozzle_temperature", $"[{info.MinTemperatureForHotend},{info.MaxTemperatureForHotend}]" }
-                    })
-                );
+                var filamentQuery = await filamentApi.FindFilamentsFilamentGetAsync(externalId: externalFilament.Id);
 
-                var filamentAddResult = await filamentApi.AddFilamentFilamentPostAsync(filamentPost);
+                if (filamentQuery.TryOk(out var list))
+                {
+                    if (list.Count != 0) return list.First();
 
-                if (filamentAddResult.TryOk(out var addedFilament)) return addedFilament;
+                    var filamentPost = new FilamentParameters(
+                        externalFilament.Density,
+                        externalFilament.Diameter,
+                        name: new Option<string?>(externalFilament.Name),
+                        vendorId: new Option<int?>(BambuLabsVendor?.Id),
+                        material: new Option<string?>(externalFilament.Material),
+                        price: new Option<decimal?>(price),
+                        weight: new Option<decimal?>(externalFilament.Weight),
+                        spoolWeight: new Option<decimal?>(externalFilament.SpoolWeight),
+                        articleNumber: new Option<string?>(info.SkuStart),
+                        //comment: new Option<string?>(externalFilament.CommentOption),
+                        settingsExtruderTemp: new Option<int?>(externalFilament.ExtruderTemp),
+                        settingsBedTemp: new Option<int?>(externalFilament.BedTemp),
+                        colorHex: new Option<string?>(externalFilament.ColorHex),
+                        multiColorHexes: new Option<string?>(externalFilament.ColorHexes != null ? string.Join(",", externalFilament.ColorHexes) : null),
+                        multiColorDirection: new Option<MultiColorDirectionInput?>((MultiColorDirectionInput?)externalFilament.MultiColorDirection),
+                        externalId: new Option<string?>(externalFilament.Id),
+                        extra: new Option<Dictionary<string, string>?>(new Dictionary<string, string>
+                        {
+                            { "nozzle_temperature", $"[{info.MinTemperatureForHotend},{info.MaxTemperatureForHotend}]" }
+                        })
+                    );
 
-                await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't add filament. Api response: {filamentAddResult.RawContent}");
+                    var filamentAddResult = await filamentApi.AddFilamentFilamentPostAsync(filamentPost);
+
+                    if (filamentAddResult.TryOk(out var addedFilament)) return addedFilament;
+
+                    await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't add filament. Api response: {filamentAddResult.RawContent}");
+                    return null;
+                }
+
+                await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't load existing filaments. Api response: {filamentQuery.RawContent}");
                 return null;
             }
-
-            await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't load existing filaments. Api response: {filamentQuery.RawContent}");
-            return null;
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await HandleNetworkError(ex, "Add/update filament");
+                return null;
+            }
         }
 
         private async Task AddSpool(BambuFillamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location, Filament filament, ISpoolApi spoolApi)
         {
-            var extraValues = new Dictionary<string, string>
+            try
             {
-                [ExtraProductionDateTime] = $"\"{info.ProductionDateTime:yyyy-MM-ddZHH:mm:ss}\"",
-                [ExtraTag] = $"\"{info.TrayUid}\""
-            };
+                var extraValues = new Dictionary<string, string>
+                {
+                    [ExtraProductionDateTime] = $"\"{info.ProductionDateTime:yyyy-MM-ddZHH:mm:ss}\"",
+                    [ExtraTag] = $"\"{info.TrayUid}\""
+                };
 
-            if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
+                if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
 
-            var comment = filament.ExternalId == UnknownFilament.Id ? $"Filament: {info.DetailedFilamentType}, Color: #{info.Color}, Spool weight: {info.SpoolWeight:0.#}g" : "";
+                var comment = filament.ExternalId == UnknownFilament.Id ? $"Filament: {info.DetailedFilamentType}, Color: #{info.Color}, Spool weight: {info.SpoolWeight:0.#}g" : "";
 
-            var spoolParams = new SpoolParameters(filament.Id,
-                //firstUsed: new Option<string?>(externalFilament.FirstUsed),
-                //lastUsed: new Option<string?>(externalFilament.LastUsed),
-                price: new Option<decimal?>(price),
-                initialWeight: new Option<decimal?>(info.SpoolWeight),
-                spoolWeight: new Option<decimal?>(filament.SpoolWeight),
-                //remainingWeight: new Option<string?>(externalFilament.RemainingWeight),
-                //usedWeight: new Option<string?>(externalFilament.UsedWeight),
-                location: new Option<string?>(location),
-                lotNr: new Option<string?>(lotNr),
-                comment: new Option<string?>(comment),
-                //archived: new Option<string?>(externalFilament.Archived),
-                extra: new Option<Dictionary<string, string>?>(extraValues)
-            );
+                var spoolParams = new SpoolParameters(filament.Id,
+                    //firstUsed: new Option<string?>(externalFilament.FirstUsed),
+                    //lastUsed: new Option<string?>(externalFilament.LastUsed),
+                    price: new Option<decimal?>(price),
+                    initialWeight: new Option<decimal?>(info.SpoolWeight),
+                    spoolWeight: new Option<decimal?>(filament.SpoolWeight),
+                    //remainingWeight: new Option<string?>(externalFilament.RemainingWeight),
+                    //usedWeight: new Option<string?>(externalFilament.UsedWeight),
+                    location: new Option<string?>(location),
+                    lotNr: new Option<string?>(lotNr),
+                    comment: new Option<string?>(comment),
+                    //archived: new Option<string?>(externalFilament.Archived),
+                    extra: new Option<Dictionary<string, string>?>(extraValues)
+                );
 
-            var spoolAddResult = await spoolApi.AddSpoolSpoolPostAsync(spoolParams);
+                var spoolAddResult = await spoolApi.AddSpoolSpoolPostAsync(spoolParams);
 
-            if (spoolAddResult.TryOk(out var addedSpool))
-            {
-                OnShowMessage?.Invoke(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
-                await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
-                OnSpoolFound?.Invoke(addedSpool, info);
+                if (spoolAddResult.TryOk(out var addedSpool))
+                {
+                    OnShowMessage?.Invoke(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
+                    await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
+                    OnSpoolFound?.Invoke(addedSpool, info);
+                }
+                else
+                {
+                    await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {spoolAddResult.RawContent}");
+                }
             }
-            else
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {spoolAddResult.RawContent}");
+                await HandleNetworkError(ex, "Add spool");
             }
         }
 
@@ -648,42 +737,104 @@ namespace BambuMan.Shared
             decimal emptyWeight, decimal initialWeight, decimal spoolWeight, string? trayUid = null, DateTime? productionDateTime = null)
         {
             if (apiHost == null) return;
-            var spoolApi = apiHost.Services.GetRequiredService<ISpoolApi>();
 
-            trayUid ??= currentSpool.Extra.TryGetValue(ExtraTag, out var tagOut) ? tagOut.Replace("\"", "") : string.Empty;
-
-            var usedWeight = Math.Max(emptyWeight + initialWeight - spoolWeight, 0);
-
-            var extraValues = currentSpool.Extra;
-
-            if (productionDateTime != null) extraValues[ExtraProductionDateTime] = $"\"{productionDateTime:yyyy-MM-ddZHH:mm:ss}\"";
-
-            if (buyDate == null && extraValues.ContainsKey(ExtraBuyDate)) extraValues.Remove(ExtraBuyDate);
-            else if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
-            extraValues[ExtraTag] = $"\"{trayUid}\"";
-
-            var spoolUpdateParams = new SpoolUpdateParameters(
-                price: new Option<decimal?>(price),
-                location: new Option<string?>(location),
-                lotNr: new Option<string?>(lotNr),
-                initialWeight: new Option<decimal?>(initialWeight),
-                spoolWeight: new Option<decimal?>(emptyWeight),
-                usedWeight: new Option<decimal?>(usedWeight),
-                extra: new Option<Dictionary<string, string>?>(extraValues)
-            );
-
-            var spoolUpdateResult = await spoolApi.UpdateSpoolSpoolSpoolIdPatchAsync(currentSpool.Id, spoolUpdateParams);
-
-            if (spoolUpdateResult.TryOk(out _))
+            try
             {
-                OnShowMessage?.Invoke(false, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
-                await Log(LogLevel.Success, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
+                var spoolApi = apiHost.Services.GetRequiredService<ISpoolApi>();
+
+                trayUid ??= currentSpool.Extra.TryGetValue(ExtraTag, out var tagOut) ? tagOut.Replace("\"", "") : string.Empty;
+
+                var usedWeight = Math.Max(emptyWeight + initialWeight - spoolWeight, 0);
+
+                var extraValues = currentSpool.Extra;
+
+                if (productionDateTime != null) extraValues[ExtraProductionDateTime] = $"\"{productionDateTime:yyyy-MM-ddZHH:mm:ss}\"";
+
+                if (buyDate == null && extraValues.ContainsKey(ExtraBuyDate)) extraValues.Remove(ExtraBuyDate);
+                else if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
+                extraValues[ExtraTag] = $"\"{trayUid}\"";
+
+                var spoolUpdateParams = new SpoolUpdateParameters(
+                    price: new Option<decimal?>(price),
+                    location: new Option<string?>(location),
+                    lotNr: new Option<string?>(lotNr),
+                    initialWeight: new Option<decimal?>(initialWeight),
+                    spoolWeight: new Option<decimal?>(emptyWeight),
+                    usedWeight: new Option<decimal?>(usedWeight),
+                    extra: new Option<Dictionary<string, string>?>(extraValues)
+                );
+
+                var spoolUpdateResult = await spoolApi.UpdateSpoolSpoolSpoolIdPatchAsync(currentSpool.Id, spoolUpdateParams);
+
+                if (spoolUpdateResult.TryOk(out _))
+                {
+                    OnShowMessage?.Invoke(false, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
+                    await Log(LogLevel.Success, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
+                }
+                else
+                {
+                    await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't update spool. Api response: {spoolUpdateResult.RawContent}");
+                }
             }
-            else
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't update spool. Api response: {spoolUpdateResult.RawContent}");
+                await HandleNetworkError(ex, "Update spool");
             }
         }
+
+        #region Health check timer
+
+        private void StartHealthCheckTimer()
+        {
+            healthCheckTimer?.Dispose();
+            healthCheckTimer = new Timer(async _ => await PerformHealthCheck(), null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+        }
+
+        private async Task PerformHealthCheck()
+        {
+            if (healthCheckInProgress || apiHost == null) return;
+            healthCheckInProgress = true;
+
+            try
+            {
+                var wasHealthy = IsHealth;
+                var defaultApi = apiHost.Services.GetRequiredService<IDefaultApi>();
+                var health = await defaultApi.HealthHealthGetAsync();
+
+                IsHealth = health.TryOk(out var check) && check.Status == "healthy";
+
+                if (wasHealthy != IsHealth)
+                    OnStatusChanged?.Invoke();
+            }
+            catch
+            {
+                if (IsHealth)
+                {
+                    IsHealth = false;
+                    OnStatusChanged?.Invoke();
+                }
+            }
+            finally
+            {
+                healthCheckInProgress = false;
+            }
+        }
+
+        #endregion
+
+        #region Error handling
+
+        private async Task HandleNetworkError(Exception ex, string operation)
+        {
+            var message = ex is TaskCanceledException
+                ? $"{operation} timed out. Check your network connection."
+                : $"{operation} failed. Check your network connection.";
+
+            OnShowMessage?.Invoke(true, message);
+            await Log(LogLevel.Information, $"{operation}: {ex.Message}");
+        }
+
+        #endregion
 
         #region Logging and Status
 
@@ -757,7 +908,7 @@ namespace BambuMan.Shared
             );
         }
 
-        private Task ExtendWithMissingFilaments(List<ExternalFilament> bambuLabExternalFilaments)
+        private Task ExtendWithMissingFilaments(List<ExternalFilament> externalFilaments)
         {
             var assembly = typeof(SpoolmanManager).Assembly;
             using var stream = assembly.GetManifestResourceStream("BambuMan.Shared.Resources.filaments.json");
@@ -772,7 +923,7 @@ namespace BambuMan.Shared
 
             foreach (var fillamentInfo in fillamentInfos)
             {
-                if (bambuLabExternalFilaments.Any(x => x.Id == fillamentInfo.Id && x.Weight == fillamentInfo.WeightValue)) continue;
+                if (externalFilaments.Any(x => x.Id == fillamentInfo.Id && x.Weight == fillamentInfo.WeightValue)) continue;
 
                 var filament = new ExternalFilament(
                     fillamentInfo.Id,
@@ -795,7 +946,7 @@ namespace BambuMan.Shared
                     glow: new Option<bool?>(fillamentInfo.Glow)
                 );
 
-                bambuLabExternalFilaments.Add(filament);
+                externalFilaments.Add(filament);
             }
 
             return Task.CompletedTask;

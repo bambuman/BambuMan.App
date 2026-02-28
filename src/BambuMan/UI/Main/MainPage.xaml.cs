@@ -110,12 +110,17 @@ namespace BambuMan.UI.Main
             {
                 await viewModel.ClearMessages();
 
-                if (isError) await viewModel.ShowErrorMessage(message);
+                if (isError)
+                {
+                    await viewModel.ShowErrorMessage(message);
+                    var toast = CommunityToolkit.Maui.Alerts.Toast.Make(message, CommunityToolkit.Maui.Core.ToastDuration.Long);
+                    await toast.Show();
+                }
                 else await viewModel.ShowSuccessMessage(message);
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error in SpoolmanManagerOnLogMessage");
+                logger.LogError(e, "Error in SpoolmanManagerOnShowMessage");
             }
         }
 
@@ -175,11 +180,17 @@ namespace BambuMan.UI.Main
                 viewModel.ShowLogsOnMainPage = Preferences.Default.Get(SettingsPage.ShowLogsOnMainPage, true);
                 viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
 
-                spoolmanManager.ApiUrl = Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
+                var newUrl = Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
+                var urlChanged = newUrl != spoolmanManager.ApiUrl;
+                spoolmanManager.ApiUrl = newUrl;
                 spoolmanManager.UnknownFilamentEnabled = Preferences.Default.Get(SettingsPage.UnknownFilamentEnabled, true);
 
-                viewModel.SpoolmanOk = false;
-                viewModel.SpoolmanConnecting = true;
+                // Only show connecting animation if URL changed or not yet initialized
+                if (urlChanged || !spoolmanManager.IsInitialized)
+                {
+                    viewModel.SpoolmanOk = false;
+                    viewModel.SpoolmanConnecting = true;
+                }
 
                 //viewModel.Logs.Clear();
                 await viewModel.Validate(spoolmanManager);
