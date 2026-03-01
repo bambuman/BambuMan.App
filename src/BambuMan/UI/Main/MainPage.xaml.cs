@@ -169,7 +169,21 @@ namespace BambuMan.UI.Main
             try
             {
                 base.OnAppearing();
+                await SetupEventSubscriptionsAsync();
+                await InitializeSpoolmanAsync();
+                await SetupNfcAsync();
+                await CheckVersion().ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error in OnAppearing");
+            }
+        }
 
+        private async Task SetupEventSubscriptionsAsync()
+        {
+            try
+            {
                 spoolmanManager.OnStatusChanged += SpoolmanManagerOnStatusChanged;
                 spoolmanManager.OnLogMessage += SpoolmanManagerOnLogMessage;
                 spoolmanManager.OnShowMessage += SpoolmanManagerOnShowMessage;
@@ -192,6 +206,7 @@ namespace BambuMan.UI.Main
                 var urlChanged = newUrl != spoolmanManager.ApiUrl;
                 spoolmanManager.ApiUrl = newUrl;
                 spoolmanManager.UnknownFilamentEnabled = Preferences.Default.Get(SettingsPage.UnknownFilamentEnabled, true);
+                spoolmanManager.HasNetworkAccess = () => Connectivity.Current.NetworkAccess == NetworkAccess.Internet;
 
                 // Only show connecting animation if URL changed or not yet initialized
                 if (urlChanged || !spoolmanManager.IsInitialized)
@@ -202,9 +217,29 @@ namespace BambuMan.UI.Main
 
                 //viewModel.Logs.Clear();
                 await viewModel.Validate(spoolmanManager);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error in OnAppearing setup");
+            }
+        }
 
+        private async Task InitializeSpoolmanAsync()
+        {
+            try
+            {
                 await spoolmanManager.Init();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error in SpoolmanManager.Init");
+            }
+        }
 
+        private async Task SetupNfcAsync()
+        {
+            try
+            {
                 // In order to support Mifare Classic 1K tags (read/write), you must set legacy mode to true.
                 CrossNfc.Legacy = false;
 
@@ -219,12 +254,10 @@ namespace BambuMan.UI.Main
 
                     await AutoStartAsync().ConfigureAwait(false);
                 }
-
-                await CheckVersion().ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error in OnAppearing");
+                logger.LogError(e, "Error in NFC setup");
             }
         }
 

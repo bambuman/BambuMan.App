@@ -66,7 +66,8 @@ public partial class MainForm : Form
         {
             ShowLogs = logSpoolmanApiToolStripMenuItem.Checked,
             ApiUrl = txtSpoolmanUrl.Text,
-            UnknownFilamentEnabled = unknownFilamentEnabledToolStripMenuItem.Checked
+            UnknownFilamentEnabled = unknownFilamentEnabledToolStripMenuItem.Checked,
+            HasNetworkAccess = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable
         };
 
         spoolmanManager.OnStatusChanged += SpoolmanManagerOnStatusChanged;

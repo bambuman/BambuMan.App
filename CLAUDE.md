@@ -66,6 +66,7 @@ Solution file: `src/BambuMan.sln`
 - Constructor injection with `this.field = field` pattern
 - Use `internal` for controller-level fields where applicable
 - File-scoped namespaces allowed (mixed usage in codebase)
+- `async void` methods (e.g., event handlers, `OnAppearing`) must wrap their body in a `try/catch` — unhandled exceptions in `async void` crash the app
 
 ## Git
 - Commit messages must **not** include `Co-Authored-By` lines

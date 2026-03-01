@@ -130,13 +130,13 @@ namespace BambuMan.UI.Main
 
             SettingsOk = true;
 
+            SpoolmanOk = spoolmanManager.Status == SpoolmanManagerStatusType.Ready;
+
             if (!SpoolmanConnecting && !spoolmanManager.IsHealth)
             {
                 await ShowErrorMessage("Spoolman api is not healthy");
                 return;
             }
-
-            if (spoolmanManager.Status >= SpoolmanManagerStatusType.Ready) SpoolmanOk = true;
 
             if (!SpoolmanConnecting && !NfcIsEnabled)
                 await ShowErrorMessage("NFC is not enabled. Check if you're phone supports nfc.");

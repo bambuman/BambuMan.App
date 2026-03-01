@@ -38,8 +38,10 @@ namespace BambuMan.Shared
         private IHost? apiHost;
         private string? initializedApiUrl;
         private bool isInitialized;
-        private readonly object filamentLock = new();
-        private List<ExternalFilament> bambuLabExternalFilaments = [];
+        private bool defaultsChecked;
+        private bool localFilamentsLoaded;
+        private bool locationsLoaded;
+        private readonly Lock filamentLock = new();
         private Timer? healthCheckTimer;
         private bool healthCheckInProgress;
 
@@ -52,6 +54,8 @@ namespace BambuMan.Shared
         public bool UnknownFilamentEnabled { get; set; } = false;
 
         public bool OverrideLocationOnRead { get; set; }
+
+        public Func<bool>? HasNetworkAccess { get; set; }
 
         public SpoolManDefaults Defaults { get; } = new();
 
@@ -75,9 +79,9 @@ namespace BambuMan.Shared
         /// </summary>
         public List<ExternalFilament> BambuLabExternalFilaments
         {
-            get { lock (filamentLock) return bambuLabExternalFilaments; }
-            set { lock (filamentLock) bambuLabExternalFilaments = value; }
-        }
+            get { lock (filamentLock) return field; }
+            set { lock (filamentLock) field = value; }
+        } = [];
 
         /// <summary>
         /// Unknown filament, if no filament is found or multiple result where found, return this
@@ -97,16 +101,33 @@ namespace BambuMan.Shared
             // Fast path: already initialized with the same URL — just verify health
             if (isInitialized && initializedApiUrl == ApiUrl)
             {
+                if (HasNetworkAccess?.Invoke() == false)
+                {
+                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "No network connection. Please check your connection.");
+                    StartHealthCheckTimer(healthy: false);
+                    return;
+                }
+
                 try
                 {
                     if (await CheckHealth())
-                        await LogAndSetStatus(SpoolmanManagerStatusType.Ready, LogLevel.Success, "Ready to inventory fillament");
+                        await LogAndSetStatus(SpoolmanManagerStatusType.Ready, LogLevel.Success, "Ready to inventory filament");
                 }
                 catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
                 {
-                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, $"Health check failed: {ex.Message}");
+                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "Can't reach Spoolman server. Will retry automatically.");
+                    await Log(LogLevel.Warning, $"Health check failed: {ex.Message}");
+                    StartHealthCheckTimer(healthy: false);
                 }
                 return;
+            }
+
+            // URL changed — reset init flags
+            if (initializedApiUrl != null && initializedApiUrl != ApiUrl)
+            {
+                defaultsChecked = false;
+                localFilamentsLoaded = false;
+                locationsLoaded = false;
             }
 
             // Full initialization path
@@ -128,13 +149,18 @@ namespace BambuMan.Shared
 
                         }, builder =>
                         {
-                            builder
-                                .AddRetryPolicy(3)
-                                .AddCircuitBreakerPolicy(5, TimeSpan.FromSeconds(30));
+                            builder.AddRetryPolicy(3);
                         });
                     });
                 })
             .Build();
+
+            if (HasNetworkAccess?.Invoke() == false)
+            {
+                await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "No network connection. Please check your connection.");
+                StartHealthCheckTimer(healthy: false);
+                return;
+            }
 
             try
             {
@@ -149,37 +175,92 @@ namespace BambuMan.Shared
                     }
                     catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
                     {
-                        await Log(LogLevel.Warning, $"Health check attempt {attempt}/3 failed: {ex.Message}");
+                        await Log(LogLevel.Warning, $"Connecting to Spoolman (attempt {attempt}/3) ... {ex.Message}");
                     }
 
                     if (attempt < 3) await Task.Delay(3000);
                 }
 
-                if (!healthOk) return;
+                if (!healthOk)
+                {
+                    StartHealthCheckTimer(healthy: false);
+                    return;
+                }
 
-                await CheckDefaultValues();
+                await TryCheckDefaultValuesAsync();
+                await TryLoadLocalFilamentsAsync();
+                await TryLoadLocationsAsync();
 
-                await LoadLocalFilaments();
+                if (defaultsChecked && localFilamentsLoaded)
+                {
+                    initializedApiUrl = ApiUrl;
+                    isInitialized = true;
 
-                await LoadLocations();
+                    await LogAndSetStatus(SpoolmanManagerStatusType.Ready, LogLevel.Success, "Ready to inventory filament");
 
-                initializedApiUrl = ApiUrl;
-                isInitialized = true;
+                    StartHealthCheckTimer();
 
-                await LogAndSetStatus(SpoolmanManagerStatusType.Ready, LogLevel.Success, "Ready to inventory fillament");
-
-                StartHealthCheckTimer();
-
-                _ = LoadExternalFilamentsInBackground();
+                    _ = LoadExternalFilamentsInBackground();
+                }
+                else
+                {
+                    StartHealthCheckTimer(healthy: false);
+                }
             }
             catch (HttpRequestException ex)
             {
                 await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, ex.ToString());
+                logger?.LogError(ex, "Error connecting to api");
             }
             catch (Exception e)
             {
                 await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, e.ToString());
                 logger?.LogError(e, "Error connecting to api");
+            }
+        }
+
+        private async Task TryCheckDefaultValuesAsync()
+        {
+            if (defaultsChecked) return;
+
+            try
+            {
+                await CheckDefaultValues();
+                defaultsChecked = true;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await Log(LogLevel.Warning, $"CheckDefaultValues failed: {ex.Message}");
+            }
+        }
+
+        private async Task TryLoadLocalFilamentsAsync()
+        {
+            if (localFilamentsLoaded) return;
+
+            try
+            {
+                await LoadLocalFilaments();
+                localFilamentsLoaded = true;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await Log(LogLevel.Warning, $"LoadLocalFilaments failed: {ex.Message}");
+            }
+        }
+
+        private async Task TryLoadLocationsAsync()
+        {
+            if (locationsLoaded) return;
+
+            try
+            {
+                await LoadLocations();
+                locationsLoaded = true;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await Log(LogLevel.Warning, $"LoadLocations failed: {ex.Message}");
             }
         }
 
@@ -563,8 +644,9 @@ namespace BambuMan.Shared
                     idToSearch = "bambulab_pa_supportforpa/pet_500_175_n";
                 }
 
-                if (idToSearch.IsNotNullOrEmpty()) query = externalFilaments.Where(x => x.Id.EqualsCI(idToSearch)).AsQueryable();
-                else query = externalFilaments.Where(x => x.Name.StartsWithCI(nameToSearch)).Where(x => x.ColorHex.EqualsCI(hexColor)).AsQueryable();
+                query = idToSearch.IsNotNullOrEmpty() ?
+                    externalFilaments.Where(x => x.Id.EqualsCI(idToSearch)).AsQueryable() :
+                    externalFilaments.Where(x => x.Name.StartsWithCI(nameToSearch)).Where(x => x.ColorHex.EqualsCI(hexColor)).AsQueryable();
             }
             else if (info.ColorCount.GetValueOrDefault() > 1 && query.Count() != 1) //multi color spool
             {
@@ -771,8 +853,9 @@ namespace BambuMan.Shared
 
                 if (productionDateTime != null) extraValues[ExtraProductionDateTime] = $"\"{productionDateTime:yyyy-MM-ddZHH:mm:ss}\"";
 
-                if (buyDate == null && extraValues.ContainsKey(ExtraBuyDate)) extraValues.Remove(ExtraBuyDate);
-                else if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
+                if (buyDate == null) extraValues.Remove(ExtraBuyDate);
+                if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
+
                 extraValues[ExtraTag] = $"\"{trayUid}\"";
 
                 var spoolUpdateParams = new SpoolUpdateParameters(
@@ -824,9 +907,16 @@ namespace BambuMan.Shared
 
         #region Health check timer
 
-        private void StartHealthCheckTimer()
+        private void StartHealthCheckTimer(bool healthy = true)
         {
-            healthCheckTimer?.Dispose();
+            var interval = healthy ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(1);
+
+            if (healthCheckTimer != null)
+            {
+                healthCheckTimer.Change(interval, interval);
+                return;
+            }
+
             healthCheckTimer = new Timer(async void (_) =>
             {
                 try
@@ -837,12 +927,23 @@ namespace BambuMan.Shared
                 {
                     // ignored
                 }
-            }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+            }, null, interval, interval);
         }
 
         private async Task PerformHealthCheck()
         {
             if (healthCheckInProgress || apiHost == null) return;
+
+            if (HasNetworkAccess?.Invoke() == false)
+            {
+                if (IsHealth)
+                {
+                    IsHealth = false;
+                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "No network connection. Please check your connection.");
+                    StartHealthCheckTimer(healthy: false);
+                }
+                return;
+            }
             healthCheckInProgress = true;
 
             try
@@ -853,15 +954,29 @@ namespace BambuMan.Shared
 
                 IsHealth = health.TryOk(out var check) && check.Status == "healthy";
 
-                if (wasHealthy != IsHealth)
-                    OnStatusChanged?.Invoke();
+                if (!wasHealthy && IsHealth)
+                {
+                    if (!isInitialized)
+                        await Init();
+                    else
+                    {
+                        await LogAndSetStatus(SpoolmanManagerStatusType.Ready, LogLevel.Success, "Reconnected to Spoolman");
+                        StartHealthCheckTimer();
+                    }
+                }
+                else if (wasHealthy != IsHealth)
+                {
+                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "Lost connection to Spoolman. Retrying ...");
+                    StartHealthCheckTimer(healthy: false);
+                }
             }
             catch
             {
                 if (IsHealth)
                 {
                     IsHealth = false;
-                    OnStatusChanged?.Invoke();
+                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "Lost connection to Spoolman. Retrying ...");
+                    StartHealthCheckTimer(healthy: false);
                 }
             }
             finally
@@ -877,8 +992,8 @@ namespace BambuMan.Shared
         private async Task HandleNetworkError(Exception ex, string operation)
         {
             var message = ex is TaskCanceledException
-                ? $"{operation} timed out. Check your network connection."
-                : $"{operation} failed. Check your network connection.";
+                ? $"{operation} timed out. Will retry automatically."
+                : $"{operation} failed. Will retry automatically.";
 
             OnShowMessage?.Invoke(true, message);
             await Log(LogLevel.Information, $"{operation}: {ex.Message}");

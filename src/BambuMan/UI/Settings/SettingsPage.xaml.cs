@@ -106,9 +106,7 @@ public partial class SettingsPage
                         }
                     }, builder =>
                     {
-                        builder
-                            .AddRetryPolicy(3)
-                            .AddCircuitBreakerPolicy(5, TimeSpan.FromSeconds(30));
+                        builder.AddRetryPolicy(3);
                     });
                 });
             })
