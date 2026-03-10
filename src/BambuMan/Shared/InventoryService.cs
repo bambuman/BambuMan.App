@@ -15,18 +15,26 @@ namespace BambuMan
         {
             if (info.TrayUid == null) return;
 
+            if (MainThread.IsMainThread) InventorySpoolCore(spool, info);
+            else MainThread.BeginInvokeOnMainThread(() => InventorySpoolCore(spool, info));
+        }
+
+        private void InventorySpoolCore(Spool spool, BambuFillamentInfo info)
+        {
+            if (info.TrayUid == null) return;
+
             var inventoryModel = Inventory.FirstOrDefault(x => x.Material == spool.Filament.Material);
 
             if (inventoryModel == null)
             {
-                Inventory.Add(new InventoryModel(spool.Filament.Material, info.TrayUid));
+                Inventory.Add(new InventoryModel(spool.Filament.Material, info.TrayUid!));
                 return;
             }
 
-            if (!inventoryModel.Tags.Contains(info.TrayUid))
+            if (!inventoryModel.Tags.Contains(info.TrayUid!))
             {
                 inventoryModel.Quantity++;
-                inventoryModel.Tags.Add(info.TrayUid);
+                inventoryModel.Tags.Add(info.TrayUid!);
             }
         }
 

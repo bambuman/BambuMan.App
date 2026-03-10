@@ -101,9 +101,7 @@ namespace BambuMan.UI.Main
 
         public Task AddLog(LogLevel level, string text)
         {
-            Logs.Insert(0, new LogModel(level, text));
-
-            return Task.CompletedTask;
+            return logService.AddLog(level, text);
         }
 
         public void ShowSpool(Spool spool)

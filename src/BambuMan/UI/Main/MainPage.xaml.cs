@@ -287,6 +287,10 @@ namespace BambuMan.UI.Main
             var consentShown = Preferences.Default.Get(SettingsPage.TagUploadConsentShown, false);
             if (consentShown) return;
 
+            // Short delay to ensure the activity is fully resumed before showing a popup,
+            // preventing IllegalStateException from fragment transactions during lifecycle transitions.
+            await Task.Delay(100);
+
             var popupResult = await popupService.ShowPopupAsync<TagUploadConsentPopup, bool>(Shell.Current, new PopupOptions
             {
                 CanBeDismissedByTappingOutsideOfPopup = false
