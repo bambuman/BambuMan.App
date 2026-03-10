@@ -1,7 +1,6 @@
 # Repository Defaults
 
 ## Environment
-- Development machine: **Windows 11**
 - .NET 10.0 C#
 - Nullable is set to **enable**
 

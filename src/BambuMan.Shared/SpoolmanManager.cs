@@ -207,10 +207,14 @@ namespace BambuMan.Shared
                     StartHealthCheckTimer(healthy: false);
                 }
             }
-            catch (HttpRequestException ex)
+            catch (UriFormatException)
             {
-                await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, ex.ToString());
-                logger?.LogError(ex, "Error connecting to api");
+                await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "Invalid Spoolman URL. Please check the URL in Settings.");
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "Can't reach Spoolman server. Will retry automatically.");
+                StartHealthCheckTimer(healthy: false);
             }
             catch (Exception e)
             {

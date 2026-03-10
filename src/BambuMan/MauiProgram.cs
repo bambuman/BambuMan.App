@@ -116,6 +116,7 @@ namespace BambuMan
                 .Filter.ByExcluding(e => e.Properties.TryGetValue("SourceContext", out var value) && value.ToString().Contains("Microsoft.Maui.Controls.Xaml.Diagnostics.BindingDiagnostics"))
                 .Filter.ByExcluding(e => e.Properties.TryGetValue("SourceContext", out var value) && value.ToString().Contains("Microsoft.Maui.Controls.Platform.AlertManager"))
                 .Filter.ByExcluding(e => e.Exception?.Message.Contains("Font asset not found") ?? false)
+                .Filter.ByExcluding(e => e.Level == LogEventLevel.Warning && e.Properties.TryGetValue("SourceContext", out var ctx) && ctx.ToString().Contains("SpoolmanManager"))
                 .WriteTo.Sentry(o =>
                 {
                     o.InitializeSdk = false;
