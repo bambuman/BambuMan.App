@@ -607,6 +607,7 @@ namespace BambuMan.Shared
                                      (x.ColorHexes != null && color != null && x.ColorHexes.Contains(color, StringComparer.OrdinalIgnoreCase)) ||
                                      (info.DetailedFilamentType.EqualsCI("PLA Matte") && color.EqualsCI("E4BDD0") && x.ColorHex.EqualsCI("E8AFCF")) || //ASA filament hex color is different on spoolman db vs tag
                                      (info.FilamentType.EqualsCI("ASA") && color.EqualsCI("FFFFFF") && x.ColorHex.EqualsCI("FFFAF2")) || //ASA filament hex color is different on spoolman db vs tag
+                                     (info.FilamentType.EqualsCI("ABS") && color.EqualsCI("ffb81c") && x.ColorHex.EqualsCI("FCE900")) || //ABS filament hex color is different on spoolman db vs tag
                                      (info.FilamentType.EqualsCI("ASA Aero") && color.EqualsCI("E9E4D9") && x.ColorHex.EqualsCI("F5F1DD")) || //ASA filament hex color is different on spoolman db vs tag
                                      (info.FilamentType.EqualsCI("PC") && color.EqualsCI("000000") && transparent && x.ColorHex.EqualsCI("5A5161")) || //PC Clear Black filament hex color is different on spoolman db vs tag
                                      (info.DetailedFilamentType.EqualsCI("PLA Wood") && color.EqualsCI("3F231C") && x.ColorHex.EqualsCI("4C241C")) || //PETG HF red filament hex color is different on spoolman db vs tag
@@ -700,6 +701,7 @@ namespace BambuMan.Shared
             }
 
             if (info.MaterialVariantIdentifier.EqualsCI("A00-W1") || info.MaterialVariantIdentifier.EqualsCI("A00-W01")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_jadewhite_1000_175_n")).AsQueryable();
+            if (info.MaterialVariantIdentifier.EqualsCI("S01-G1")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pa_supportforpa/pet_500_175_n")).AsQueryable();
 
             if (info.DetailedFilamentType.EqualsCI("PLA Basic") && color.EqualsCI("84754E")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_bronze_1000_175_n")).AsQueryable();
 
