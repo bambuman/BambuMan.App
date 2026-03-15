@@ -34,8 +34,8 @@ jobs:
           echo "GITHUB_VERSION=$env:GITHUB_VERSION_BASE$((${{ github.run_number }}+100))" >> $Env:GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v4
-          
+        uses: actions/checkout@v5
+
       - name: Inject Production Secrets
         shell: pwsh
         run: |
@@ -43,15 +43,15 @@ jobs:
           (Get-Content $clientFile) `
             -replace '___HMAC_SECRET_PLACEHOLDER___', '${{ secrets.ANDROID_HMAC_KEY }}' |
           Set-Content $clientFile
-        
+
       - name: Decode keystore file
         run: |
-          $keystorebase64 = "${{ secrets.ANDROID_KEYSTORE }}" 
+          $keystorebase64 = "${{ secrets.ANDROID_KEYSTORE }}"
           $keystore = [System.Convert]::FromBase64String($keystorebase64)
           Set-Content "${{ github.workspace }}/bambuman.keystore" -Value $keystore -AsByteStream
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
           
@@ -68,7 +68,7 @@ jobs:
         run: dotnet publish src/BambuMan/BambuMan.csproj -c Release -p:DefineConstants="BUILD_TYPE_LIVE" -p:GITHUB_CI=1 -p:GITHUB_VERSION_CODE="${{ env.GITHUB_VERSION_CODE }}" -p:GITHUB_VERSION="${{ env.GITHUB_VERSION }}" -p:AndroidKeyStore=True -p:AndroidSigningKeyStore="${{ github.workspace }}/bambuman.keystore" -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYPASSWORD }} -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEYSTOREALIAS }} -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTOREPASSWORD }} -f net10.0-android --no-restore
         
       - name: Upload Android Artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v6
         with:
           name: bambuman-android-ci-build
           path: src/BambuMan/bin/Release/net10.0-android/*Signed.apk
@@ -86,8 +86,8 @@ jobs:
           echo "GITHUB_VERSION=$env:GITHUB_VERSION_BASE$((${{ github.run_number }}+100))" >> $Env:GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v4
-          
+        uses: actions/checkout@v5
+
       - name: Inject Production Secrets
         shell: pwsh
         run: |
@@ -97,10 +97,10 @@ jobs:
           Set-Content $clientFile
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
-          
+
       - name: Restore Dependencies
         run: dotnet restore src/BambuMan.Desktop/BambuMan.Desktop.csproj
                 
@@ -111,7 +111,7 @@ jobs:
         run: dotnet publish src/BambuMan.Desktop/BambuMan.Desktop.csproj -c Release -p:PublishSingleFile=true -p:SelfContained=false -p:PublishReadyToRun=false -p:DefineConstants="BUILD_TYPE_LIVE" --no-restore /p:AssemblyVersion="${{ env.GITHUB_VERSION }}"
 
       - name: Upload .net Desctop app Artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v6
         with:
           name: bambuman-desktop-ci-build
           path: src/BambuMan.Desktop/bin/Release/net10.0-windows/publish/win-x64/*.exe
