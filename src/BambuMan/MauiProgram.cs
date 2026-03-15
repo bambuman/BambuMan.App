@@ -62,6 +62,10 @@ namespace BambuMan
                     fonts.AddMaterialSymbolsFonts();
                 });
 
+#if ANDROID
+            NoEmojiEntryHandler.Register();
+#endif
+
             var services = builder.Services;
             AddUi(services);
             AddServices(services);

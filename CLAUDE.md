@@ -70,6 +70,11 @@ Solution file: `src/BambuMan.sln`
 ## Git
 - Commit messages must **not** include `Co-Authored-By` lines
 
+## Error Handling Philosophy
+- Always investigate and fix the **root cause** of errors — do not suppress, hide, or filter them
+- Sentry errors should be fixed, not discarded with filters or empty catch blocks
+- Only suppress an error after the underlying issue has been resolved and the suppression is a safety net, not the fix itself
+
 ## Code Generation Rules
 - Keep the code style consistent with existing examples in the repository
 - Use NuGet libraries where available — do not create custom solutions when a library exists

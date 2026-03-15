@@ -16,7 +16,7 @@ namespace BambuMan
 
         public static void SetupImplementations(IServiceCollection services)
         {
-            services.AddTransient<IToneGenerator, AndroidToneGenerator>();
+            services.AddSingleton<IToneGenerator, AndroidToneGenerator>();
             services.AddTransient<IInvokeIndent, AndroidInvokeIndent>();
         }
 
