@@ -3,6 +3,8 @@
     public partial class App
     {
         private Window? mainWindow;
+        private bool isRecreatingShell;
+        private CancellationTokenSource? shellRecreationCts;
 
         public App()
         {
@@ -31,17 +33,16 @@
 
         private void OnRequestedThemeChanged(object? sender, AppThemeChangedEventArgs e)
         {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                if (mainWindow == null) return;
-                if (!IsActivityAlive()) return;
-
-                mainWindow.Page = new AppShell();
-            });
+            // Debounce: theme changes during resume are already handled by OnWindowResumed
+            ScheduleShellRecreation();
         }
 
         private void OnWindowStopped(object? sender, EventArgs e)
         {
+            // Cancel any pending shell recreation — the window is stopping, so recreating
+            // the shell now would give Glide/Skia a stale Activity context (SIGSEGV).
+            shellRecreationCts?.Cancel();
+
             // Clear font image sources so Glide has nothing to render if Android
             // destroys the Activity while backgrounded (dotnet/maui#12513)
             if (mainWindow?.Page is Shell shell)
@@ -55,14 +56,51 @@
 
         private void OnWindowResumed(object? sender, EventArgs e)
         {
-            // Recreate AppShell to restore font image sources with a valid Activity context
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                if (mainWindow == null) return;
-                if (!IsActivityAlive()) return;
+            // Recreate AppShell to restore font image sources with a valid Activity context.
+            // Debounced to prevent rapid config changes (orientation + density on foldable
+            // devices) from causing concurrent shell reconstructions that SIGSEGV.
+            ScheduleShellRecreation();
+        }
 
-                mainWindow.Page = new AppShell();
-            });
+        /// <summary>
+        /// Debounces AppShell recreation to prevent SIGSEGV from concurrent native view teardown.
+        /// Rapid configuration changes (orientation, density, theme) on Samsung foldable devices
+        /// can trigger multiple recreation requests within milliseconds — only the last one wins.
+        /// </summary>
+        private async void ScheduleShellRecreation()
+        {
+            try
+            {
+                // Cancel any previous pending recreation
+                shellRecreationCts?.Cancel();
+                var cts = new CancellationTokenSource();
+                shellRecreationCts = cts;
+
+                // Wait briefly so rapid config changes coalesce into a single recreation
+                await Task.Delay(150, cts.Token);
+
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (cts.IsCancellationRequested) return;
+                    if (mainWindow == null) return;
+                    if (!IsActivityAlive()) return;
+                    if (isRecreatingShell) return;
+
+                    isRecreatingShell = true;
+                    try
+                    {
+                        mainWindow.Page = new AppShell();
+                    }
+                    finally
+                    {
+                        isRecreatingShell = false;
+                    }
+                });
+            }
+            catch (TaskCanceledException)
+            {
+                // Expected when a newer recreation request supersedes this one
+            }
         }
 
         /// <summary>

@@ -95,9 +95,14 @@ namespace BambuMan
         {
             if (nfcAdapter == null) return;
 
-            if (CurrentActivity == null) return;
+            var activity = CurrentActivity;
+            if (activity == null) return;
 
-            var intent = new Intent(CurrentActivity, CurrentActivity.GetType()).AddFlags(ActivityFlags.SingleTop);
+            // EnableForegroundDispatch crashes (SIGSEGV) if called on a destroyed/finishing
+            // activity — can happen during rapid config changes on foldable devices.
+            if (activity.IsDestroyed || activity.IsFinishing) return;
+
+            var intent = new Intent(activity, activity.GetType()).AddFlags(ActivityFlags.SingleTop);
 
             // We don't use MonoAndroid12.0 as target framework for easier backward compatibility:
             // MonoAndroid12.0 needs JDK 11.
@@ -110,7 +115,7 @@ namespace BambuMan
 				pendingIntentFlags = (PendingIntentFlags)33554432;
 #endif
 
-            var pendingIntent = PendingIntent.GetActivity(CurrentActivity, 0, intent, pendingIntentFlags);
+            var pendingIntent = PendingIntent.GetActivity(activity, 0, intent, pendingIntentFlags);
 
             var ndefFilter = new IntentFilter(NfcAdapter.ActionNdefDiscovered);
             ndefFilter.AddDataType("*/*");
@@ -120,7 +125,7 @@ namespace BambuMan
 
             var filters = new[] { ndefFilter, tagFilter };
 
-            nfcAdapter.EnableForegroundDispatch(CurrentActivity, pendingIntent, filters, null);
+            nfcAdapter.EnableForegroundDispatch(activity, pendingIntent, filters, null);
 
             isListening = true;
             OnTagListeningStatusChanged?.Invoke(isListening);
@@ -132,8 +137,10 @@ namespace BambuMan
         public void StopListening()
         {
             DisablePublishing();
-            if (nfcAdapter != null && CurrentActivity != null)
-                nfcAdapter.DisableForegroundDispatch(CurrentActivity);
+
+            var activity = CurrentActivity;
+            if (nfcAdapter != null && activity is { IsDestroyed: false, IsFinishing: false })
+                nfcAdapter.DisableForegroundDispatch(activity);
 
             isListening = false;
             OnTagListeningStatusChanged?.Invoke(isListening);
