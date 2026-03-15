@@ -110,7 +110,7 @@ namespace BambuMan.UI.Main
             SpoolInitialWeight = spool.InitialWeight;
             SpoolEmptyWeight = spool.SpoolWeight;
             SpoolPrice = spool.Price;
-            SpoolBuyDate = spool.Extra.TryGetValue(SpoolmanManager.ExtraBuyDate, out var buyDateOut) ? DateTime.Parse(buyDateOut.Replace("\"", "")) : null;
+            SpoolBuyDate = spool.Extra.TryGetValue(SpoolmanManager.ExtraBuyDate, out var buyDateOut) ? DateTime.TryParse(buyDateOut.Replace("\"", ""), out var buyDate) ? buyDate : null : null;
             SpoolLotNr = spool.LotNr;
             SpoolLocation = spool.Location;
             ShowSpoolEdit = true;

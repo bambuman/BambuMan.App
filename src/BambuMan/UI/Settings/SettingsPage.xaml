@@ -8,6 +8,7 @@
              xmlns:constants="clr-namespace:BambuMan.Shared;assembly=BambuMan.Shared"
              xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
              xmlns:validation1="clr-namespace:BambuMan.Validation"
+             xmlns:controls="clr-namespace:BambuMan.UI.Controls"
              xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
              x:Class="BambuMan.UI.Settings.SettingsPage"
              x:DataType="main:SettingsPageViewModel"
@@ -60,9 +61,9 @@
 
             <material:CheckBox x:Name="TfOverrideLocationOnRead" Text="Override location on read" IsChecked="{Binding OverrideLocationOnRead, Mode=TwoWay}" Margin="10,0,10,5"></material:CheckBox>
 
-            <material:DatePickerField x:Name="TfBuyDate" Title="Buy date:" Date="{Binding BuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}">
+            <controls:NullableDatePickerField x:Name="TfBuyDate" Title="Buy date:" Date="{Binding BuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}">
 
-            </material:DatePickerField>
+            </controls:NullableDatePickerField>
 
             <material:TextField x:Name="TfPrice" Title="Price:" Keyboard="Numeric" Text="{Binding DefaultPrice,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}">
                 <validation1:NumericNullableValidation  />

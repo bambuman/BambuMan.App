@@ -859,8 +859,7 @@ namespace BambuMan.Shared
 
                 if (productionDateTime != null) extraValues[ExtraProductionDateTime] = $"\"{productionDateTime:yyyy-MM-ddZHH:mm:ss}\"";
 
-                if (buyDate == null) extraValues.Remove(ExtraBuyDate);
-                if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
+                extraValues[ExtraBuyDate] = buyDate == null ? "\"\"" : $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
 
                 extraValues[ExtraTag] = $"\"{trayUid}\"";
 

@@ -267,7 +267,7 @@ public partial class SettingsPage
 
         if (TfBuyDate.IsValid)
         {
-            if (TfBuyDate.Date == null || viewModel.BuyDate == null) Preferences.Default.Remove(KeyDefaultBuyDate);
+            if (viewModel.BuyDate == null) Preferences.Default.Remove(KeyDefaultBuyDate);
             else Preferences.Default.Set(KeyDefaultBuyDate, $"{viewModel.BuyDate:yyyy-MM-dd}");
         }
 
