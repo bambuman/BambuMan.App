@@ -31,6 +31,12 @@ namespace BambuMan.UI.Scan
             }
         }
 
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            Barcode.CameraEnabled = false;
+        }
+
         private async void CameraView_OnDetectionFinished(object sender, OnDetectionFinishedEventArg e)
         {
             try
