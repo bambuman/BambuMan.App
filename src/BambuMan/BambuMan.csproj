@@ -44,7 +44,7 @@
 		<PackageReference Include="BarcodeScanning.Native.Maui" Version="3.0.3" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="14.0.1" />
 		<PackageReference Include="CommunityToolkit.Maui.Markup" Version="7.0.1" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.50" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Sentry.Maui" Version="6.2.0" />
