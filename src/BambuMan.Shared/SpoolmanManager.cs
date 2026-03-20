@@ -42,6 +42,7 @@ namespace BambuMan.Shared
         private bool localFilamentsLoaded;
         private bool locationsLoaded;
         private readonly Lock filamentLock = new();
+        private readonly Lock spoolLock = new();
         private Timer? healthCheckTimer;
         private bool healthCheckInProgress;
 
@@ -82,6 +83,17 @@ namespace BambuMan.Shared
             get { lock (filamentLock) return field; }
             set { lock (filamentLock) field = value; }
         } = [];
+
+        private List<Spool> cachedSpools = [];
+
+        /// <summary>
+        /// All spools cached locally (thread-safe; updated from background API fetch)
+        /// </summary>
+        public List<Spool> CachedSpools
+        {
+            get { lock (spoolLock) return cachedSpools; }
+            set { lock (spoolLock) cachedSpools = value; }
+        }
 
         /// <summary>
         /// Unknown filament, if no filament is found or multiple result where found, return this
@@ -201,6 +213,7 @@ namespace BambuMan.Shared
                     StartHealthCheckTimer();
 
                     _ = LoadExternalFilamentsInBackground();
+                    _ = LoadSpoolsInBackground();
                 }
                 else
                 {
@@ -458,6 +471,46 @@ namespace BambuMan.Shared
             }
         }
 
+        private async Task LoadSpoolsInBackground()
+        {
+            try
+            {
+                if (apiHost == null) return;
+
+                var spoolApi = apiHost.Services.GetRequiredService<ISpoolApi>();
+                var spoolQuery = await spoolApi.FindSpoolSpoolGetAsync();
+
+                if (spoolQuery.TryOk(out var spools))
+                {
+                    CachedSpools = spools;
+                    await Log(LogLevel.Information, $"Background: loaded spools: {spools.Count}");
+                }
+                else
+                {
+                    await Log(LogLevel.Warning, $"Background: error loading spools. Api response: {spoolQuery.RawContent}");
+                }
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await Log(LogLevel.Information, $"Background: network error loading spools: {ex.Message}");
+            }
+            catch (Exception e)
+            {
+                await Log(LogLevel.Information, $"Background: error loading spools: {e.Message}");
+                logger?.LogWarning(e, "Background: error loading spools");
+            }
+        }
+
+        private void UpdateCachedSpool(Spool spool)
+        {
+            lock (spoolLock)
+            {
+                var index = cachedSpools.FindIndex(x => x.Id == spool.Id);
+                if (index >= 0) cachedSpools[index] = spool;
+                else cachedSpools.Add(spool);
+            }
+        }
+
         private async Task LoadLocations()
         {
             if (apiHost == null) return;
@@ -512,29 +565,52 @@ namespace BambuMan.Shared
                 if (filament == null) return false;
 
                 var spoolApi = apiHost.Services.GetRequiredService<ISpoolApi>();
-                var spoolQuery = await spoolApi.FindSpoolSpoolGetAsync(filamentId2: new Option<string?>($"{filament.Id}"), allowArchived: new Option<bool>(true));
 
-                if (spoolQuery.TryOk(out var spools))
+                // Try local cache first
+                var cachedSpool = CachedSpools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{info.TrayUid}\"", StringComparison.CurrentCultureIgnoreCase));
+
+                Spool? spool;
+                if (cachedSpool != null)
                 {
-                    var spool = spools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{info.TrayUid}\"", StringComparison.CurrentCultureIgnoreCase));
-
-                    if (spool == null) await AddSpool(info, buyDate, price, lotNr, location, filament, spoolApi);
+                    // Found in local cache — fetch fresh data by ID
+                    var spoolByIdQuery = await spoolApi.GetSpoolSpoolSpoolIdGetAsync(cachedSpool.Id);
+                    if (spoolByIdQuery.TryOk(out var freshSpool))
+                    {
+                        spool = freshSpool;
+                        UpdateCachedSpool(freshSpool);
+                    }
                     else
                     {
-                        if (OverrideLocationOnRead && !string.IsNullOrWhiteSpace(location) && !string.Equals(spool.Location, location, StringComparison.OrdinalIgnoreCase))
-                        {
-                            spool = await UpdateSpoolLocation(spool, location, spoolApi);
-                            await Log(LogLevel.Success, $"Location updated to '{location}' for spool '{info.TrayUid?.TrimTo(14, "...")}'");
-                        }
-
-                        OnShowMessage?.Invoke(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
-                        await Log(LogLevel.Success, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
-                        OnSpoolFound?.Invoke(spool, info);
+                        await Log(LogLevel.Warning, $"Cached spool {cachedSpool.Id} not found on server, falling back to full query");
+                        spool = null;
                     }
                 }
                 else
                 {
-                    await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't load existing spools. Api response: {spoolQuery.RawContent}");
+                    // No local match — full query to Spoolman
+                    var spoolQuery = await spoolApi.FindSpoolSpoolGetAsync(filamentId2: new Option<string?>($"{filament.Id}"), allowArchived: new Option<bool>(true));
+
+                    if (spoolQuery.TryOk(out var spools))
+                        spool = spools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{info.TrayUid}\"", StringComparison.CurrentCultureIgnoreCase));
+                    else
+                    {
+                        await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't load existing spools. Api response: {spoolQuery.RawContent}");
+                        return false;
+                    }
+                }
+
+                if (spool == null) await AddSpool(info, buyDate, price, lotNr, location, filament, spoolApi);
+                else
+                {
+                    if (OverrideLocationOnRead && !string.IsNullOrWhiteSpace(location) && !string.Equals(spool.Location, location, StringComparison.OrdinalIgnoreCase))
+                    {
+                        spool = await UpdateSpoolLocation(spool, location, spoolApi);
+                        await Log(LogLevel.Success, $"Location updated to '{location}' for spool '{info.TrayUid?.TrimTo(14, "...")}'");
+                    }
+
+                    OnShowMessage?.Invoke(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
+                    await Log(LogLevel.Success, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
+                    OnSpoolFound?.Invoke(spool, info);
                 }
 
                 return result;
@@ -827,6 +903,7 @@ namespace BambuMan.Shared
 
                 if (spoolAddResult.TryOk(out var addedSpool))
                 {
+                    UpdateCachedSpool(addedSpool);
                     TrackNewLocation(location);
                     OnShowMessage?.Invoke(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
                     await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
@@ -876,8 +953,9 @@ namespace BambuMan.Shared
 
                 var spoolUpdateResult = await spoolApi.UpdateSpoolSpoolSpoolIdPatchAsync(currentSpool.Id, spoolUpdateParams);
 
-                if (spoolUpdateResult.TryOk(out _))
+                if (spoolUpdateResult.TryOk(out var updatedSpool))
                 {
+                    UpdateCachedSpool(updatedSpool);
                     TrackNewLocation(location);
                     OnShowMessage?.Invoke(false, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
                     await Log(LogLevel.Success, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
@@ -903,6 +981,7 @@ namespace BambuMan.Shared
 
             if (result.TryOk(out var updatedSpool))
             {
+                UpdateCachedSpool(updatedSpool);
                 TrackNewLocation(location);
                 return updatedSpool;
             }
