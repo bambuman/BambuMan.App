@@ -28,7 +28,14 @@ public partial class LogsPage
     
     private async void BackToMain_OnClicked(object? sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync("//MainPage");
+        try
+        {
+            await Shell.Current.GoToAsync("//MainPage");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error in BackToMain_OnClicked");
+        }
     }
 
     private async void EmailLogs_OnClicked(object? sender, EventArgs e)

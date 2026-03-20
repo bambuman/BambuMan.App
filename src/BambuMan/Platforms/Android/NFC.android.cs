@@ -680,9 +680,9 @@ namespace BambuMan
             {
                 CurrentContext.UnregisterReceiver(nfcBroadcastReceiver);
             }
-            catch (Java.Lang.IllegalArgumentException ex)
+            catch (Java.Lang.IllegalArgumentException)
             {
-                throw new Exception("NFC Broadcast Receiver Error: " + ex.Message);
+                // Receiver was already unregistered or never registered — safe to ignore
             }
 
             nfcBroadcastReceiver.Dispose();
@@ -716,15 +716,22 @@ namespace BambuMan
             // ReSharper disable once AsyncVoidMethod
             public override async void OnReceive(Context? context, Intent? intent)
             {
-                if (intent?.Action != NfcAdapter.ActionAdapterStateChanged) return;
+                try
+                {
+                    if (intent?.Action != NfcAdapter.ActionAdapterStateChanged) return;
 
-                var state = intent.GetIntExtra(NfcAdapter.ExtraAdapterState, 0);
+                    var state = intent.GetIntExtra(NfcAdapter.ExtraAdapterState, 0);
 
-                if (state != NfcAdapter.StateOff && state != NfcAdapter.StateOn) return;
+                    if (state != NfcAdapter.StateOff && state != NfcAdapter.StateOn) return;
 
-                // await 1500ms to ensure that the status updates
-                await Task.Delay(1500);
-                onChanged?.Invoke();
+                    // await 1500ms to ensure that the status updates
+                    await Task.Delay(1500);
+                    onChanged?.Invoke();
+                }
+                catch (Exception)
+                {
+                    // Suppress to prevent crash in async void BroadcastReceiver
+                }
             }
         }
 

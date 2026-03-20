@@ -97,9 +97,13 @@
                     }
                 });
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
                 // Expected when a newer recreation request supersedes this one
+            }
+            catch (Exception)
+            {
+                // Suppress to prevent crash in async void during shell recreation
             }
         }
 
