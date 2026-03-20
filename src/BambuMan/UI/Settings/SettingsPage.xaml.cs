@@ -47,28 +47,40 @@ public partial class SettingsPage
 
     protected override async void OnAppearing()
     {
-        base.OnAppearing();
+        try
+        {
+            base.OnAppearing();
 
-        viewModel.SpoolmanUrl = Preferences.Default.Get(KeySpoolmanUrl, string.Empty);
-        viewModel.BuyDate = DateTime.TryParse(Preferences.Default.Get(KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? resultDate : null;
-        viewModel.DefaultPrice = decimal.TryParse(Preferences.Default.Get(KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? result : null;
-        viewModel.DefaultLotNr = Preferences.Default.Get(KeyDefaultLotNr, string.Empty);
-        viewModel.DefaultLocation = Preferences.Default.Get(KeyDefaultLocation, string.Empty);
-        viewModel.UnknownFilamentEnabled = Preferences.Default.Get(UnknownFilamentEnabled, true);
-        viewModel.ShowLogsOnMainPage = Preferences.Default.Get(ShowLogsOnMainPage, true);
-        viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(ShowKeyboardOnSpoolRead, true);
-        viewModel.FullTagScanAndUpload = Preferences.Default.Get(FullTagScanAndUpload, false);
-        viewModel.OverrideLocationOnRead = spoolmanManager.OverrideLocationOnRead;
+            viewModel.SpoolmanUrl = Preferences.Default.Get(KeySpoolmanUrl, string.Empty);
+            viewModel.BuyDate = DateTime.TryParse(Preferences.Default.Get(KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? resultDate : null;
+            viewModel.DefaultPrice = decimal.TryParse(Preferences.Default.Get(KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? result : null;
+            viewModel.DefaultLotNr = Preferences.Default.Get(KeyDefaultLotNr, string.Empty);
+            viewModel.DefaultLocation = Preferences.Default.Get(KeyDefaultLocation, string.Empty);
+            viewModel.UnknownFilamentEnabled = Preferences.Default.Get(UnknownFilamentEnabled, true);
+            viewModel.ShowLogsOnMainPage = Preferences.Default.Get(ShowLogsOnMainPage, true);
+            viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(ShowKeyboardOnSpoolRead, true);
+            viewModel.FullTagScanAndUpload = Preferences.Default.Get(FullTagScanAndUpload, false);
+            viewModel.OverrideLocationOnRead = spoolmanManager.OverrideLocationOnRead;
 
-        await ShowConsentPopupIfNeeded();
+            await ShowConsentPopupIfNeeded();
 
+            _ = LoadLocationsAsync();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error in OnAppearing");
+        }
+    }
+
+    private async Task LoadLocationsAsync()
+    {
         try
         {
             if (!EnsureApiHost()) return;
 
             var settingApi = apiHost!.Services.GetRequiredService<ISettingApi>();
 
-            var locationsRequest = settingApi.GetSettingSettingKeyGetOrDefaultAsync("locations").Result;
+            var locationsRequest = await settingApi.GetSettingSettingKeyGetOrDefaultAsync("locations");
 
             if (locationsRequest != null && locationsRequest.TryOk(out var locations))
             {
@@ -258,7 +270,14 @@ public partial class SettingsPage
 
     private async void BackToMain_OnClicked(object? sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync("//MainPage");
+        try
+        {
+            await Shell.Current.GoToAsync("//MainPage");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error in BackToMain_OnClicked");
+        }
     }
 
     protected override void OnNavigatingFrom(NavigatingFromEventArgs args)

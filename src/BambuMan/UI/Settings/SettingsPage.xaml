@@ -35,8 +35,8 @@
                     <validation:RegexValidation Message="Invalid url, must start with http:// or https://" Pattern="{x:Static constants:Constants.UrlValidation }" />
                 </material:TextField>
                 <Button Grid.Column="1" Text="Scan QR" Clicked="ImageButton_OnClicked"
-                        VerticalOptions="Start" Margin="6,7,0,0" Padding="10,4"
-                        HeightRequest="46" FontSize="14"
+                        VerticalOptions="Start" Margin="6,6,0,0" Padding="10,4"
+                        HeightRequest="48" FontSize="14"
                         BackgroundColor="Transparent"
                         TextColor="Crimson"
                         BorderColor="Crimson" BorderWidth="1"
@@ -77,8 +77,8 @@
             <Grid ColumnDefinitions="*,Auto">
                 <material:AutoCompleteTextField x:Name="TfLocation" Grid.Column="0" Title="Location:" Threshold="1" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" ItemsSource="{Binding ExistingLocations}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
                 <Button Grid.Column="1" Clicked="RefreshLocations_OnClicked"
-                        VerticalOptions="Start" Margin="6,7,0,0" Padding="10,4"
-                        HeightRequest="46"
+                        VerticalOptions="Start" Margin="6,6,0,0" Padding="10,4"
+                        HeightRequest="48"
                         BackgroundColor="Transparent"
                         BorderColor="Crimson" BorderWidth="1"
                         CornerRadius="6"

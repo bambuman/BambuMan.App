@@ -1,8 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.Logging;
 
 namespace BambuMan.UI.Settings
 {
-    public partial class SettingsPageViewModel : ObservableObject, IQueryAttributable
+    public partial class SettingsPageViewModel(ILogger<SettingsPageViewModel> logger) : ObservableObject, IQueryAttributable
     {
         [ObservableProperty] private string? spoolmanUrl;
         [ObservableProperty] private decimal? defaultPrice;
@@ -20,10 +21,16 @@ namespace BambuMan.UI.Settings
 
         public async void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            await Task.Delay(500);
-            SpoolmanUrl = query.TryGetValue("url", out var url)
-                ? url as string ?? Preferences.Default.Get("spoolman_url", string.Empty)
-                : Preferences.Default.Get("spoolman_url", string.Empty);
+            try
+            {
+                await Task.Delay(100);
+                SpoolmanUrl = (query.TryGetValue("url", out var url) ? url as string : null) ??
+                              Preferences.Default.Get("spoolman_url", string.Empty);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error in ApplyQueryAttributes");
+            }
         }
     }
 }

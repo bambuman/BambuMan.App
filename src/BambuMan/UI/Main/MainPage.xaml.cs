@@ -561,7 +561,7 @@ namespace BambuMan.UI.Main
 
             try
             {
-                var httpClient = new HttpClient();
+                using var httpClient = new HttpClient();
                 var request = await httpClient.GetAsync("https://api.github.com/repos/bambuman/BambuMan.App/releases/latest");
                 var content = await request.Content.ReadAsStringAsync();
 
