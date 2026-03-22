@@ -775,10 +775,12 @@ namespace BambuMan.Shared
 
                 if (color == "FFFFFF" && info.UniqueMaterialIdentifier.EqualsCI("FC00")) query = query.Where(x => x.Name.EqualsCI("White") || x.Name.EqualsCI("Weiß"));
                 if (color == "FFFFFF" && !info.UniqueMaterialIdentifier.EqualsCI("FC00")) query = query.Where(x => x.Name.EqualsCI("Transparent"));
+                if (info.Color == "68686580") query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pc_clearblack_1000_175_n")).AsQueryable();
             }
 
             if (info.MaterialVariantIdentifier.EqualsCI("A00-W1") || info.MaterialVariantIdentifier.EqualsCI("A00-W01")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_jadewhite_1000_175_n")).AsQueryable();
             if (info.MaterialVariantIdentifier.EqualsCI("S01-G1")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pa_supportforpa/pet_500_175_n")).AsQueryable();
+            if (info.MaterialVariantIdentifier.EqualsCI("S04-Y0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pva_clear_500_175_n")).AsQueryable();
 
             if (info.DetailedFilamentType.EqualsCI("PLA Basic") && color.EqualsCI("84754E")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_bronze_1000_175_n")).AsQueryable();
 
