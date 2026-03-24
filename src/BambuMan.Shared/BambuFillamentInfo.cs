@@ -247,7 +247,7 @@ public class BambuFillamentInfo : ITagInfo
 
         var index = 0;
 
-        for (var i = 3; i < blockData.Length; i += 4)
+        for (var i = 3; i < data.Length; i += 4)
         {
             data[i] = aKeys[index].Concat(data[i][6..10]).Concat(bKeys[index]).ToArray();
             index++;
@@ -255,6 +255,6 @@ public class BambuFillamentInfo : ITagInfo
 
         #endregion
 
-        ParseData(data, keys, fullRead: true);
+        ParseData(data, keys, fullRead: true, fillSerial: true);
     }
 }
