@@ -20,8 +20,22 @@ namespace BambuMan.UI.Scan
         {
             try
             {
-                await Methods.AskForRequiredPermissionAsync();
+                var granted = await Methods.AskForRequiredPermissionAsync();
                 base.OnAppearing();
+
+                if (!granted)
+                {
+                    logger.LogWarning("Camera permission not granted, navigating back");
+                    await Shell.Current.GoToAsync("..");
+                    return;
+                }
+
+                if (!MediaPicker.Default.IsCaptureSupported)
+                {
+                    logger.LogWarning("Camera capture not supported on this device, navigating back");
+                    await Shell.Current.GoToAsync("..");
+                    return;
+                }
 
                 Barcode.CameraEnabled = true;
             }
