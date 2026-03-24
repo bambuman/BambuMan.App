@@ -29,7 +29,7 @@ namespace BambuMan.UI.Main
         private readonly TagApiService tagApiService;
         private readonly IPopupService popupService;
         private Spool? currentSpool;
-        private BambuFillamentInfo? currentBambuFillamentInfo;
+        private BambuFilamentInfo? currentBambuFilamentInfo;
 
         public MainPage(MainPageViewModel viewModel, SpoolmanManager spoolmanManager, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IPopupService popupService)
         {
@@ -79,14 +79,14 @@ namespace BambuMan.UI.Main
             }
         }
 
-        private async void SpoolmanManagerOnSpoolFound(Spool spool, BambuFillamentInfo info)
+        private async void SpoolmanManagerOnSpoolFound(Spool spool, BambuFilamentInfo info)
         {
             try
             {
                 viewModel.InventorySpool(spool, info);
 
                 currentSpool = spool;
-                currentBambuFillamentInfo = info;
+                currentBambuFilamentInfo = info;
 
                 viewModel.ShowSpool(spool);
 
@@ -196,7 +196,7 @@ namespace BambuMan.UI.Main
 
                 viewModel.ShowSpoolEdit = false;
                 currentSpool = null;
-                currentBambuFillamentInfo = null;
+                currentBambuFilamentInfo = null;
 
                 viewModel.ShowLogsOnMainPage = Preferences.Default.Get(SettingsPage.ShowLogsOnMainPage, true);
                 viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
@@ -473,13 +473,13 @@ namespace BambuMan.UI.Main
                 var serialNumber = NfcUtils.ByteArrayToHexString(identifier, ":");
                 var title = !string.IsNullOrWhiteSpace(serialNumber) ? $"Tag [{serialNumber}]" : "Tag Info";
 
-                if (tagInfo is BambuFillamentInfo bambuFillamentInfo)
+                if (tagInfo is BambuFilamentInfo bambuFilamentInfo)
                 {
 #if DEBUG
-                    await viewModel.AddLog(LogLevel.Information, $"Nfc read time: {bambuFillamentInfo.ReadTime:0.###}ms");
+                    await viewModel.AddLog(LogLevel.Information, $"Nfc read time: {bambuFilamentInfo.ReadTime:0.###}ms");
 #endif
 
-                    var json = JsonConvert.SerializeObject(bambuFillamentInfo, Formatting.Indented);
+                    var json = JsonConvert.SerializeObject(bambuFilamentInfo, Formatting.Indented);
                     await viewModel.AddLog(LogLevel.Information, json);
 
                     var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
@@ -488,11 +488,11 @@ namespace BambuMan.UI.Main
                     var defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
 
                     await viewModel.ClearMessages();
-                    await spoolmanManager.InventorySpool(bambuFillamentInfo, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+                    await spoolmanManager.InventorySpool(bambuFilamentInfo, buyDate, defaultPrice, defaultLotNr, defaultLocation);
 
                     if (viewModel.FullTagScanAndUpload)
                     {
-                        var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(bambuFillamentInfo);
+                        var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(bambuFilamentInfo);
                         if (rateLimited)
                         {
                             await viewModel.ShowErrorMessage("Daily upload limit reached (1000 tags/day). Try again tomorrow.");
@@ -600,9 +600,9 @@ namespace BambuMan.UI.Main
 
                 foreach (var json in jsons)
                 {
-                    var bambuFillamentInfo = JsonConvert.DeserializeObject<BambuFillamentInfo>(json);
+                    var bambuFilamentInfo = JsonConvert.DeserializeObject<BambuFilamentInfo>(json);
 
-                    var jsonEnc = JsonConvert.SerializeObject(bambuFillamentInfo, Formatting.Indented);
+                    var jsonEnc = JsonConvert.SerializeObject(bambuFilamentInfo, Formatting.Indented);
                     await viewModel.AddLog(LogLevel.Information, jsonEnc);
 
                     var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
@@ -611,7 +611,7 @@ namespace BambuMan.UI.Main
                     var defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
 
                     await viewModel.ClearMessages();
-                    await spoolmanManager.InventorySpool(bambuFillamentInfo!, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+                    await spoolmanManager.InventorySpool(bambuFilamentInfo!, buyDate, defaultPrice, defaultLotNr, defaultLocation);
 
                     await Task.Delay(2000);
                 }
@@ -630,7 +630,7 @@ namespace BambuMan.UI.Main
 
                 viewModel.ShowSpoolEdit = false;
                 currentSpool = null;
-                currentBambuFillamentInfo = null;
+                currentBambuFilamentInfo = null;
             }
             catch (Exception ex)
             {
@@ -696,12 +696,12 @@ namespace BambuMan.UI.Main
                     viewModel.SpoolEmptyWeight.GetValueOrDefault(),
                     viewModel.SpoolInitialWeight.GetValueOrDefault(),
                     viewModel.SpoolWeight.GetValueOrDefault(),
-                    currentBambuFillamentInfo?.TrayUid,
-                    currentBambuFillamentInfo?.ProductionDateTime);
+                    currentBambuFilamentInfo?.TrayUid,
+                    currentBambuFilamentInfo?.ProductionDateTime);
 
                 viewModel.ShowSpoolEdit = false;
                 currentSpool = null;
-                currentBambuFillamentInfo = null;
+                currentBambuFilamentInfo = null;
             }
             catch (Exception ex)
             {

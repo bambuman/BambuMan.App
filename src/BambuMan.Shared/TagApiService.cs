@@ -25,14 +25,14 @@ namespace BambuMan.Shared
             this.httpClient.BaseAddress = new Uri(ApiUrl);
         }
 
-        public async Task<(bool Success, bool RateLimited)> UploadNfcTagAsync(BambuFillamentInfo bambuFillamentInfo)
+        public async Task<(bool Success, bool RateLimited)> UploadNfcTagAsync(BambuFilamentInfo bambuFilamentInfo)
         {
             try
             {
                 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                var signature = ComputeSignature(timestamp, bambuFillamentInfo);
+                var signature = ComputeSignature(timestamp, bambuFilamentInfo);
 
-                var upload = new NfcTagUpload(timestamp, signature, bambuFillamentInfo.SerialNumber, bambuFillamentInfo.Identifier, bambuFillamentInfo.BlockData ?? []);
+                var upload = new NfcTagUpload(timestamp, signature, bambuFilamentInfo.SerialNumber, bambuFilamentInfo.Identifier, bambuFilamentInfo.BlockData ?? []);
 
                 var response = await httpClient.PutAsJsonAsync("nfc", upload);
 
@@ -53,14 +53,14 @@ namespace BambuMan.Shared
             return (false, false);
         }
 
-        private string ComputeSignature(long timestamp, BambuFillamentInfo bambuFillamentInfo)
+        private string ComputeSignature(long timestamp, BambuFilamentInfo bambuFilamentInfo)
         {
             var message = new List<byte>();
-            message.AddRange(Encoding.ASCII.GetBytes(bambuFillamentInfo.SerialNumber));
+            message.AddRange(Encoding.ASCII.GetBytes(bambuFilamentInfo.SerialNumber));
             message.AddRange(BitConverter.GetBytes(timestamp));
-            message.AddRange(bambuFillamentInfo.Identifier);
-            message.AddRange(bambuFillamentInfo.BlockData ?? []);
-            message.AddRange(bambuFillamentInfo.Keys ?? []);
+            message.AddRange(bambuFilamentInfo.Identifier);
+            message.AddRange(bambuFilamentInfo.BlockData ?? []);
+            message.AddRange(bambuFilamentInfo.Keys ?? []);
 
             using var hmac = new System.Security.Cryptography.HMACSHA256(Encoding.UTF8.GetBytes(Stamp));
             var hash = hmac.ComputeHash(message.ToArray());

@@ -28,7 +28,7 @@ public partial class MainForm : Form
     private readonly SpoolmanManager? spoolmanManager;
     private readonly TagApiService? tagApiService;
     private Spool? currentSpool;
-    private BambuFillamentInfo? currentBambuFillamentInfo;
+    private BambuFilamentInfo? currentBambuFilamentInfo;
 
     public MainForm()
     {
@@ -92,7 +92,7 @@ public partial class MainForm : Form
 
     #region Events
 
-    private async void NfcReaderOnOnSpoolFound(BambuFillamentInfo info)
+    private async void NfcReaderOnOnSpoolFound(BambuFilamentInfo info)
     {
         try
         {
@@ -136,7 +136,7 @@ public partial class MainForm : Form
         AppendText(level, message);
     }
 
-    private void SpoolmanManagerOnSpoolFound(Spool spool, BambuFillamentInfo info)
+    private void SpoolmanManagerOnSpoolFound(Spool spool, BambuFilamentInfo info)
     {
         if (InvokeRequired)
         {
@@ -158,7 +158,7 @@ public partial class MainForm : Form
         nudSpoolWeight.Select(0, 40);
 
         currentSpool = spool;
-        currentBambuFillamentInfo = info;
+        currentBambuFilamentInfo = info;
     }
 
     private void SpoolmanManagerOnStatusChanged()
@@ -295,8 +295,8 @@ public partial class MainForm : Form
                 nudEmptyWeight.Value,
                 nudInitialWeight.Value,
                 nudSpoolWeight.Value,
-                currentBambuFillamentInfo?.TrayUid,
-                currentBambuFillamentInfo?.ProductionDateTime);
+                currentBambuFilamentInfo?.TrayUid,
+                currentBambuFilamentInfo?.ProductionDateTime);
 
             gbSpoolInfo.Enabled = false;
         }
@@ -386,7 +386,7 @@ public partial class MainForm : Form
         //                        blockNum++;
         //                    }
 
-        //                    var info = new BambuFillamentInfo();
+        //                    var info = new BambuFilamentInfo();
         //                    info.ParseData(blockData, true);
 
         //                    var infoJson = JsonConvert.SerializeObject(info, Formatting.None);
@@ -441,23 +441,23 @@ public partial class MainForm : Form
         //var json = "{\"SerialNumber\":\"F083E45E\",\"TagManufacturerData\":\"yQgEAAOy+FhzBc6Q\",\"MaterialVariantIdentifier\":\"A01-P3\",\"UniqueMaterialIdentifier\":\"FA01\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Matte\",\"Color\":\"E4BDD0FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":55,\"DryingTime\":8,\"BedTemperatureType\":1,\"BedTemperature\":35,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"iBPQB+gD6AOamRk/\",\"NozzleDiameter\":0.2,\"TrayUid\":\"CC634D2BAD72408CAA786C1D69B641C0\",\"SpoolWidth\":1149,\"ProductionDateTime\":\"2023-05-03T23:03:00\",\"ProductionDateTimeShort\":\"A2305030053\",\"FilamentLength\":315,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A01-P3-1.75-1000\"}";
         var json = "{\"SerialNumber\":\"859E551C\",\"TagManufacturerData\":\"UggEAAPrxFsqKPqQ\",\"MaterialVariantIdentifier\":\"S01-G1\",\"UniqueMaterialIdentifier\":\"FS01\",\"FilamentType\":\"Support\",\"DetailedFilamentType\":\"Support G\",\"Color\":\"C0DF16FF\",\"SpoolWeight\":500,\"FilamentDiameter\":1.75,\"DryingTemperature\":80,\"DryingTime\":12,\"BedTemperatureType\":2,\"BedTemperature\":95,\"MaxTemperatureForHotend\":300,\"MinTemperatureForHotend\":280,\"XCamInfo\":\"EA4QDugD6AMAAIA/\",\"NozzleDiameter\":0.2,\"TrayUid\":\"10C859722FF844D7A4E19217C312A833\",\"SpoolWidth\":1149,\"ProductionDateTime\":\"2022-08-06T11:42:00\",\"ProductionDateTimeShort\":\"A2208050084\",\"FilamentLength\":160,\"FormatIdentifier\":0,\"ColorCount\":0,\"SecondColor\":\"00000000\",\"SkuStart\":\"S01-G1-1.75-500\"}";
 
-        var bambuFillamentInfo = JsonConvert.DeserializeObject<BambuFillamentInfo>(json);
+        var bambuFilamentInfo = JsonConvert.DeserializeObject<BambuFilamentInfo>(json);
 
-        json = JsonConvert.SerializeObject(bambuFillamentInfo, Formatting.Indented);
+        json = JsonConvert.SerializeObject(bambuFilamentInfo, Formatting.Indented);
         AppendText(LogLevel.Information, json);
 
-        if (spoolmanManager != null) await spoolmanManager.InventorySpool(bambuFillamentInfo!, DateTime.Today, 12, string.Empty, string.Empty);
+        if (spoolmanManager != null) await spoolmanManager.InventorySpool(bambuFilamentInfo!, DateTime.Today, 12, string.Empty, string.Empty);
 
         //await Task.Delay(2000);
 
         //json = "{\"SerialNumber\":\"0509F50D\",\"TagManufacturerData\":\"9AgEAASm165pzJOQ\",\"MaterialVariantIdentifier\":\"A16-R0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"3F231CFF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"26E72842404F41F2A227FC7276299DFA\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-24T14:32:00\",\"ProductionDateTimeShort\":\"25_03_24_14\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-R0-1.75-1000\"}";
 
-        //bambuFillamentInfo = JsonConvert.DeserializeObject<BambuFillamentInfo>(json);
+        //bambuFilamentInfo = JsonConvert.DeserializeObject<BambuFilamentInfo>(json);
 
-        //json = JsonConvert.SerializeObject(bambuFillamentInfo, Formatting.Indented);
+        //json = JsonConvert.SerializeObject(bambuFilamentInfo, Formatting.Indented);
         //AppendText(LogLevel.Information, json);
 
-        //if (spoolmanManager != null) await spoolmanManager.InventorySpool(bambuFillamentInfo!, DateTime.Today, 12, string.Empty, string.Empty);
+        //if (spoolmanManager != null) await spoolmanManager.InventorySpool(bambuFilamentInfo!, DateTime.Today, 12, string.Empty, string.Empty);
     }
 
     [SuppressMessage("ReSharper", "StringLiteralTypo")]
@@ -474,14 +474,14 @@ public partial class MainForm : Form
                 if (data.Length != 1024) continue;
 
                 var uid = data[..4];
-                var bambuFillamentInfo = new BambuFillamentInfo(uid);
-                bambuFillamentInfo.ParseData(data);
+                var bambuFilamentInfo = new BambuFilamentInfo(uid);
+                bambuFilamentInfo.ParseData(data);
 
                 if (spoolmanManager != null)
                 {
-                    var ok = await spoolmanManager.InventorySpool(bambuFillamentInfo, DateTime.Today, 12, string.Empty, string.Empty);
+                    var ok = await spoolmanManager.InventorySpool(bambuFilamentInfo, DateTime.Today, 12, string.Empty, string.Empty);
 
-                    if (ok && fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null) await tagApiService.UploadNfcTagAsync(bambuFillamentInfo);
+                    if (ok && fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null) await tagApiService.UploadNfcTagAsync(bambuFilamentInfo);
 
                     if (!ok) File.Copy(file.FullName, Path.Combine("C:\\_Repos\\_bambuman\\non_match_nfc", $"{DateTime.Now:yyyy-MM-dd_HHmmss}_{file.Name}"));
                     //if (ok) File.Delete(file.FullName);

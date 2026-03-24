@@ -11,7 +11,7 @@ namespace BambuMan
 
         public bool HasItems => Inventory.Count > 0;
 
-        public void InventorySpool(Spool spool, BambuFillamentInfo info)
+        public void InventorySpool(Spool spool, BambuFilamentInfo info)
         {
             if (info.TrayUid == null) return;
 
@@ -19,7 +19,7 @@ namespace BambuMan
             else MainThread.BeginInvokeOnMainThread(() => InventorySpoolCore(spool, info));
         }
 
-        private void InventorySpoolCore(Spool spool, BambuFillamentInfo info)
+        private void InventorySpoolCore(Spool spool, BambuFilamentInfo info)
         {
             if (info.TrayUid == null) return;
 
