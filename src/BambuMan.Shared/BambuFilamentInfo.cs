@@ -5,11 +5,11 @@ using System.Text;
 
 namespace BambuMan.Shared;
 
-public class BambuFillamentInfo : ITagInfo
+public class BambuFilamentInfo : ITagInfo
 {
-    public BambuFillamentInfo() { }
+    public BambuFilamentInfo() { }
 
-    public BambuFillamentInfo(byte[] identifier)
+    public BambuFilamentInfo(byte[] identifier)
     {
         Identifier = identifier;
     }

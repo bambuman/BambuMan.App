@@ -140,7 +140,7 @@ namespace BambuMan.UI.Main
                 await ShowErrorMessage("NFC is not enabled. Check if you're phone supports nfc.");
         }
 
-        public void InventorySpool(Spool spool, BambuFillamentInfo info)
+        public void InventorySpool(Spool spool, BambuFilamentInfo info)
         {
             inventoryService.InventorySpool(spool, info);
             HasInventoryItems = inventoryService.HasItems;

@@ -445,7 +445,7 @@ namespace BambuMan
 
                     var uid = BitConverter.ToString(uidData).Replace("-", "");
 
-                    var bambuTagInfo = new BambuFillamentInfo(uidData);
+                    var bambuTagInfo = new BambuFilamentInfo(uidData);
 
                     Debug.WriteLine($"NFC UID: {uid}");
 

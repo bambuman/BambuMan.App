@@ -20,7 +20,7 @@ namespace BambuMan.Shared
         public delegate void LocationsLoadedEventHandler();
         public delegate void ShowMessageEventHandler(bool isError, string message);
         public delegate void LogMessageEventHandler(LogLevel level, string message);
-        public delegate void SpoolFoundEventHandler(Spool spool, BambuFillamentInfo info);
+        public delegate void SpoolFoundEventHandler(Spool spool, BambuFilamentInfo info);
         public delegate void PlayErrorToneEventHandler();
 
         public event StatusChangedEventHandler? OnStatusChanged;
@@ -487,7 +487,7 @@ namespace BambuMan.Shared
             OnLocationsLoaded?.Invoke();
         }
 
-        public async Task<bool> InventorySpool(BambuFillamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
+        public async Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
             if (apiHost == null) return false;
 
@@ -546,7 +546,7 @@ namespace BambuMan.Shared
             }
         }
 
-        public async Task<ExternalFilament?> FindExternalFilament(BambuFillamentInfo info)
+        public async Task<ExternalFilament?> FindExternalFilament(BambuFilamentInfo info)
         {
             var result = await FindExternalFilament(BambuLabExternalFilaments, info);
 
@@ -575,7 +575,7 @@ namespace BambuMan.Shared
             return result.First();
         }
 
-        public static Task<List<ExternalFilament>> FindExternalFilament(List<ExternalFilament> externalFilaments, BambuFillamentInfo info)
+        public static Task<List<ExternalFilament>> FindExternalFilament(List<ExternalFilament> externalFilaments, BambuFilamentInfo info)
         {
             var transparentFilaments = new[]
             {
@@ -739,7 +739,7 @@ namespace BambuMan.Shared
             return Task.FromResult(result);
         }
 
-        private async Task<Filament?> AddOrUpdateFilament(ExternalFilament externalFilament, decimal? price, BambuFillamentInfo info)
+        private async Task<Filament?> AddOrUpdateFilament(ExternalFilament externalFilament, decimal? price, BambuFilamentInfo info)
         {
             if (apiHost == null) return null;
 
@@ -794,7 +794,7 @@ namespace BambuMan.Shared
             }
         }
 
-        private async Task AddSpool(BambuFillamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location, Filament filament, ISpoolApi spoolApi)
+        private async Task AddSpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location, Filament filament, ISpoolApi spoolApi)
         {
             try
             {
