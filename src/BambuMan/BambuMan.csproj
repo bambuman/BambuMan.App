@@ -39,8 +39,8 @@
 		<Product>BambuMan</Product>
 		<PackageId>BambuMan</PackageId>
 
-		<!-- Store native libs uncompressed so they load correctly from AAB/split APKs -->
-		<AndroidStoreUncompressedFileExtensions>.so</AndroidStoreUncompressedFileExtensions>
+		<!-- Ensure assemblies and native libs load correctly from AAB/split APKs -->
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 	</PropertyGroup>
 	
 	<ItemGroup>
