@@ -172,7 +172,9 @@ namespace BambuMan.UI.Main
                 await SetupEventSubscriptionsAsync();
                 await InitializeSpoolmanAsync();
                 await SetupNfcAsync();
+#if !GOOGLE_PLAY
                 await CheckVersion().ConfigureAwait(false);
+#endif
             }
             catch (Exception e)
             {
