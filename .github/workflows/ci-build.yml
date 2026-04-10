@@ -54,9 +54,9 @@ jobs:
           $keystorealias = "${{ secrets.ANDROID_KEYSTOREALIAS }}"
           $keystorestorepass = "${{ secrets.ANDROID_KEYSTOREPASSWORD }}"
 
-          Set-Content "${{ github.workspace }}/bambuman.keypass" -Value $keystorekeypass -AsByteStream
-          Set-Content "${{ github.workspace }}/bambuman.lias" -Value $keystorealias -AsByteStream
-          Set-Content "${{ github.workspace }}/bambuman.storepass" -Value $keystorestorepass -AsByteStream
+          Set-Content "${{ github.workspace }}/bambuman.keypass" -Value $keystorekeypass
+          Set-Content "${{ github.workspace }}/bambuman.lias" -Value $keystorealias
+          Set-Content "${{ github.workspace }}/bambuman.storepass" -Value $keystorestorepass
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v5
