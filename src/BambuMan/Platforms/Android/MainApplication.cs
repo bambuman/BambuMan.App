@@ -35,7 +35,7 @@ namespace BambuMan
         public static void SetupSerilog()
         {
             var logConfig = new LoggerConfiguration();
-            logConfig.WriteTo.AndroidLog();
+            logConfig.WriteTo.Debug();
 
             var deviceId = Settings.Secure.GetString(Context.ContentResolver, Settings.Secure.AndroidId);
             var appInfo = PackageUtils.GetPackageInfo(Context.PackageName);
