@@ -38,6 +38,9 @@
 		<Authors>Noismaster</Authors>
 		<Product>BambuMan</Product>
 		<PackageId>BambuMan</PackageId>
+
+		<!-- Store native libs uncompressed so they load correctly from AAB/split APKs -->
+		<AndroidStoreUncompressedFileExtensions>.so</AndroidStoreUncompressedFileExtensions>
 	</PropertyGroup>
 	
 	<ItemGroup>
