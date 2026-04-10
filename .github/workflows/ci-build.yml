@@ -60,12 +60,9 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore src/BambuMan/BambuMan.csproj
         
-      - name: Build MAUI Android version
-        run: echo "Version ${{ env.GITHUB_VERSION }}"
-
       - name: Build MAUI Android APK
         run: dotnet publish src/BambuMan/BambuMan.csproj -c Release -p:DefineConstants="BUILD_TYPE_LIVE" -p:GITHUB_CI=1 -p:GITHUB_VERSION_CODE="${{ env.GITHUB_VERSION_CODE }}" -p:GITHUB_VERSION="${{ env.GITHUB_VERSION }}" -p:AndroidKeyStore=True -p:AndroidSigningKeyStore="${{ github.workspace }}/bambuman.keystore" -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYPASSWORD }} -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEYSTOREALIAS }} -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTOREPASSWORD }} -f net10.0-android --no-restore
-        
+
       - name: Upload Android APK
         uses: actions/upload-artifact@v6
         with:
@@ -73,8 +70,14 @@ jobs:
           path: src/BambuMan/bin/Release/net10.0-android/*Signed.apk
           retention-days: 2
 
+      - name: Clean before AAB build
+        run: dotnet clean src/BambuMan/BambuMan.csproj -c Release -f net10.0-android
+
+      - name: Restore for AAB build
+        run: dotnet restore src/BambuMan/BambuMan.csproj
+
       - name: Build MAUI Android AAB
-        run: dotnet publish src/BambuMan/BambuMan.csproj -c Release -p:DefineConstants="BUILD_TYPE_LIVE" -p:GITHUB_CI=1 -p:GITHUB_VERSION_CODE="${{ env.GITHUB_VERSION_CODE }}" -p:GITHUB_VERSION="${{ env.GITHUB_VERSION }}" -p:AndroidPackageFormat=aab -p:AndroidKeyStore=True -p:AndroidSigningKeyStore="${{ github.workspace }}/bambuman.keystore" -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYPASSWORD }} -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEYSTOREALIAS }} -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTOREPASSWORD }} -f net10.0-android --no-restore
+        run: dotnet publish src/BambuMan/BambuMan.csproj -c Release -p:DefineConstants="BUILD_TYPE_LIVE" -p:GITHUB_CI=1 -p:GITHUB_VERSION_CODE="${{ env.GITHUB_VERSION_CODE }}" -p:GITHUB_VERSION="${{ env.GITHUB_VERSION }}" -p:AndroidPackageFormat=aab -p:AndroidKeyStore=True -p:AndroidSigningKeyStore="${{ github.workspace }}/bambuman.keystore" -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYPASSWORD }} -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEYSTOREALIAS }} -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTOREPASSWORD }} -f net10.0-android
 
       - name: Upload Android AAB
         uses: actions/upload-artifact@v6

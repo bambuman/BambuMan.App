@@ -38,9 +38,10 @@
 		<Authors>Noismaster</Authors>
 		<Product>BambuMan</Product>
 		<PackageId>BambuMan</PackageId>
+	</PropertyGroup>
 
-		<!-- Ensure assemblies and native libs load correctly from AAB/split APKs -->
-		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
+	  <DebugSymbols>False</DebugSymbols>
 	</PropertyGroup>
 	
 	<ItemGroup>
