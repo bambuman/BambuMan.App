@@ -49,15 +49,6 @@ jobs:
           $keystorebase64 = "${{ secrets.ANDROID_KEYSTORE }}"
           $keystore = [System.Convert]::FromBase64String($keystorebase64)
           Set-Content "${{ github.workspace }}/bambuman.keystore" -Value $keystore -AsByteStream
-
-          $keystorekeypass = "${{ secrets.ANDROID_KEYPASSWORD }}"
-          $keystorealias = "${{ secrets.ANDROID_KEYSTOREALIAS }}"
-          $keystorestorepass = "${{ secrets.ANDROID_KEYSTOREPASSWORD }}"
-
-          Set-Content "${{ github.workspace }}/bambuman.keypass" -Value $keystorekeypass
-          Set-Content "${{ github.workspace }}/bambuman.lias" -Value $keystorealias
-          Set-Content "${{ github.workspace }}/bambuman.storepass" -Value $keystorestorepass
-
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v5
         with:
