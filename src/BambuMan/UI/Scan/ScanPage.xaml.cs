@@ -8,6 +8,7 @@ namespace BambuMan.UI.Scan
     public partial class ScanPage
     {
         private readonly ILogger<ScanPage> logger;
+        private bool isPageVisible;
 
         public ScanPage(ILogger<ScanPage> logger)
         {
@@ -20,8 +21,16 @@ namespace BambuMan.UI.Scan
         {
             try
             {
+                isPageVisible = true;
+
                 var granted = await Methods.AskForRequiredPermissionAsync();
                 base.OnAppearing();
+
+                if (!isPageVisible)
+                {
+                    logger.LogWarning("Page dismissed during permission request, skipping camera start");
+                    return;
+                }
 
                 if (!granted)
                 {
@@ -37,6 +46,15 @@ namespace BambuMan.UI.Scan
                     return;
                 }
 
+                // Small delay to let CameraX InitializationFuture complete before binding to lifecycle
+                await Task.Delay(100);
+
+                if (!isPageVisible)
+                {
+                    logger.LogWarning("Page dismissed during camera initialization, skipping camera start");
+                    return;
+                }
+
                 Barcode.CameraEnabled = true;
             }
             catch (Exception ex)
@@ -47,8 +65,16 @@ namespace BambuMan.UI.Scan
 
         protected override void OnDisappearing()
         {
-            base.OnDisappearing();
-            Barcode.CameraEnabled = false;
+            try
+            {
+                isPageVisible = false;
+                base.OnDisappearing();
+                Barcode.CameraEnabled = false;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error in OnDisappearing");
+            }
         }
 
         private async void CameraView_OnDetectionFinished(object sender, OnDetectionFinishedEventArg e)
