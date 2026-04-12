@@ -46,13 +46,13 @@
 	
 	<ItemGroup>
 		<PackageReference Include="BarcodeScanning.Native.Maui" Version="3.0.3" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="14.0.1" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="14.1.0" />
 		<PackageReference Include="CommunityToolkit.Maui.Markup" Version="7.0.1" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.50" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.51" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-		<PackageReference Include="Sentry.Maui" Version="6.2.0" />
-		<PackageReference Include="Sentry.Serilog" Version="6.2.0" />
+		<PackageReference Include="Sentry.Maui" Version="6.3.1" />
+		<PackageReference Include="Sentry.Serilog" Version="6.3.1" />
 		<PackageReference Include="Serilog" Version="4.3.1" />
 		<PackageReference Include="Serilog.Enrichers.GlobalLogContext" Version="3.0.0" />
 		<PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
@@ -106,7 +106,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.50" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.5" />
 		<PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.15.0" />
 		<PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.15.0" />
