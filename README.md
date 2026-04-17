@@ -6,6 +6,14 @@ The app tries to match the tag info with the existing [SpoolmanDB](https://githu
 
 If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/maziggy/bambuddy)) or [OpenSpoolMan](https://github.com/drndos/openspoolman) to track your filament usage, it will be able to automatically match the spool inserted into the `AMS`, no additional action is necessary.
 
+## Download
+
+| Google Play | F-Droid |
+|:---:|:---:|
+| [<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80" />](https://play.google.com/store/apps/details?id=com.noismaster.bambuman) | [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80" />](https://bambuman.github.io/repo) |
+
+> **Note:** Google Play updates may arrive 1–7 days after the GitHub/F-Droid release due to Google's review process.
+
 ## Features
 
  - **NFC tag reading** on Android (built-in NFC) and Windows desktop (PCSC compatible reader)
@@ -32,7 +40,7 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
 ## How to setup
 
 ### Android
- 1. Install the apk, either manually or use F-Droid.
+ 1. Install from [Google Play](https://play.google.com/store/apps/details?id=com.noismaster.bambuman), [F-Droid](https://bambuman.github.io/repo), or download the APK manually from GitHub releases.
  2. Go to settings and scan the Spoolman URL with QR code or enter it manually.
 	 - BambuMan supports basic authentication, URL format `http[s]://username:password@host[:port]/`
 	 - If the password contains special characters (like `@` `:`) it must be URL encoded
@@ -80,7 +88,6 @@ To participate, enable **Research Data Contribution** in the app settings. Uploa
 
  - Make extra fields optional
  - More intuitive UI
- - Google Play Store availability
 
 ## Big thanks to
 - [Bambu-Research-Group](https://github.com/Bambu-Research-Group) for reverse engineering the NFC tag specification
