@@ -80,7 +80,7 @@ To participate, enable **Research Data Contribution** in the app settings. Uploa
 
 ## Tested with
 
-  - Spoolman v0.22.1, v0.23.0, v0.23.1
+  - [Spoolman](https://github.com/Donkie/Spoolman) v0.22.1, v0.23.0, v0.23.1
   - [bambuddy](https://bambuddy.cool) v0.1.6+ (recommended)
   - [OpenSpoolMan](https://github.com/drndos/openspoolman) v0.1.8
 
