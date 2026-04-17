@@ -511,6 +511,18 @@ namespace BambuMan.Shared
             }
         }
 
+        public async Task RefreshLocationsAsync()
+        {
+            try
+            {
+                await LoadLocations();
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await Log(LogLevel.Warning, $"RefreshLocations failed: {ex.Message}");
+            }
+        }
+
         private async Task LoadLocations()
         {
             if (apiHost == null) return;

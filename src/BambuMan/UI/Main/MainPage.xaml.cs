@@ -203,6 +203,7 @@ namespace BambuMan.UI.Main
                 viewModel.ShowLogsOnMainPage = Preferences.Default.Get(SettingsPage.ShowLogsOnMainPage, true);
                 viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
                 viewModel.OverrideLocationOnRead = spoolmanManager.OverrideLocationOnRead;
+                viewModel.ExistingLocations = spoolmanManager.ExistingLocations ?? [];
 
                 var newUrl = Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
                 var urlChanged = newUrl != spoolmanManager.ApiUrl;
@@ -231,6 +232,7 @@ namespace BambuMan.UI.Main
             try
             {
                 await spoolmanManager.Init();
+                _ = spoolmanManager.RefreshLocationsAsync();
             }
             catch (Exception e)
             {
