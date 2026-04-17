@@ -20,10 +20,10 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
  - **Automatic filament matching** with SpoolmanDB — covers most Bambu Lab filaments
  - **Inventory tracking** — groups scanned spools by material with AMS tray UID tracking
  - **Research Data Contribution** — opt-in NFC tag data upload to the [bambuman.ee](https://bambuman.ee) tag library
- - **QR code scanner** for quick Spoolman URL setup
+ - **QR code scanner** for quick [Spoolman](https://github.com/Donkie/Spoolman) URL setup
  - **Configurable import defaults** — buy date, price, lot number, location
  - **Log viewer** with email export for troubleshooting
- - **Auto-setup** — creates required extra fields and default vendor in Spoolman
+ - **Auto-setup** — creates required extra fields and default vendor in [Spoolman](https://github.com/Donkie/Spoolman)
 
 ## The app is available in two versions
 
@@ -41,20 +41,20 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
 
 ### Android
  1. Install from [Google Play](https://play.google.com/store/apps/details?id=com.noismaster.bambuman), [F-Droid](https://bambuman.github.io/repo), or download the APK manually from GitHub releases.
- 2. Go to settings and scan the Spoolman URL with QR code or enter it manually.
+ 2. Go to settings and scan the [Spoolman](https://github.com/Donkie/Spoolman) URL with QR code or enter it manually.
 	 - BambuMan supports basic authentication, URL format `http[s]://username:password@host[:port]/`
 	 - If the password contains special characters (like `@` `:`) it must be URL encoded
- 3. Go back to main window. BambuMan will connect to Spoolman and create the necessary extra fields and default vendor.
- 4. Once all three status indicators `Settings`, `Spoolman` and `NFC` are green, you can start reading `NFC` tags.
+ 3. Go back to main window. BambuMan will connect to [Spoolman](https://github.com/Donkie/Spoolman) and create the necessary extra fields and default vendor.
+ 4. Once all three status indicators `Settings`, [`Spoolman`](https://github.com/Donkie/Spoolman) and `NFC` are green, you can start reading `NFC` tags.
 
 ### Windows
 
  1. You will need [.NET Desktop Runtime 10](https://dotnet.microsoft.com/download/dotnet/10.0) installed
  2. Download the released `BambuMan.exe` or compile from source
- 3. Paste the Spoolman URL and click `Change Url` button
+ 3. Paste the [Spoolman](https://github.com/Donkie/Spoolman) URL and click `Change Url` button
 	 - BambuMan supports basic authentication, URL format `http[s]://username:password@host[:port]/`
 	 - If the password contains special characters (like `@` `:`) it must be URL encoded
- 4. The app connects to Spoolman and creates the necessary extra fields and default vendor.
+ 4. The app connects to [Spoolman](https://github.com/Donkie/Spoolman) and creates the necessary extra fields and default vendor.
  5. You can start reading `NFC` tags.
 
 ## F-Droid repository
@@ -80,7 +80,7 @@ To participate, enable **Research Data Contribution** in the app settings. Uploa
 
 ## Tested with
 
-  - Spoolman v0.22.1, v0.23.0, v0.23.1
+  - [Spoolman](https://github.com/Donkie/Spoolman) v0.22.1, v0.23.0, v0.23.1
   - [bambuddy](https://bambuddy.cool) v0.1.6+ (recommended)
   - [OpenSpoolMan](https://github.com/drndos/openspoolman) v0.1.8
 
