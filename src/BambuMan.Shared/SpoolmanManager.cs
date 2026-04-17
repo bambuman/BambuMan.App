@@ -793,6 +793,7 @@ namespace BambuMan.Shared
             if (info.MaterialVariantIdentifier.EqualsCI("A00-W1") || info.MaterialVariantIdentifier.EqualsCI("A00-W01")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_jadewhite_1000_175_n")).AsQueryable();
             if (info.MaterialVariantIdentifier.EqualsCI("S01-G1")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pa_supportforpa/pet_500_175_n")).AsQueryable();
             if (info.MaterialVariantIdentifier.EqualsCI("S04-Y0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pva_clear_500_175_n")).AsQueryable();
+            if (info.MaterialVariantIdentifier.EqualsCI("A00-Y00")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_yellow_1000_175_n")).AsQueryable();
 
             if (info.DetailedFilamentType.EqualsCI("PLA Basic") && color.EqualsCI("84754E")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_bronze_1000_175_n")).AsQueryable();
 
