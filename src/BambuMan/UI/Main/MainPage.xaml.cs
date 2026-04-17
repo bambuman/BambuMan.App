@@ -3,9 +3,7 @@ using BambuMan.Shared;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Nfc;
-using BambuMan.UI.Consent;
 using BambuMan.UI.Settings;
-using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Core.Platform;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -27,11 +25,10 @@ namespace BambuMan.UI.Main
         private readonly IToneGenerator? toneGenerator;
         private readonly IInvokeIndent invokeIndent;
         private readonly TagApiService tagApiService;
-        private readonly IPopupService popupService;
         private Spool? currentSpool;
         private BambuFilamentInfo? currentBambuFilamentInfo;
 
-        public MainPage(MainPageViewModel viewModel, SpoolmanManager spoolmanManager, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IPopupService popupService)
+        public MainPage(MainPageViewModel viewModel, SpoolmanManager spoolmanManager, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService)
         {
             InitializeComponent();
 
@@ -41,7 +38,6 @@ namespace BambuMan.UI.Main
             this.toneGenerator = toneGenerator;
             this.invokeIndent = invokeIndent;
             this.tagApiService = tagApiService;
-            this.popupService = popupService;
             this.tagApiService.LogAction = async void (level, message) =>
             {
                 try
@@ -194,8 +190,6 @@ namespace BambuMan.UI.Main
                 spoolmanManager.OnLocationsLoaded += SpoolmanManagerOnLocationsLoaded;
                 viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
-                await ShowConsentPopupIfNeeded();
-
                 viewModel.ShowSpoolEdit = false;
                 currentSpool = null;
                 currentBambuFilamentInfo = null;
@@ -285,29 +279,6 @@ namespace BambuMan.UI.Main
         }
 
         #region Helpers
-
-        private async Task ShowConsentPopupIfNeeded()
-        {
-            var consentShown = Preferences.Default.Get(SettingsPage.TagUploadConsentShown, false);
-            if (consentShown) return;
-
-            // Short delay to ensure the activity is fully resumed before showing a popup,
-            // preventing IllegalStateException from fragment transactions during lifecycle transitions.
-            await Task.Delay(100);
-
-            var popupResult = await popupService.ShowPopupAsync<TagUploadConsentPopup, bool>(Shell.Current, new PopupOptions
-            {
-                CanBeDismissedByTappingOutsideOfPopup = false
-            });
-
-            Preferences.Default.Set(SettingsPage.TagUploadConsentShown, true);
-
-            if (popupResult is { WasDismissedByTappingOutsideOfPopup: false })
-            {
-                Preferences.Default.Set(SettingsPage.FullTagScanAndUpload, popupResult.Result);
-                viewModel.FullTagScanAndUpload = popupResult.Result;
-            }
-        }
 
         /// <summary>
         /// Write a debug message in the debug console
@@ -565,6 +536,7 @@ namespace BambuMan.UI.Main
 
             try
             {
+                // ReSharper disable once ShortLivedHttpClient
                 using var httpClient = new HttpClient();
                 var request = await httpClient.GetAsync("https://api.github.com/repos/bambuman/BambuMan.App/releases/latest");
                 var content = await request.Content.ReadAsStringAsync();

@@ -31,6 +31,7 @@ public partial class SettingsPage
     private readonly IPopupService popupService;
     private readonly SpoolmanManager spoolmanManager;
 
+    private bool consentPopupShowing;
     private IHost? apiHost;
     private string? apiHostUrl;
 
@@ -143,7 +144,9 @@ public partial class SettingsPage
     private async Task ShowConsentPopupIfNeeded()
     {
         var consentShown = Preferences.Default.Get(TagUploadConsentShown, false);
-        if (consentShown) return;
+        if (consentShown || consentPopupShowing) return;
+
+        consentPopupShowing = true;
 
         // Short delay to ensure the activity is fully resumed before showing a popup,
         // preventing IllegalStateException from fragment transactions during lifecycle transitions.
@@ -161,12 +164,18 @@ public partial class SettingsPage
             Preferences.Default.Set(FullTagScanAndUpload, popupResult.Result);
             viewModel.FullTagScanAndUpload = popupResult.Result;
         }
+
+        consentPopupShowing = false;
     }
 
     private async void InfoButton_OnClicked(object? sender, EventArgs e)
     {
+        if (consentPopupShowing) return;
+
         try
         {
+            consentPopupShowing = true;
+
             var popupResult = await popupService.ShowPopupAsync<TagUploadConsentPopup, bool>(Shell.Current, new PopupOptions
             {
                 CanBeDismissedByTappingOutsideOfPopup = true
@@ -181,6 +190,10 @@ public partial class SettingsPage
         catch (Exception ex)
         {
             logger.LogError(ex, "Error showing consent popup");
+        }
+        finally
+        {
+            consentPopupShowing = false;
         }
     }
 
