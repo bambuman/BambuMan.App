@@ -1518,6 +1518,28 @@
     "glow": false
   },
   {
+    "id": "bambulab_petg_basicreflexblue_1000_175_n",
+    "manufacturer": "Bambu Lab",
+    "name": "Basic Reflex Blue",
+    "material": "PETG",
+    "density": 1.28,
+    "weight": 1000,
+    "spool_weight": 250,
+    "spool_type": null,
+    "diameter": 1.75,
+    "color_hex": "001489",
+    "color_hexes": null,
+    "extruder_temp": 245,
+    "extruder_temp_range": null,
+    "bed_temp": 70,
+    "bed_temp_range": null,
+    "finish": null,
+    "multi_color_direction": null,
+    "pattern": null,
+    "translucent": false,
+    "glow": false
+  },
+  {
     "id": "bambulab_petg_basicwhite_1000_175_n",
     "manufacturer": "Bambu Lab",
     "name": "Basic White",
