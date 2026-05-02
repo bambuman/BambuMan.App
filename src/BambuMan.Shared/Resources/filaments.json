@@ -3363,6 +3363,28 @@
     "glow": false
   },
   {
+    "id": "bambulab_pla_green_1000_175_n",
+    "manufacturer": "Bambu Lab",
+    "name": "Green",
+    "material": "PLA",
+    "density": 1.24,
+    "weight": 1000,
+    "spool_weight": 250,
+    "spool_type": null,
+    "diameter": 1.75,
+    "color_hex": "005F61",
+    "color_hexes": null,
+    "extruder_temp": 220,
+    "extruder_temp_range": null,
+    "bed_temp": 60,
+    "bed_temp_range": null,
+    "finish": null,
+    "multi_color_direction": null,
+    "pattern": null,
+    "translucent": false,
+    "glow": false
+  },
+  {
     "id": "bambulab_pla_greengalaxy_1000_175_n",
     "manufacturer": "Bambu Lab",
     "name": "Green Galaxy",
