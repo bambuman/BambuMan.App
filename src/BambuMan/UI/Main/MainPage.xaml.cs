@@ -8,6 +8,7 @@ using CommunityToolkit.Maui.Core.Platform;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Sentry;
 using SpoolMan.Api.Model;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -437,8 +438,11 @@ namespace BambuMan.UI.Main
         {
             try
             {
+                SentrySdk.Metrics.EmitCounter("nfc.tag.read", 1);
+
                 if (tagInfo == null)
                 {
+                    SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
                     await ShowAlert("No tag found");
                     return;
                 }
@@ -479,11 +483,13 @@ namespace BambuMan.UI.Main
 
                 if (!tagInfo.IsSupported)
                 {
+                    SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
                     await viewModel.ShowErrorMessage("Error reading tag, please try again!");
                     if (toneGenerator != null) await toneGenerator.PlayAlarmTone();
                 }
                 else if (tagInfo.IsEmpty)
                 {
+                    SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
                     await viewModel.ShowErrorMessage("Empty tag");
                 }
                 else if (tagInfo.Records is { Length: > 0 })
@@ -494,12 +500,13 @@ namespace BambuMan.UI.Main
             }
             catch (Exception e)
             {
+                SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
                 logger.LogError(e, "Error in Current_OnMessageReceived");
             }
         }
 
         /// <summary>
-        /// Event raised when user cancelled NFC session on iOS 
+        /// Event raised when user cancelled NFC session on iOS
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
