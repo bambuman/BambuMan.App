@@ -67,7 +67,7 @@ If you have F-Droid installed on your phone, you can install BambuMan from our F
 
 Contributed NFC tag data is publicly available at [bambuman.ee](https://bambuman.ee). You can browse the library or download the full archive.
 
-To participate, enable **Research Data Contribution** in the app settings. Uploaded data is published under the MIT license.
+To participate, enable **Research Data Contribution** in the app settings. Uploaded data is publicly available without restrictions.
 
 ## Known limitations
 

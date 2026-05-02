@@ -95,7 +95,7 @@
                     </Image.Source>
                 </Image>
                 <Label Grid.Column="1"
-                       Text="The uploaded data will be PUBLIC and published under MIT license."
+                       Text="The uploaded data will be PUBLIC and freely available without restrictions."
                        FontSize="15"
                        TextColor="{AppThemeBinding Light={StaticResource WarningBannerText}, Dark={StaticResource WarningBannerTextDark}}"
                        VerticalOptions="Center" />
