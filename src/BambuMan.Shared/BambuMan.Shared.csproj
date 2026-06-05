@@ -16,12 +16,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
 		<PackageReference Include="RestSharp" Version="114.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\Bambuddy.Api\Bambuddy.Api.csproj" />
 		<ProjectReference Include="..\SpoolMan.Api\SpoolMan.Api.csproj" />
 	</ItemGroup>
 

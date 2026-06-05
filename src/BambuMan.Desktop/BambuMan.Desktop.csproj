@@ -21,6 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\Bambuddy.Api\Bambuddy.Api.csproj" />
 		<ProjectReference Include="..\BambuMan.Shared\BambuMan.Shared.csproj" />
 		<ProjectReference Include="..\SpoolMan.Api\SpoolMan.Api.csproj" />
 	</ItemGroup>
