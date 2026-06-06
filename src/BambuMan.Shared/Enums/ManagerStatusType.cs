@@ -1,8 +1,8 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace BambuMan.Shared.Enums;
 
-public enum SpoolmanManagerStatusType
+public enum ManagerStatusType
 {
     [Description("Initializing ...")]
     Initializing = 0,

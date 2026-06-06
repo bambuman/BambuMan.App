@@ -128,7 +128,7 @@ namespace BambuMan.UI.Main
 
             SettingsOk = true;
 
-            SpoolmanOk = spoolmanManager.Status == SpoolmanManagerStatusType.Ready;
+            SpoolmanOk = spoolmanManager.Status == ManagerStatusType.Ready;
 
             if (!SpoolmanConnecting && !spoolmanManager.IsHealth)
             {

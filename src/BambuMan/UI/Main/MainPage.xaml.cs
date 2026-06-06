@@ -8,7 +8,6 @@ using CommunityToolkit.Maui.Core.Platform;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Sentry;
 using SpoolMan.Api.Model;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -137,9 +136,9 @@ namespace BambuMan.UI.Main
         {
             try
             {
-                if (viewModel.SpoolmanConnecting && spoolmanManager.Status == SpoolmanManagerStatusType.Ready) await viewModel.ShowInfoMessage("Ready to read spools.");
+                if (viewModel.SpoolmanConnecting && spoolmanManager.Status == ManagerStatusType.Ready) await viewModel.ShowInfoMessage("Ready to read spools.");
 
-                if (spoolmanManager.Status >= SpoolmanManagerStatusType.Ready) viewModel.SpoolmanConnecting = false;
+                if (spoolmanManager.Status >= ManagerStatusType.Ready) viewModel.SpoolmanConnecting = false;
 
                 await viewModel.Validate(spoolmanManager);
             }

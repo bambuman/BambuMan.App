@@ -1,4 +1,4 @@
-﻿using BambuMan.Shared.Enums;
+using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,57 +14,26 @@ using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.Shared
 {
-    public class SpoolmanManager(ILogger<SpoolmanManager>? logger)
+    public class SpoolmanManager(ILogger<SpoolmanManager>? logger) : BaseManager(logger)
     {
-        public delegate void StatusChangedEventHandler();
         public delegate void LocationsLoadedEventHandler();
-        public delegate void ShowMessageEventHandler(bool isError, string message);
-        public delegate void LogMessageEventHandler(LogLevel level, string message);
         public delegate void SpoolFoundEventHandler(Spool spool, BambuFilamentInfo info);
-        public delegate void PlayErrorToneEventHandler();
 
-        public event StatusChangedEventHandler? OnStatusChanged;
         public event LocationsLoadedEventHandler? OnLocationsLoaded;
-        public event ShowMessageEventHandler? OnShowMessage;
-        public event LogMessageEventHandler? OnLogMessage;
         public event SpoolFoundEventHandler? OnSpoolFound;
-        public event PlayErrorToneEventHandler? OnPlayErrorTone;
 
         public const string DefaultBambuLabVendor = "Bambu Lab";
         public const string ExtraBuyDate = "buy_date";
         public const string ExtraTag = "tag";
         public const string ExtraProductionDateTime = "production_time";
 
-        private IHost? apiHost;
-        private string? initializedApiUrl;
-        private bool isInitialized;
         private bool defaultsChecked;
         private bool localFilamentsLoaded;
         private bool locationsLoaded;
         private readonly Lock filamentLock = new();
         private readonly Lock spoolLock = new();
-        private Timer? healthCheckTimer;
-        private bool healthCheckInProgress;
-
-        public string? AppVersion { get; set; }
-
-        public bool ShowLogs { get; set; }
-
-        public string? ApiUrl { get; set; }
-
-        public bool UnknownFilamentEnabled { get; set; } = false;
-
-        public bool OverrideLocationOnRead { get; set; }
-
-        public Func<bool>? HasNetworkAccess { get; set; }
 
         public SpoolManDefaults Defaults { get; } = new();
-
-        public bool IsHealth { get; set; }
-
-        public bool IsInitialized => isInitialized;
-
-        public SpoolmanManagerStatusType Status { get; private set; } = SpoolmanManagerStatusType.Initializing;
 
         public Vendor? BambuLabsVendor { get; set; }
 
@@ -98,63 +67,27 @@ namespace BambuMan.Shared
         /// <summary>
         /// Unknown filament, if no filament is found or multiple result where found, return this
         /// </summary>
-        public ExternalFilament UnknownFilament { get; } = GenerateUnknownFilament();
+        public ExternalFilament UnknownFilament { get; } = ExternalFilamentMatcher.GenerateUnknownFilament();
 
-        public async Task Init()
+        #region BaseManager overrides
+
+        protected override string BackendName => "Spoolman";
+
+        protected override string NormalizeApiUrl(string apiUrl)
         {
-            if (AppVersion != null) await Log(LogLevel.Information, $"App version {AppVersion}");
+            var url = apiUrl.EndsWith("/") ? apiUrl.Substring(0, apiUrl.Length - 1) : apiUrl;
+            return url.Contains("api/v1") ? url : $"{url}/api/v1";
+        }
 
-            if (string.IsNullOrEmpty(ApiUrl))
-            {
-                await LogAndSetStatus(SpoolmanManagerStatusType.ApiUrlMissing, LogLevel.Information, "Api url not set");
-                return;
-            }
-
-            // Fast path: already initialized with the same URL — just verify health
-            if (isInitialized && initializedApiUrl == ApiUrl)
-            {
-                if (HasNetworkAccess?.Invoke() == false)
-                {
-                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "No network connection. Please check your connection.");
-                    StartHealthCheckTimer(healthy: false);
-                    return;
-                }
-
-                try
-                {
-                    if (await CheckHealth())
-                        await LogAndSetStatus(SpoolmanManagerStatusType.Ready, LogLevel.Success, "Ready to inventory filament");
-                }
-                catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-                {
-                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "Can't reach Spoolman server. Will retry automatically.");
-                    await Log(LogLevel.Warning, $"Health check failed: {ex.Message}");
-                    StartHealthCheckTimer(healthy: false);
-                }
-                return;
-            }
-
-            // URL changed — reset init flags
-            if (initializedApiUrl != null && initializedApiUrl != ApiUrl)
-            {
-                defaultsChecked = false;
-                localFilamentsLoaded = false;
-                locationsLoaded = false;
-            }
-
-            // Full initialization path
-            await LogAndSetStatus(SpoolmanManagerStatusType.Initializing, LogLevel.Information, "Initializing ...");
-
-            var apiUrl = ApiUrl.EndsWith("/") ? ApiUrl.Substring(0, ApiUrl.Length - 1) : ApiUrl;
-            apiUrl = apiUrl.Contains("api/v1") ? apiUrl : $"{apiUrl}/api/v1";
-
-            apiHost = Host.CreateDefaultBuilder([]).ConfigureServices((_, services) =>
+        protected override IHost CreateApiHost(string normalizedApiUrl)
+        {
+            return Host.CreateDefaultBuilder([]).ConfigureServices((_, services) =>
                 {
                     services.AddApi(options =>
                     {
                         options.AddApiHttpClients(client =>
                         {
-                            client.BaseAddress = new Uri(apiUrl);
+                            client.BaseAddress = new Uri(normalizedApiUrl);
                             client.Timeout = TimeSpan.FromSeconds(5);
 
                             if (!string.IsNullOrEmpty(client.BaseAddress.UserInfo)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(client.BaseAddress.UserInfo)));
@@ -166,75 +99,54 @@ namespace BambuMan.Shared
                     });
                 })
             .Build();
-
-            if (HasNetworkAccess?.Invoke() == false)
-            {
-                await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "No network connection. Please check your connection.");
-                StartHealthCheckTimer(healthy: false);
-                return;
-            }
-
-            try
-            {
-                // Health check with retry (up to 3 attempts, 3s delay between)
-                var healthOk = false;
-                for (var attempt = 1; attempt <= 3; attempt++)
-                {
-                    try
-                    {
-                        healthOk = await CheckHealth();
-                        if (healthOk) break;
-                    }
-                    catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-                    {
-                        await Log(LogLevel.Warning, $"Connecting to Spoolman (attempt {attempt}/3) ... {ex.Message}");
-                    }
-
-                    if (attempt < 3) await Task.Delay(3000);
-                }
-
-                if (!healthOk)
-                {
-                    StartHealthCheckTimer(healthy: false);
-                    return;
-                }
-
-                await TryCheckDefaultValuesAsync();
-                await TryLoadLocalFilamentsAsync();
-                await TryLoadLocationsAsync();
-
-                if (defaultsChecked && localFilamentsLoaded)
-                {
-                    initializedApiUrl = ApiUrl;
-                    isInitialized = true;
-
-                    await LogAndSetStatus(SpoolmanManagerStatusType.Ready, LogLevel.Success, "Ready to inventory filament");
-
-                    StartHealthCheckTimer();
-
-                    _ = LoadExternalFilamentsInBackground();
-                    _ = LoadSpoolsInBackground();
-                }
-                else
-                {
-                    StartHealthCheckTimer(healthy: false);
-                }
-            }
-            catch (UriFormatException)
-            {
-                await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "Invalid Spoolman URL. Please check the URL in Settings.");
-            }
-            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-            {
-                await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "Can't reach Spoolman server. Will retry automatically.");
-                StartHealthCheckTimer(healthy: false);
-            }
-            catch (Exception e)
-            {
-                await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, e.ToString());
-                logger?.LogError(e, "Error connecting to api");
-            }
         }
+
+        protected override async Task<bool> CheckHealthAsync()
+        {
+            if (ApiHost == null) return IsHealth = false;
+
+            var defaultApi = ApiHost.Services.GetRequiredService<IDefaultApi>();
+            var health = await defaultApi.HealthHealthGetAsync();
+
+            if (health.TryOk(out var check))
+            {
+                if (check.Status == "healthy") return IsHealth = true;
+
+                await Log(LogLevel.Warning, $"Api connected and health check returned: {check.Status}");
+            }
+            else
+            {
+                await Log(LogLevel.Warning, $"Can't connect to api. Api response: {health.RawContent}");
+            }
+
+            return IsHealth = false;
+        }
+
+        protected override async Task<bool> LoadInitialDataAsync()
+        {
+            await TryCheckDefaultValuesAsync();
+            await TryLoadLocalFilamentsAsync();
+            await TryLoadLocationsAsync();
+
+            return defaultsChecked && localFilamentsLoaded;
+        }
+
+        protected override void ResetInitState()
+        {
+            defaultsChecked = false;
+            localFilamentsLoaded = false;
+            locationsLoaded = false;
+        }
+
+        protected override Task OnReady()
+        {
+            _ = LoadExternalFilamentsInBackground();
+            _ = LoadSpoolsInBackground();
+
+            return Task.CompletedTask;
+        }
+
+        #endregion
 
         private async Task TryCheckDefaultValuesAsync()
         {
@@ -283,44 +195,19 @@ namespace BambuMan.Shared
 
         public SpoolmanManager Test()
         {
-            ExtendWithMissingFilaments(BambuLabExternalFilaments).Wait();
+            ExternalFilamentMatcher.ExtendWithMissingFilaments(BambuLabExternalFilaments);
             return this;
-        }
-
-        private async Task<bool> CheckHealth()
-        {
-            if (apiHost == null) return false;
-
-            var defaultApi = apiHost.Services.GetRequiredService<IDefaultApi>();
-            var health = await defaultApi.HealthHealthGetAsync();
-
-            if (health.TryOk(out var check))
-            {
-                if (check.Status == "healthy")
-                {
-                    await LogAndSetStatus(SpoolmanManagerStatusType.ApiConnected, LogLevel.Success, $"Api connected, spoolman status: {check.Status}");
-                    return IsHealth = true;
-                }
-
-                await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, $"Api connected and health check returned: {check.Status}");
-            }
-            else
-            {
-                await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, $"Can't connect to api. Api response: {health.RawContent}");
-            }
-
-            return IsHealth = false;
         }
 
         private async Task CheckDefaultValues()
         {
-            if (apiHost == null) return;
+            if (ApiHost == null) return;
 
-            await LogAndSetStatus(SpoolmanManagerStatusType.CheckingDefaults, LogLevel.Information, "Checking default settings");
+            await LogAndSetStatus(ManagerStatusType.CheckingDefaults, LogLevel.Information, "Checking default settings");
 
             #region Default vendor
 
-            var vendorApi = apiHost.Services.GetRequiredService<IVendorApi>();
+            var vendorApi = ApiHost.Services.GetRequiredService<IVendorApi>();
 
             var bambuLabsVendor = await vendorApi.FindVendorVendorGetAsync(name: new Option<string?>(DefaultBambuLabVendor));
 
@@ -346,14 +233,14 @@ namespace BambuMan.Shared
                     }
                     else
                     {
-                        await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't add default '{DefaultBambuLabVendor}' vendor. Api response: {vendorAddResponse.RawContent}");
+                        await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add default '{DefaultBambuLabVendor}' vendor. Api response: {vendorAddResponse.RawContent}");
                         return;
                     }
                 }
             }
             else
             {
-                await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't add default '{DefaultBambuLabVendor}' vendor. Api response: {bambuLabsVendor.RawContent}");
+                await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add default '{DefaultBambuLabVendor}' vendor. Api response: {bambuLabsVendor.RawContent}");
                 return;
             }
 
@@ -361,7 +248,7 @@ namespace BambuMan.Shared
 
             #region Extra fields
 
-            var fieldApi = apiHost.Services.GetRequiredService<IFieldApi>();
+            var fieldApi = ApiHost.Services.GetRequiredService<IFieldApi>();
 
             var extraFields = new List<ExtraFieldModel>
             {
@@ -371,7 +258,7 @@ namespace BambuMan.Shared
                 new (false, EntityType.spool, 4, ExtraTag, "Tag", ExtraFieldType.Text),
 
                 new (false, EntityType.filament, 1, "type", "Type", ExtraFieldType.Choice) { Choices =  ["Silk", "Basic", "High Speed", "Matte", "Plus", "Flexible", "Translucent"], DefaultValue = "\"Basic\""},
-                new (false, EntityType.filament, 2, "nozzle_temperature", "Nozzle Temperature", ExtraFieldType.IntegerRange) { Unit = "\u00b0C", DefaultValue = "[190,300]" }
+                new (false, EntityType.filament, 2, "nozzle_temperature", "Nozzle Temperature", ExtraFieldType.IntegerRange) { Unit = "°C", DefaultValue = "[190,300]" }
             };
 
             foreach (var group in extraFields.GroupBy(x => x.EntryType))
@@ -406,7 +293,7 @@ namespace BambuMan.Shared
                         }
                         else
                         {
-                            await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't add extra field '{extraFieldModel.Key}'. Api response: {addFieldQuery.RawContent}");
+                            await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add extra field '{extraFieldModel.Key}'. Api response: {addFieldQuery.RawContent}");
                             return;
                         }
                     }
@@ -415,20 +302,19 @@ namespace BambuMan.Shared
                 }
                 else
                 {
-                    await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't get existing extra fields. Api response: {existingFieldsQuery.RawContent}");
+                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't get existing extra fields. Api response: {existingFieldsQuery.RawContent}");
                     return;
                 }
             }
 
             #endregion
 
-            await LogAndSetStatus(SpoolmanManagerStatusType.DefaultsOk, LogLevel.Success, "Spoolman default setting ok");
+            await LogAndSetStatus(ManagerStatusType.DefaultsOk, LogLevel.Success, "Spoolman default setting ok");
         }
 
         private async Task LoadLocalFilaments()
         {
-            var localFilaments = new List<ExternalFilament>();
-            await ExtendWithMissingFilaments(localFilaments);
+            var localFilaments = ExternalFilamentMatcher.LoadEmbeddedFilaments();
             BambuLabExternalFilaments = localFilaments;
             await Log(LogLevel.Information, $"Loaded local filaments: {localFilaments.Count}");
         }
@@ -437,9 +323,9 @@ namespace BambuMan.Shared
         {
             try
             {
-                if (apiHost == null) return;
+                if (ApiHost == null) return;
 
-                var externalApi = apiHost.Services.GetRequiredService<IExternalApi>();
+                var externalApi = ApiHost.Services.GetRequiredService<IExternalApi>();
                 var allExternalFilaments = await externalApi.GetAllExternalFilamentsExternalFilamentGetAsync();
 
                 if (allExternalFilaments.TryOk(out var list))
@@ -448,7 +334,7 @@ namespace BambuMan.Shared
 
                     // Build merged list: API filaments as base, extend with local-only entries
                     var apiBambuFilaments = list.Where(x => x.Manufacturer == DefaultBambuLabVendor).ToList();
-                    await ExtendWithMissingFilaments(apiBambuFilaments);
+                    ExternalFilamentMatcher.ExtendWithMissingFilaments(apiBambuFilaments);
 
                     // Swap atomically
                     BambuLabExternalFilaments = apiBambuFilaments;
@@ -475,9 +361,9 @@ namespace BambuMan.Shared
         {
             try
             {
-                if (apiHost == null) return;
+                if (ApiHost == null) return;
 
-                var spoolApi = apiHost.Services.GetRequiredService<ISpoolApi>();
+                var spoolApi = ApiHost.Services.GetRequiredService<ISpoolApi>();
                 var spoolQuery = await spoolApi.FindSpoolSpoolGetAsync();
 
                 if (spoolQuery.TryOk(out var spools))
@@ -525,11 +411,11 @@ namespace BambuMan.Shared
 
         private async Task LoadLocations()
         {
-            if (apiHost == null) return;
+            if (ApiHost == null) return;
 
             #region Load locations
 
-            var settingApi = apiHost.Services.GetRequiredService<ISettingApi>();
+            var settingApi = ApiHost.Services.GetRequiredService<ISettingApi>();
 
             var locationsRequest = await settingApi.GetSettingSettingKeyGetOrDefaultAsync("locations");
 
@@ -554,7 +440,7 @@ namespace BambuMan.Shared
 
         public async Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
-            if (apiHost == null) return false;
+            if (ApiHost == null) return false;
 
             try
             {
@@ -576,7 +462,7 @@ namespace BambuMan.Shared
                 var filament = await AddOrUpdateFilament(externalFilament, price, info);
                 if (filament == null) return false;
 
-                var spoolApi = apiHost.Services.GetRequiredService<ISpoolApi>();
+                var spoolApi = ApiHost.Services.GetRequiredService<ISpoolApi>();
 
                 // Try local cache first
                 var cachedSpool = CachedSpools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{info.TrayUid}\"", StringComparison.CurrentCultureIgnoreCase));
@@ -606,7 +492,7 @@ namespace BambuMan.Shared
                         spool = spools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{info.TrayUid}\"", StringComparison.CurrentCultureIgnoreCase));
                     else
                     {
-                        await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't load existing spools. Api response: {spoolQuery.RawContent}");
+                        await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't load existing spools. Api response: {spoolQuery.RawContent}");
                         return false;
                     }
                 }
@@ -620,7 +506,7 @@ namespace BambuMan.Shared
                         await Log(LogLevel.Success, $"Location updated to '{location}' for spool '{info.TrayUid?.TrimTo(14, "...")}'");
                     }
 
-                    OnShowMessage?.Invoke(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
+                    ShowMessage(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
                     await Log(LogLevel.Success, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
                     OnSpoolFound?.Invoke(spool, info);
                 }
@@ -636,9 +522,9 @@ namespace BambuMan.Shared
 
         public async Task<ExternalFilament?> FindExternalFilament(BambuFilamentInfo info)
         {
-            var result = await FindExternalFilament(BambuLabExternalFilaments, info);
+            var result = await ExternalFilamentMatcher.FindExternalFilament(BambuLabExternalFilaments, info);
 
-            var spoolmanErrorLevel = UnknownFilamentEnabled ? SpoolmanManagerStatusType.Ready : SpoolmanManagerStatusType.Error;
+            var spoolmanErrorLevel = UnknownFilamentEnabled ? ManagerStatusType.Ready : ManagerStatusType.Error;
             var logLevel = UnknownFilamentEnabled ? LogLevel.Warning : LogLevel.Error;
 
             switch (result.Count)
@@ -651,196 +537,25 @@ namespace BambuMan.Shared
                         }
 
                         await LogAndSetStatus(spoolmanErrorLevel, logLevel, "Found more then 1 matching filament", new Exception($"{JsonConvert.SerializeObject(info)}\r\n{string.Join("\t\n", result.Select(x => x.ToString()))}"));
-                        OnPlayErrorTone?.Invoke();
+                        PlayErrorTone();
                         return null;
                     }
                 case 0:
                     await LogAndSetStatus(spoolmanErrorLevel, logLevel, "No matching filament found", new Exception($"{JsonConvert.SerializeObject(info)}"));
-                    OnPlayErrorTone?.Invoke();
+                    PlayErrorTone();
                     return null;
             }
 
             return result.First();
         }
 
-        public static Task<List<ExternalFilament>> FindExternalFilament(List<ExternalFilament> externalFilaments, BambuFilamentInfo info)
-        {
-            var transparentFilaments = new[]
-            {
-                "bambulab_pc_clearblack_1000_175_n",
-                "bambulab_pva_clear_500_175_n"
-            };
-
-            var hexColor = info.Color?.Substring(0, 6) ?? string.Empty;
-            var opacity = info.Color?.Substring(6).StringToByteArray().FirstOrDefault() ?? 255;
-            var transparent = opacity < 255;
-            var color = hexColor;
-
-            var query = externalFilaments.AsQueryable();
-
-            query = query.Where(x => x.Material.EqualsCI(info.FilamentType) ||
-                                     info.DetailedFilamentType.EqualsCI("PA6-GF") && x.Material.EqualsCI("PA6-GF") ||
-                                     info.DetailedFilamentType.EqualsCI("ASA Aero") && x.Material.EqualsCI("ASA") && x.Name.ContainsCI("Aero") ||
-                                     info.DetailedFilamentType.EqualsCI("PLA Aero") && x.Material.EqualsCI("PLA") && x.Name.ContainsCI("Aero") ||
-                                     info.DetailedFilamentType.EqualsCI("PA-CF") && x.Material.EqualsCI("PA6-CF") ||
-                                     info.DetailedFilamentType.EqualsCI("PAHT-CF") && x.Material.EqualsCI("PAHT-CF") ||
-                                     info.DetailedFilamentType.EqualsCI("PLA Wood") && x.Material.EqualsCI("PLA+WOOD") ||
-                                     info.DetailedFilamentType.EqualsCI("TPU for AMS") && x.Material.EqualsCI("TPU") && x.Name.StartsWithCI("For AMS"));
-
-            //#if DEBUG
-            //            var resultWitType = query.ToArray();
-            //#endif
-
-            query = query.Where(x => (x.ColorHex.EqualsCI(color)) ||
-                                     (x.ColorHexes != null && color != null && x.ColorHexes.Contains(color, StringComparer.OrdinalIgnoreCase)) ||
-                                     (info.DetailedFilamentType.EqualsCI("PLA Matte") && color.EqualsCI("E4BDD0") && x.ColorHex.EqualsCI("E8AFCF")) || //ASA filament hex color is different on spoolman db vs tag
-                                     (info.FilamentType.EqualsCI("ASA") && color.EqualsCI("FFFFFF") && x.ColorHex.EqualsCI("FFFAF2")) || //ASA filament hex color is different on spoolman db vs tag
-                                     (info.FilamentType.EqualsCI("ABS") && color.EqualsCI("ffb81c") && x.ColorHex.EqualsCI("FCE900")) || //ABS filament hex color is different on spoolman db vs tag
-                                     (info.FilamentType.EqualsCI("ASA Aero") && color.EqualsCI("E9E4D9") && x.ColorHex.EqualsCI("F5F1DD")) || //ASA filament hex color is different on spoolman db vs tag
-                                     (info.FilamentType.EqualsCI("PC") && color.EqualsCI("000000") && transparent && x.ColorHex.EqualsCI("5A5161")) || //PC Clear Black filament hex color is different on spoolman db vs tag
-                                     (info.DetailedFilamentType.EqualsCI("PLA Wood") && color.EqualsCI("3F231C") && x.ColorHex.EqualsCI("4C241C")) || //PETG HF red filament hex color is different on spoolman db vs tag
-                                     (info.DetailedFilamentType.EqualsCI("PETG HF") && color.EqualsCI("BC0900") && x.ColorHex.EqualsCI("EB3A3A")) || //PETG HF red filament hex color is different on spoolman db vs tag
-                                     (info.DetailedFilamentType.EqualsCI("PETG Translucent") && color.EqualsCI("000000") && x.ColorHex.EqualsCI("FFFFFF")));  //PETG Translucent clear filament hex color is different on spoolman db vs tag
-
-            //#if DEBUG
-            //            var resultWitColor = query.ToArray();
-            //#endif
-
-            query = query.Where(x => (transparentFilaments.AsEnumerable().Contains(x.Id) && transparent) || x.Translucent == transparent || x.Translucent == null && !transparent);
-
-            //#if DEBUG
-            //            var resultWitTransparency = query.ToArray();
-            //#endif
-
-            if (info.DetailedFilamentType.ContainsCI("Support"))
-            {
-                var idToSearch = string.Empty;
-                var nameToSearch = info.DetailedFilamentType;
-
-                //white translucent Support for PLA is identified as black. Don't know if black is same 
-                if (info.DetailedFilamentType.EqualsCI("Support for PLA") && info.MaterialVariantIdentifier.EqualsCI("S05-C0"))
-                {
-                    idToSearch = "bambulab_pla_supportforpla/petgnature_500_175_n";
-                }
-
-                //white translucent Support for PLA is identified as black. Don't know if black is same 
-                if ((info.DetailedFilamentType.EqualsCI("Support W") && info.MaterialVariantIdentifier.EqualsCI("S00-W0")) ||
-                    (info.DetailedFilamentType.EqualsCI("Support for PLA") && info.MaterialVariantIdentifier.EqualsCI("S02-W1")) ||
-                    (info.DetailedFilamentType.EqualsCI("Support for PLA") && info.MaterialVariantIdentifier.EqualsCI("S02-W0")))
-                {
-                    idToSearch = "bambulab_pla_supportforplawhite_500_175_n";
-                }
-
-                //white translucent Support for PLA is identified as black. Don't know if black is same 
-                if (info.DetailedFilamentType.EqualsCI("Support For PA") && info.MaterialVariantIdentifier.EqualsCI("S03-G1"))
-                {
-                    idToSearch = "bambulab_pa_supportforpa/pet_500_175_n";
-                }
-
-                query = idToSearch.IsNotNullOrEmpty() ?
-                    externalFilaments.Where(x => x.Id.EqualsCI(idToSearch)).AsQueryable() :
-                    externalFilaments.Where(x => x.Name.StartsWithCI(nameToSearch)).Where(x => x.ColorHex.EqualsCI(hexColor)).AsQueryable();
-            }
-            else if (info.ColorCount.GetValueOrDefault() > 1 && query.Count() != 1) //multi color spool
-            {
-                var hexSecondColor = info.SecondColor?.Substring(0, 6) ?? string.Empty;
-                var colors = new[] { color, hexSecondColor };
-
-                if (info.MaterialVariantIdentifier.EqualsCI("A05-T1")) colors = ["FF9425", "FCA2BF"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A05-T2")) colors = ["0047BB", "7D1B49"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A05-T3")) colors = ["0047BB", "BB22A3"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A05-T4")) colors = ["60A4E8", "4CE4A0"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A05-T5")) colors = ["000000", "A34342"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A00-M5")) colors = ["6FCAEF", "8573DD"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A00-M6")) colors = ["ED9558", "CE4406"];
-
-                query = externalFilaments
-                    .Where(x => x.Material == info.FilamentType)
-                    .Where(x => x.ColorHexes != null && colors.All(c => x.ColorHexes.Contains(c, StringComparer.OrdinalIgnoreCase))).AsQueryable();
-            }
-            else query = query.Where(x => !x.Name.ContainsCI("Support"));
-
-            query = info.DetailedFilamentType switch
-            {
-                var type when type.EqualsCI("PETG Basic") => query.Where(x => x.Name.StartsWithCI("Basic ")),
-                var type when type.EqualsCI("PETG HF") => query.Where(x => x.Name.StartsWithCI("HF ")),
-                var type when type.EqualsCI("PC FR") => query.Where(x => x.Name.StartsWithCI("FR ")),
-
-                var type when type.ContainsCI("Basic") => query.Where(x => x.Finish == null && x.Pattern == null && !x.Name.ContainsCI("Aero") && !x.Name.ContainsCI("Tough") && !x.Name.ContainsCI("Lite")),
-                var type when type.ContainsCI("Matte") => query.Where(x => x.Finish == Finish.Matte),
-                var type when type.ContainsCI("Glow") => query.Where(x => x.Glow == true),
-                var type when type.ContainsCI("Silk+") => query.Where(x => x.Name.ContainsCI("Silk+")),
-                var type when type.ContainsCI("Tough+") => query.Where(x => x.Name.ContainsCI("Tough+")),
-                var type when type.ContainsCI("Aero") => query.Where(x => x.Name.ContainsCI("Aero")),
-                var type when type.ContainsCI("Sparkle") => query.Where(x => x.Name.ContainsCI("Sparkle")),
-                var type when type.ContainsCI("Lite") => query.Where(x => x.Name.ContainsCI("Lite")),
-                var type when type.ContainsCI("Silk") ||
-                              type.ContainsCI("Metallic") ||
-                              type.ContainsCI("Galaxy") => query.Where(x => x.Finish == Finish.Glossy),
-
-                _ => query
-            };
-
-            if (info.DetailedFilamentType.EqualsCI("PC"))
-            {
-                query = query.Where(x => !x.Name.StartsWithCI("FR "));
-
-                if (color == "FFFFFF" && info.UniqueMaterialIdentifier.EqualsCI("FC00")) query = query.Where(x => x.Name.EqualsCI("White") || x.Name.EqualsCI("Weiß"));
-                if (color == "FFFFFF" && !info.UniqueMaterialIdentifier.EqualsCI("FC00")) query = query.Where(x => x.Name.EqualsCI("Transparent"));
-                if (info.Color == "68686580") query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pc_clearblack_1000_175_n")).AsQueryable();
-            }
-
-            if (info.MaterialVariantIdentifier.EqualsCI("A00-W1") || info.MaterialVariantIdentifier.EqualsCI("A00-W01")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_jadewhite_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("S01-G1")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pa_supportforpa/pet_500_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("S04-Y0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pva_clear_500_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A00-Y00")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_yellow_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A00-B1")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_bluegray_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("G00-B00")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_petg_basicreflexblue_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("G00-B0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_petg_blue_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A07-R5")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_redgranite_1000_175_n")).AsQueryable();
-
-            if (info.DetailedFilamentType.EqualsCI("PLA Basic") && color.EqualsCI("84754E")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_bronze_1000_175_n")).AsQueryable();
-
-            var result = query.ToList();
-
-            #region test if spool info is same only weight differs, select closest weight
-
-            if (result.Count > 1)
-            {
-                var typeGroup = result.GroupBy(x =>
-                {
-                    var spoolType = x.SpoolType switch
-                    {
-                        SpoolType.Cardboard => "c",
-                        SpoolType.Plastic => "p",
-                        SpoolType.Metal => "m",
-                        _ => "n"
-                    };
-
-                    return $"{x.Manufacturer}|{x.Material}|{x.Name}|{x.Diameter * 100:0}|{spoolType}";
-                }).ToList();
-
-                if (typeGroup.Count == 1)
-                {
-                    var bestMatchWeight = typeGroup.First().OrderByDescending(x => x.SpoolWeight).FirstOrDefault(x => x.SpoolWeight <= info.SpoolWeight) ??
-                                          typeGroup.First().OrderBy(x => x.SpoolWeight).FirstOrDefault(x => x.SpoolWeight > info.SpoolWeight);
-
-                    if (bestMatchWeight != null) result = [bestMatchWeight];
-                }
-            }
-
-            #endregion
-
-            return Task.FromResult(result);
-        }
-
         private async Task<Filament?> AddOrUpdateFilament(ExternalFilament externalFilament, decimal? price, BambuFilamentInfo info)
         {
-            if (apiHost == null) return null;
+            if (ApiHost == null) return null;
 
             try
             {
-                var filamentApi = apiHost.Services.GetRequiredService<IFilamentApi>();
+                var filamentApi = ApiHost.Services.GetRequiredService<IFilamentApi>();
 
                 var filamentQuery = await filamentApi.FindFilamentsFilamentGetAsync(externalId: externalFilament.Id);
 
@@ -875,11 +590,11 @@ namespace BambuMan.Shared
 
                     if (filamentAddResult.TryOk(out var addedFilament)) return addedFilament;
 
-                    await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't add filament. Api response: {filamentAddResult.RawContent}");
+                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add filament. Api response: {filamentAddResult.RawContent}");
                     return null;
                 }
 
-                await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't load existing filaments. Api response: {filamentQuery.RawContent}");
+                await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't load existing filaments. Api response: {filamentQuery.RawContent}");
                 return null;
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -924,13 +639,13 @@ namespace BambuMan.Shared
                 {
                     UpdateCachedSpool(addedSpool);
                     TrackNewLocation(location);
-                    OnShowMessage?.Invoke(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
+                    ShowMessage(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
                     await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
                     OnSpoolFound?.Invoke(addedSpool, info);
                 }
                 else
                 {
-                    await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {spoolAddResult.RawContent}");
+                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {spoolAddResult.RawContent}");
                 }
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -942,11 +657,11 @@ namespace BambuMan.Shared
         public async Task UpdateSpool(Spool currentSpool, DateTime? buyDate, decimal? price, string? lotNr, string? location,
             decimal emptyWeight, decimal initialWeight, decimal spoolWeight, string? trayUid = null, DateTime? productionDateTime = null)
         {
-            if (apiHost == null) return;
+            if (ApiHost == null) return;
 
             try
             {
-                var spoolApi = apiHost.Services.GetRequiredService<ISpoolApi>();
+                var spoolApi = ApiHost.Services.GetRequiredService<ISpoolApi>();
 
                 trayUid ??= currentSpool.Extra.TryGetValue(ExtraTag, out var tagOut) ? tagOut.Replace("\"", "") : string.Empty;
 
@@ -976,12 +691,12 @@ namespace BambuMan.Shared
                 {
                     UpdateCachedSpool(updatedSpool);
                     TrackNewLocation(location);
-                    OnShowMessage?.Invoke(false, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
+                    ShowMessage(false, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
                     await Log(LogLevel.Success, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
                 }
                 else
                 {
-                    await LogAndSetStatus(SpoolmanManagerStatusType.Error, LogLevel.Error, $"Can't update spool. Api response: {spoolUpdateResult.RawContent}");
+                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't update spool. Api response: {spoolUpdateResult.RawContent}");
                 }
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -1008,219 +723,5 @@ namespace BambuMan.Shared
             await Log(LogLevel.Error, $"Failed to update location: {result.RawContent}");
             return spool;
         }
-
-        #region Health check timer
-
-        private void StartHealthCheckTimer(bool healthy = true)
-        {
-            var interval = healthy ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(1);
-
-            if (healthCheckTimer != null)
-            {
-                healthCheckTimer.Change(interval, interval);
-                return;
-            }
-
-            healthCheckTimer = new Timer(async void (_) =>
-            {
-                try
-                {
-                    await PerformHealthCheck();
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
-            }, null, interval, interval);
-        }
-
-        private async Task PerformHealthCheck()
-        {
-            if (healthCheckInProgress || apiHost == null) return;
-
-            if (HasNetworkAccess?.Invoke() == false)
-            {
-                if (IsHealth)
-                {
-                    IsHealth = false;
-                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "No network connection. Please check your connection.");
-                    StartHealthCheckTimer(healthy: false);
-                }
-                return;
-            }
-            healthCheckInProgress = true;
-
-            try
-            {
-                var wasHealthy = IsHealth;
-                var defaultApi = apiHost.Services.GetRequiredService<IDefaultApi>();
-                var health = await defaultApi.HealthHealthGetAsync();
-
-                IsHealth = health.TryOk(out var check) && check.Status == "healthy";
-
-                if (!wasHealthy && IsHealth)
-                {
-                    if (!isInitialized)
-                        await Init();
-                    else
-                    {
-                        await LogAndSetStatus(SpoolmanManagerStatusType.Ready, LogLevel.Success, "Reconnected to Spoolman");
-                        StartHealthCheckTimer();
-                    }
-                }
-                else if (wasHealthy != IsHealth)
-                {
-                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "Lost connection to Spoolman. Retrying ...");
-                    StartHealthCheckTimer(healthy: false);
-                }
-            }
-            catch
-            {
-                if (IsHealth)
-                {
-                    IsHealth = false;
-                    await LogAndSetStatus(SpoolmanManagerStatusType.CantConnectToApi, LogLevel.Warning, "Lost connection to Spoolman. Retrying ...");
-                    StartHealthCheckTimer(healthy: false);
-                }
-            }
-            finally
-            {
-                healthCheckInProgress = false;
-            }
-        }
-
-        #endregion
-
-        #region Error handling
-
-        private async Task HandleNetworkError(Exception ex, string operation)
-        {
-            var message = ex is TaskCanceledException
-                ? $"{operation} timed out. Will retry automatically."
-                : $"{operation} failed. Will retry automatically.";
-
-            OnShowMessage?.Invoke(true, message);
-            await Log(LogLevel.Information, $"{operation}: {ex.Message}");
-        }
-
-        #endregion
-
-        #region Logging and Status
-
-        private async Task LogAndSetStatus(SpoolmanManagerStatusType status, LogLevel level, string message, Exception? exception = null)
-        {
-            await Log(level, message, exception);
-            await SetStatus(status);
-        }
-
-        private Task SetStatus(SpoolmanManagerStatusType status)
-        {
-            Status = status;
-            OnStatusChanged?.Invoke();
-
-            return Task.CompletedTask;
-        }
-
-        private Task Log(LogLevel level, string message, Exception? ex = null)
-        {
-            if (ShowLogs) OnLogMessage?.Invoke(level, message);
-
-            switch (level)
-            {
-                case LogLevel.Trace:
-                    logger?.LogTrace(message);
-                    break;
-                case LogLevel.Debug:
-                    logger?.LogDebug(message);
-                    break;
-                case LogLevel.Information:
-                case LogLevel.Success:
-                    logger?.LogInformation(message);
-                    break;
-                case LogLevel.Warning:
-                    logger?.LogWarning(ex, message);
-                    break;
-                case LogLevel.Error:
-                    logger?.LogError(ex, message);
-                    break;
-                case LogLevel.Critical:
-                    logger?.LogCritical(ex, message);
-                    break;
-                case LogLevel.None:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(level), level, null);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        #endregion
-
-        #region Missing filaments
-
-        private static ExternalFilament GenerateUnknownFilament()
-        {
-            const string name = "Unknown";
-            const string material = "UNKNOWN";
-
-            var id = FilamentIdGenerator.GenerateId(DefaultBambuLabVendor, name, material, 1000, 1.75m);
-
-            return new ExternalFilament(
-                id,
-                DefaultBambuLabVendor,
-                name,
-                material,
-                1.22m,
-                1000,
-                1.75m
-            );
-        }
-
-        private Task ExtendWithMissingFilaments(List<ExternalFilament> externalFilaments)
-        {
-            var assembly = typeof(SpoolmanManager).Assembly;
-            using var stream = assembly.GetManifestResourceStream("BambuMan.Shared.Resources.filaments.json");
-
-            if (stream == null) throw new FileNotFoundException("Embedded resource not found");
-
-            using var reader = new StreamReader(stream);
-            var json = reader.ReadToEnd();
-
-            var fillamentInfos = JsonConvert.DeserializeObject<FilamentData[]>(json);
-            if (fillamentInfos == null) return Task.CompletedTask;
-
-            foreach (var fillamentInfo in fillamentInfos)
-            {
-                if (externalFilaments.Any(x => x.Id == fillamentInfo.Id && x.Weight == fillamentInfo.WeightValue)) continue;
-
-                var filament = new ExternalFilament(
-                    fillamentInfo.Id,
-                    fillamentInfo.Manufacturer,
-                    fillamentInfo.Name,
-                    fillamentInfo.Material,
-                    fillamentInfo.Density,
-                    fillamentInfo.WeightValue,
-                    fillamentInfo.Diameter,
-                    spoolWeight: new Option<decimal?>(fillamentInfo.SpoolWeight),
-                    spoolType: new Option<SpoolType?>(SpoolTypeValueConverter.FromStringOrDefault(fillamentInfo.SpoolType ?? "")),
-                    colorHex: new Option<string?>(fillamentInfo.ColorHex),
-                    colorHexes: new Option<List<string>?>(fillamentInfo.ColorHexes?.ToList()),
-                    extruderTemp: new Option<int?>(fillamentInfo.ExtruderTemp),
-                    bedTemp: new Option<int?>(fillamentInfo.BedTemp),
-                    finish: new Option<Finish?>(FinishValueConverter.FromStringOrDefault(fillamentInfo.Finish ?? "")),
-                    multiColorDirection: new Option<SpoolmanExternaldbMultiColorDirection?>(SpoolmanExternaldbMultiColorDirectionValueConverter.FromStringOrDefault(fillamentInfo.MultiColorDirection ?? "")), //not implemented jet
-                    pattern: new Option<Pattern?>(PatternValueConverter.FromStringOrDefault(fillamentInfo.Pattern ?? "")),
-                    translucent: new Option<bool?>(fillamentInfo.Translucent),
-                    glow: new Option<bool?>(fillamentInfo.Glow)
-                );
-
-                externalFilaments.Add(filament);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        #endregion
     }
 }

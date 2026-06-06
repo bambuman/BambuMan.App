@@ -169,7 +169,7 @@ public partial class MainForm : Form
             return;
         }
 
-        tsslStatus.Text = (spoolmanManager?.Status ?? SpoolmanManagerStatusType.Initializing).GetDescriptionAttr();
+        tsslStatus.Text = (spoolmanManager?.Status ?? ManagerStatusType.Initializing).GetDescriptionAttr();
     }
 
     #endregion

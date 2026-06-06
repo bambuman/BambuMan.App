@@ -107,6 +107,7 @@ namespace BambuMan
             services.AddSingleton<LogService>();
             services.AddSingleton<TagApiService>();
             services.AddSingleton<SpoolmanManager>();
+            services.AddSingleton<BambuddyManager>();
             services.AddSingleton<InventoryService>();
         }
 
