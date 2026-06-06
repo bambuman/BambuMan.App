@@ -18,7 +18,7 @@ env:
   DOTNET_NOLOGO: true                     # Disable the .NET logo
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true # Disable the .NET first time experience
   DOTNET_CLI_TELEMETRY_OPTOUT: true       # Disable sending .NET CLI telemetry
-  GITHUB_VERSION_BASE: 1.0.
+  GITHUB_VERSION_BASE: 1.1.
 
 jobs:
 

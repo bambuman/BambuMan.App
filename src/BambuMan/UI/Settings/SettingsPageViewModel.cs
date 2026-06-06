@@ -12,7 +12,7 @@ namespace BambuMan.UI.Settings
         [NotifyPropertyChangedFor(nameof(IsSpoolman))]
         [NotifyPropertyChangedFor(nameof(IsBambuddy))]
         [NotifyPropertyChangedFor(nameof(ServerUrl))]
-        private InventoryBackend inventoryBackend = InventoryBackend.Spoolman;
+        private InventoryBackend inventoryBackend = InventoryBackend.Bambuddy;
 
         [ObservableProperty] private MaterialSegmentedButtonItem? selectedBackendItem;
 

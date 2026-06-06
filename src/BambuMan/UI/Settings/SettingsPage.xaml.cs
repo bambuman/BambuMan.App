@@ -50,9 +50,8 @@ public partial class SettingsPage
         BindingContext = viewModel;
     }
 
-    /// <summary>The active inventory backend, parsed from preferences (defaults to Spoolman).</summary>
-    public static InventoryBackend GetInventoryBackend() =>
-        Enum.TryParse<InventoryBackend>(Preferences.Default.Get(KeyInventoryBackend, nameof(InventoryBackend.Spoolman)), out var backend) ? backend : InventoryBackend.Spoolman;
+    /// <summary>The active inventory backend, parsed from preferences (defaults to Bambuddy).</summary>
+    public static InventoryBackend GetInventoryBackend() => Enum.TryParse<InventoryBackend>(Preferences.Default.Get(KeyInventoryBackend, nameof(InventoryBackend.Bambuddy)), out var backend) ? backend : InventoryBackend.Bambuddy;
 
     protected override async void OnAppearing()
     {

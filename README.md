@@ -1,6 +1,6 @@
 # <img alt="logo" src="branding/appiconv2.png" height="36" /> BambuMan
 
-BambuMan is a companion app for [Spoolman](https://github.com/Donkie/Spoolman). It allows you to easily import spools by reading the `Bambu Lab` filaments `NFC` tag info.
+BambuMan imports `Bambu Lab` filament spools into your inventory by reading their `NFC` tag. It supports two inventory backends — [bambuddy](https://bambuddy.cool) and [Spoolman](https://github.com/Donkie/Spoolman) — selectable in the app settings.
 
 The app tries to match the tag info with the existing [SpoolmanDB](https://github.com/Donkie/SpoolmanDB) entry. When a match is found, the app creates the filament and spool. Imported spools will have the same `tray_uuid` as the `AMS` reports over `MQTT`.
 
@@ -17,10 +17,11 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
 ## Features
 
  - **NFC tag reading** on Android (built-in NFC) and Windows desktop (PCSC compatible reader)
+ - **Two inventory backends** — choose [bambuddy](https://bambuddy.cool) or [Spoolman](https://github.com/Donkie/Spoolman) in the settings
  - **Automatic filament matching** with SpoolmanDB — covers most Bambu Lab filaments
  - **Inventory tracking** — groups scanned spools by material with AMS tray UID tracking
  - **Research Data Contribution** — opt-in NFC tag data upload to the [bambuman.ee](https://bambuman.ee) tag library
- - **QR code scanner** for quick Spoolman URL setup
+ - **QR code scanner** for quick backend URL and API key setup
  - **Configurable import defaults** — buy date, price, lot number, location
  - **Log viewer** with email export for troubleshooting
  - **Auto-setup** — creates required extra fields and default vendor in Spoolman
@@ -31,7 +32,7 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
 
    | Main | Settings | Logs | Research Data Contribution |
    |:---:|:---:|:---:|:---:|
-   | <img src="screens/android_main.jpg" alt="Main page" width="200" /> | <img src="screens/android_settings.jpg" alt="Settings page" width="200" /> | <img src="screens/android_logs.jpg" alt="Logs page" width="200" /> | <img src="screens/android_condribution_popup.jpg" alt="Research Data Contribution" width="200" /> |
+   | <img src="screens/android_main.jpg" alt="Main page" width="200" /> | <img src="screens/android_settings_spoolman.png" alt="Settings page" width="200" /> | <img src="screens/android_logs.jpg" alt="Logs page" width="200" /> | <img src="screens/android_condribution_popup.jpg" alt="Research Data Contribution" width="200" /> |
 
  - **Windows** desktop application (a `PCSC` compatible `NFC` reader like [ACR122U](https://www.acs.com.hk/en/products/3/acr122u-usb-nfc-reader/) or [ACR1252U](https://www.acs.com.hk/en/products/342/acr1252u-usb-nfc-reader-iii-nfc-forum-certified-reader/) is needed)
 
@@ -39,7 +40,31 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
 
 ## How to setup
 
-### Android
+### Android — bambuddy
+
+The Android app can inventory into [bambuddy](https://bambuddy.cool). Pick the backend with the selector at the top of the settings page.
+
+1. In bambuddy, create an API key with **both** the **Manage Inventory** and **Read Status** permissions:
+	 - **Manage Inventory** — lets BambuMan create and update spools (what the `NFC` scan writes).
+	 - **Read Status** — lets BambuMan list spools, so re-scanning a tag updates the existing spool instead of creating a duplicate.
+
+	 <img src="screens/bambuddy_api_key.jpg" alt="bambuddy API key permissions" width="500" />
+
+2. Copy the generated key.
+
+	 <img src="screens/bambuddy_api_key_generated.jpg" alt="bambuddy generated API key" width="500" />
+
+3. In BambuMan settings, switch the backend to **bambuddy**, enter the bambuddy address (for example `http://host:8000`), then scan or paste the API key.
+
+	 <img src="screens/android_setting_bambuddy.png" alt="BambuMan bambuddy settings" width="200" />
+
+4. Go back to the main window. Once `Settings`, `bambuddy` and `NFC` are green, you can start reading `NFC` tags.
+
+> **Tip:** The API key is long and awkward to type on a phone. On your computer, turn the URL or key into a QR code with a free, no-signup generator like [QRCode Monkey](https://www.qrcode-monkey.com/#text), then scan it with the in-app **scan** button. The API key is a secret, so only paste it into a generator you trust.
+
+> **Note:** bambuddy spools have no *Buy date* or *Lot nr*, so those import options are hidden in bambuddy mode. The matched Bambu filament also sets the bambuddy slicer preset automatically.
+
+### Android — Spoolman
  1. Install from [Google Play](https://play.google.com/store/apps/details?id=com.noismaster.bambuman), [F-Droid](https://bambuman.github.io/repo), or download the APK manually from GitHub releases.
  2. Go to settings and scan the Spoolman URL with QR code or enter it manually.
 	 - BambuMan supports basic authentication, URL format `http[s]://username:password@host[:port]/`
@@ -80,8 +105,8 @@ To participate, enable **Research Data Contribution** in the app settings. Uploa
 
 ## Tested with
 
+  - [bambuddy](https://bambuddy.cool) v0.2.4.5+ (recommended)
   - [Spoolman](https://github.com/Donkie/Spoolman) v0.22.1, v0.23.0, v0.23.1
-  - [bambuddy](https://bambuddy.cool) v0.1.6+ (recommended)
   - [OpenSpoolMan](https://github.com/drndos/openspoolman) v0.1.8
 
 ## Roadmap
