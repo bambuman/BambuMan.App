@@ -1,4 +1,5 @@
-﻿using BambuMan.Shared;
+﻿using System.Text.RegularExpressions;
+using BambuMan.Shared;
 using BambuMan.UI.Consent;
 using BambuMan.UI.Logs;
 using BambuMan.UI.Main;
@@ -57,9 +58,38 @@ namespace BambuMan
                     // We recommend adjusting this value in production.
                     options.TracesSampleRate = 0.1;
 
-                    options.AutoSessionTracking = true;
+                    // We don't identify or track users, so don't transmit any user or session
+                    // identifier. Disabling session tracking stops Sentry's persistent installation
+                    // id (release health); BeforeSend strips any user id from individual events.
+                    options.AutoSessionTracking = false;
 
-                    options.AttachScreenshot = true;
+                    // Never send personally-identifying data (IP address, device unique
+                    // identifier, etc.). Keeps Sentry payloads clear of "Device or Other IDs"
+                    // for Google Play Data safety compliance.
+                    options.SendDefaultPii = false;
+
+                    // Final scrub before anything leaves the device: drop any user/installation
+                    // identifier, and redact credentials that could ride along in a message or
+                    // exception (e.g. a Spoolman URL like https://user:pass@host, or a bearer token).
+                    options.SetBeforeSend(static (evt, _) =>
+                    {
+                        evt.User.Id = null;
+                        evt.User.Username = null;
+                        evt.User.Email = null;
+                        evt.User.IpAddress = null;
+
+                        if (evt.Message is { } message)
+                        {
+                            message.Formatted = Redact(message.Formatted);
+                            message.Message = Redact(message.Message);
+                        }
+
+                        if (evt.SentryExceptions is { } exceptions)
+                            foreach (var exception in exceptions)
+                                exception.Value = Redact(exception.Value);
+
+                        return evt;
+                    });
 #if DEBUG
                     options.Debug = true;
 #endif
@@ -125,12 +155,11 @@ namespace BambuMan
             services.AddSingleton<InventoryService>();
         }
 
-        public static void SetupSerilog(LoggerConfiguration loggerConfiguration, string? version, string? packageName, string? deviceId)
+        public static void SetupSerilog(LoggerConfiguration loggerConfiguration, string? version, string? packageName)
         {
             loggerConfiguration = loggerConfiguration
                 .Enrich.WithProperty("PackageName", packageName)
                 .Enrich.WithProperty("Version", version)
-                .Enrich.WithProperty("DeviceId", deviceId)
                 .Enrich.FromGlobalLogContext()
                 .Filter.ByExcluding(e => e.Properties.TryGetValue("SourceContext", out var value) && value.ToString().Contains("Microsoft.Maui.Controls.Xaml.Diagnostics.BindingDiagnostics"))
                 .Filter.ByExcluding(e => e.Properties.TryGetValue("SourceContext", out var value) && value.ToString().Contains("Microsoft.Maui.Controls.Platform.AlertManager"))
@@ -152,6 +181,21 @@ namespace BambuMan
                 });
 
             Log.Logger = loggerConfiguration.CreateLogger();
+        }
+
+        /// <summary>
+        /// Redact credentials that may appear in a log message or exception before it is sent to
+        /// Sentry: user:password in a URL (https://user:pass@host) and bearer / Bambuddy API keys.
+        /// </summary>
+        private static string? Redact(string? value)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+
+            value = Regex.Replace(value, @"(?<=://)[^/\s:@]+:[^/\s:@]+@", "***@");
+            value = Regex.Replace(value, @"\bBearer\s+\S+", "Bearer ***");
+            value = Regex.Replace(value, @"\bbb_[A-Za-z0-9]+", "bb_***");
+
+            return value;
         }
     }
 }

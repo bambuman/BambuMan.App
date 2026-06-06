@@ -16,8 +16,6 @@ namespace BambuMan
         public static Guid SessionId { get; } = Guid.NewGuid();
 
         public static string? CurrentBuildVersion { get; set; }
-        
-        public static string? DeviceId { get; set; }
 
         public static string? Name { get; set; }
 

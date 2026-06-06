@@ -138,6 +138,13 @@ namespace BambuMan.Shared
             return s.Length > length ? s.Substring(0, length) : s;
         }
 
+        /// <summary>
+        /// Null-safe truncation for log/telemetry values (e.g. API response bodies), so a long or
+        /// data-bearing server response doesn't bloat or leak into Sentry. Returns "" for null/empty.
+        /// </summary>
+        public static string Truncated(this string? s, int max = 500) =>
+            string.IsNullOrEmpty(s) ? string.Empty : s.TrimTo(max, "…");
+
         public static string TrimTo(this string s, int length, string ext)
         {
             if (string.IsNullOrEmpty(s)) return s;

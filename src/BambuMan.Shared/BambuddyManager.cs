@@ -7,7 +7,6 @@ using Bambuddy.Api.Model;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using ExternalFilament = SpoolMan.Api.Model.ExternalFilament;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
@@ -81,7 +80,7 @@ namespace BambuMan.Shared
 
             if (health.TryOk(out _)) return IsHealth = true;
 
-            await Log(LogLevel.Warning, $"Can't connect to api. Api response: {health.RawContent}");
+            await Log(LogLevel.Warning, $"Can't connect to api. Api response: {health.RawContent.Truncated()}");
             return IsHealth = false;
         }
 
@@ -132,7 +131,7 @@ namespace BambuMan.Shared
             }
             else
             {
-                await Log(LogLevel.Warning, $"Error loading spools. Api response: {result.RawContent}");
+                await Log(LogLevel.Warning, $"Error loading spools. Api response: {result.RawContent.Truncated()}");
             }
         }
 
@@ -155,7 +154,7 @@ namespace BambuMan.Shared
 
                     if (!createResult.TryOk(out var created) || created == null)
                     {
-                        await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {createResult.RawContent}");
+                        await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {createResult.RawContent.Truncated()}");
                         return false;
                     }
 
@@ -261,7 +260,7 @@ namespace BambuMan.Shared
                 }
                 else
                 {
-                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't update spool. Api response: {result.RawContent}");
+                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't update spool. Api response: {result.RawContent.Truncated()}");
                 }
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -329,7 +328,7 @@ namespace BambuMan.Shared
             var logLevel = UnknownFilamentEnabled ? LogLevel.Warning : LogLevel.Error;
             var message = result.Count == 0 ? "No matching filament found" : "Found more then 1 matching filament";
 
-            await LogAndSetStatus(statusLevel, logLevel, message, new Exception(JsonConvert.SerializeObject(info)));
+            await LogAndSetStatus(statusLevel, logLevel, message, new Exception(info.ToDiagnosticJson()));
             PlayErrorTone();
 
             // When unknown filaments are enabled, proceed with raw tag data (no catalog enrichment).

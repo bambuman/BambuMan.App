@@ -1,5 +1,6 @@
 ﻿using BambuMan.Shared.Nfc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Text;
 
@@ -256,5 +257,18 @@ public class BambuFilamentInfo : ITagInfo
         #endregion
 
         ParseData(data, keys, fullRead: true, fillSerial: true);
+    }
+
+    /// <summary>
+    /// Compact JSON for diagnostics/telemetry with the spool-instance identifiers
+    /// (tag UID + tray UID) removed, so they are never sent off-device. All other
+    /// filament attributes are retained for debugging filament-match failures.
+    /// </summary>
+    public string ToDiagnosticJson()
+    {
+        var obj = JObject.FromObject(this);
+        obj.Remove(nameof(SerialNumber));
+        obj.Remove(nameof(TrayUid));
+        return obj.ToString(Formatting.None);
     }
 }

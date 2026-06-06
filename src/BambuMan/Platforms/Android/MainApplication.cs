@@ -1,5 +1,4 @@
 ﻿using Android.App;
-using Android.Provider;
 using Android.Runtime;
 using BambuMan.Implementations;
 using BambuMan.Interfaces;
@@ -22,11 +21,8 @@ namespace BambuMan
 
         public static void InitBuildVersion()
         {
-            var deviceId = Settings.Secure.GetString(Context.ContentResolver, Settings.Secure.AndroidId);
             var context = Context;
             var appInfo = PackageUtils.GetPackageInfo(context.PackageName);
-
-            if (deviceId != null) BuildVersionModel.DeviceId = deviceId;
 
             BuildVersionModel.CurrentBuildVersion = appInfo?.VersionName;
             BuildVersionModel.PackageFullName = appInfo?.PackageName;
@@ -37,10 +33,9 @@ namespace BambuMan
             var logConfig = new LoggerConfiguration();
             logConfig.WriteTo.Debug();
 
-            var deviceId = Settings.Secure.GetString(Context.ContentResolver, Settings.Secure.AndroidId);
             var appInfo = PackageUtils.GetPackageInfo(Context.PackageName);
 
-            MauiProgram.SetupSerilog(logConfig, appInfo?.VersionName, appInfo?.PackageName, deviceId);
+            MauiProgram.SetupSerilog(logConfig, appInfo?.VersionName, appInfo?.PackageName);
         }
     }
 }

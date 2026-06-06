@@ -88,10 +88,19 @@ namespace BambuMan.Shared
                     {
                         options.AddApiHttpClients(client =>
                         {
-                            client.BaseAddress = new Uri(normalizedApiUrl);
-                            client.Timeout = TimeSpan.FromSeconds(5);
+                            var uri = new Uri(normalizedApiUrl);
 
-                            if (!string.IsNullOrEmpty(client.BaseAddress.UserInfo)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(client.BaseAddress.UserInfo)));
+                            // If credentials are embedded in the URL (https://user:pass@host), use them
+                            // for Basic auth but strip them from the base address, so they can't leak into
+                            // logs/telemetry via a request URI in an exception.
+                            if (!string.IsNullOrEmpty(uri.UserInfo))
+                            {
+                                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes(uri.UserInfo)));
+                                uri = new UriBuilder(uri) { UserName = string.Empty, Password = string.Empty }.Uri;
+                            }
+
+                            client.BaseAddress = uri;
+                            client.Timeout = TimeSpan.FromSeconds(5);
 
                         }, builder =>
                         {
@@ -117,7 +126,7 @@ namespace BambuMan.Shared
             }
             else
             {
-                await Log(LogLevel.Warning, $"Can't connect to api. Api response: {health.RawContent}");
+                await Log(LogLevel.Warning, $"Can't connect to api. Api response: {health.RawContent.Truncated()}");
             }
 
             return IsHealth = false;
@@ -234,14 +243,14 @@ namespace BambuMan.Shared
                     }
                     else
                     {
-                        await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add default '{DefaultBambuLabVendor}' vendor. Api response: {vendorAddResponse.RawContent}");
+                        await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add default '{DefaultBambuLabVendor}' vendor. Api response: {vendorAddResponse.RawContent.Truncated()}");
                         return;
                     }
                 }
             }
             else
             {
-                await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add default '{DefaultBambuLabVendor}' vendor. Api response: {bambuLabsVendor.RawContent}");
+                await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add default '{DefaultBambuLabVendor}' vendor. Api response: {bambuLabsVendor.RawContent.Truncated()}");
                 return;
             }
 
@@ -294,7 +303,7 @@ namespace BambuMan.Shared
                         }
                         else
                         {
-                            await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add extra field '{extraFieldModel.Key}'. Api response: {addFieldQuery.RawContent}");
+                            await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add extra field '{extraFieldModel.Key}'. Api response: {addFieldQuery.RawContent.Truncated()}");
                             return;
                         }
                     }
@@ -303,7 +312,7 @@ namespace BambuMan.Shared
                 }
                 else
                 {
-                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't get existing extra fields. Api response: {existingFieldsQuery.RawContent}");
+                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't get existing extra fields. Api response: {existingFieldsQuery.RawContent.Truncated()}");
                     return;
                 }
             }
@@ -344,7 +353,7 @@ namespace BambuMan.Shared
                 }
                 else
                 {
-                    await Log(LogLevel.Warning, $"Background: error loading external filaments. Api response: {allExternalFilaments.RawContent}");
+                    await Log(LogLevel.Warning, $"Background: error loading external filaments. Api response: {allExternalFilaments.RawContent.Truncated()}");
                 }
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -374,7 +383,7 @@ namespace BambuMan.Shared
                 }
                 else
                 {
-                    await Log(LogLevel.Warning, $"Background: error loading spools. Api response: {spoolQuery.RawContent}");
+                    await Log(LogLevel.Warning, $"Background: error loading spools. Api response: {spoolQuery.RawContent.Truncated()}");
                 }
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -493,7 +502,7 @@ namespace BambuMan.Shared
                         spool = spools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{info.TrayUid}\"", StringComparison.CurrentCultureIgnoreCase));
                     else
                     {
-                        await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't load existing spools. Api response: {spoolQuery.RawContent}");
+                        await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't load existing spools. Api response: {spoolQuery.RawContent.Truncated()}");
                         return false;
                     }
                 }
@@ -537,12 +546,12 @@ namespace BambuMan.Shared
                             await Log(LogLevel.Debug, item.ToString());
                         }
 
-                        await LogAndSetStatus(spoolmanErrorLevel, logLevel, "Found more then 1 matching filament", new Exception($"{JsonConvert.SerializeObject(info)}\r\n{string.Join("\t\n", result.Select(x => x.ToString()))}"));
+                        await LogAndSetStatus(spoolmanErrorLevel, logLevel, "Found more then 1 matching filament", new Exception($"{info.ToDiagnosticJson()}\r\n{string.Join("\t\n", result.Select(x => x.ToString()))}"));
                         PlayErrorTone();
                         return null;
                     }
                 case 0:
-                    await LogAndSetStatus(spoolmanErrorLevel, logLevel, "No matching filament found", new Exception($"{JsonConvert.SerializeObject(info)}"));
+                    await LogAndSetStatus(spoolmanErrorLevel, logLevel, "No matching filament found", new Exception($"{info.ToDiagnosticJson()}"));
                     PlayErrorTone();
                     return null;
             }
@@ -591,11 +600,11 @@ namespace BambuMan.Shared
 
                     if (filamentAddResult.TryOk(out var addedFilament)) return addedFilament;
 
-                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add filament. Api response: {filamentAddResult.RawContent}");
+                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add filament. Api response: {filamentAddResult.RawContent.Truncated()}");
                     return null;
                 }
 
-                await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't load existing filaments. Api response: {filamentQuery.RawContent}");
+                await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't load existing filaments. Api response: {filamentQuery.RawContent.Truncated()}");
                 return null;
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -646,7 +655,7 @@ namespace BambuMan.Shared
                 }
                 else
                 {
-                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {spoolAddResult.RawContent}");
+                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {spoolAddResult.RawContent.Truncated()}");
                 }
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -697,7 +706,7 @@ namespace BambuMan.Shared
                 }
                 else
                 {
-                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't update spool. Api response: {spoolUpdateResult.RawContent}");
+                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't update spool. Api response: {spoolUpdateResult.RawContent.Truncated()}");
                 }
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -721,7 +730,7 @@ namespace BambuMan.Shared
                 return updatedSpool;
             }
 
-            await Log(LogLevel.Error, $"Failed to update location: {result.RawContent}");
+            await Log(LogLevel.Error, $"Failed to update location: {result.RawContent.Truncated()}");
             return spool;
         }
 
