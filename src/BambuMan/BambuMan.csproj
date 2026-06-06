@@ -113,7 +113,6 @@
 		<PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.16.0" />
 		<PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.16.0" />
 		<PackageReference Include="UraniumUI.Material" Version="2.16.0" />
-		<PackageReference Include="HorusStudio.Maui.MaterialDesignControls" Version="10.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>

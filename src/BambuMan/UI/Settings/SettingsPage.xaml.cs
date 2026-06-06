@@ -50,8 +50,19 @@ public partial class SettingsPage
         BindingContext = viewModel;
     }
 
-    /// <summary>The active inventory backend, parsed from preferences (defaults to Bambuddy).</summary>
-    public static InventoryBackend GetInventoryBackend() => Enum.TryParse<InventoryBackend>(Preferences.Default.Get(KeyInventoryBackend, nameof(InventoryBackend.Bambuddy)), out var backend) ? backend : InventoryBackend.Bambuddy;
+    /// <summary>
+    /// The active inventory backend. An explicit saved choice always wins; with no saved choice, an upgrade from a
+    /// Spoolman-only build (a Spoolman URL is already stored) keeps Spoolman, while a fresh install defaults to Bambuddy.
+    /// </summary>
+    public static InventoryBackend GetInventoryBackend()
+    {
+        if (Enum.TryParse<InventoryBackend>(Preferences.Default.Get(KeyInventoryBackend, string.Empty), out var backend))
+            return backend;
+
+        // No saved choice yet: keep existing Spoolman users (they already have a Spoolman URL) on Spoolman;
+        // brand-new installs start on Bambuddy.
+        return string.IsNullOrEmpty(Preferences.Default.Get(KeySpoolmanUrl, string.Empty)) ? InventoryBackend.Bambuddy : InventoryBackend.Spoolman;
+    }
 
     protected override async void OnAppearing()
     {
