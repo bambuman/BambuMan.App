@@ -2,13 +2,13 @@
 using BambuMan.Shared;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
+using BambuMan.Shared.Models;
 using BambuMan.Shared.Nfc;
 using BambuMan.UI.Settings;
 using CommunityToolkit.Maui.Core.Platform;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SpoolMan.Api.Model;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
@@ -20,19 +20,17 @@ namespace BambuMan.UI.Main
     {
         private readonly MainPageViewModel viewModel;
 
-        private readonly SpoolmanManager spoolmanManager;
+        private readonly IInventoryBackendResolver backends;
         private readonly ILogger<MainPage> logger;
         private readonly IToneGenerator? toneGenerator;
         private readonly IInvokeIndent invokeIndent;
         private readonly TagApiService tagApiService;
-        private Spool? currentSpool;
-        private BambuFilamentInfo? currentBambuFilamentInfo;
 
-        public MainPage(MainPageViewModel viewModel, SpoolmanManager spoolmanManager, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService)
+        public MainPage(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService)
         {
             InitializeComponent();
 
-            this.spoolmanManager = spoolmanManager;
+            this.backends = backends;
 
             this.logger = logger;
             this.toneGenerator = toneGenerator;
@@ -57,13 +55,11 @@ namespace BambuMan.UI.Main
             viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
             viewModel.FullTagScanAndUpload = Preferences.Default.Get(SettingsPage.FullTagScanAndUpload, false);
 
-            spoolmanManager.AppVersion = BuildVersionModel.CurrentBuildVersion;
-            spoolmanManager.ShowLogs = true;
-            spoolmanManager.ApiUrl = Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
-            spoolmanManager.UnknownFilamentEnabled = Preferences.Default.Get(SettingsPage.UnknownFilamentEnabled, true);
         }
 
-        private async void SpoolmanManagerOnPlayErrorTone()
+        private BaseManager ActiveManager => backends.Resolve(SettingsPage.GetInventoryBackend());
+
+        private async void ManagerOnPlayErrorTone()
         {
             try
             {
@@ -71,20 +67,17 @@ namespace BambuMan.UI.Main
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error in SpoolmanManagerOnPlayErrorTone");
+                logger.LogError(e, "Error in ManagerOnPlayErrorTone");
             }
         }
 
-        private async void SpoolmanManagerOnSpoolFound(Spool spool, BambuFilamentInfo info)
+        private async void ManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
         {
             try
             {
-                viewModel.InventorySpool(spool, info);
+                viewModel.InventorySpool(found, info);
 
-                currentSpool = spool;
-                currentBambuFilamentInfo = info;
-
-                viewModel.ShowSpool(spool);
+                viewModel.ShowSpool(found);
 
                 if (viewModel.ShowKeyboardOnSpoolRead)
                 {
@@ -96,11 +89,11 @@ namespace BambuMan.UI.Main
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error in SpoolmanManagerOnSpoolFound");
+                logger.LogError(e, "Error in ManagerOnSpoolFound");
             }
         }
 
-        private async void SpoolmanManagerOnShowMessage(bool isError, string message)
+        private async void ManagerOnShowMessage(bool isError, string message)
         {
             try
             {
@@ -116,11 +109,11 @@ namespace BambuMan.UI.Main
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error in SpoolmanManagerOnShowMessage");
+                logger.LogError(e, "Error in ManagerOnShowMessage");
             }
         }
 
-        private async void SpoolmanManagerOnLogMessage(LogLevel level, string message)
+        private async void ManagerOnLogMessage(LogLevel level, string message)
         {
             try
             {
@@ -128,36 +121,38 @@ namespace BambuMan.UI.Main
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error in SpoolmanManagerOnLogMessage");
+                logger.LogError(e, "Error in ManagerOnLogMessage");
             }
         }
 
-        private async void SpoolmanManagerOnStatusChanged()
+        private async void ManagerOnStatusChanged()
         {
             try
             {
-                if (viewModel.SpoolmanConnecting && spoolmanManager.Status == ManagerStatusType.Ready) await viewModel.ShowInfoMessage("Ready to read spools.");
+                var manager = ActiveManager;
 
-                if (spoolmanManager.Status >= ManagerStatusType.Ready) viewModel.SpoolmanConnecting = false;
+                if (viewModel.SpoolmanConnecting && manager.Status == ManagerStatusType.Ready) await viewModel.ShowInfoMessage("Ready to read spools.");
 
-                await viewModel.Validate(spoolmanManager);
+                if (manager.Status >= ManagerStatusType.Ready) viewModel.SpoolmanConnecting = false;
+
+                await viewModel.Validate(manager);
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error in SpoolmanManagerOnStatusChanged");
+                logger.LogError(e, "Error in ManagerOnStatusChanged");
             }
         }
 
 
-        private void SpoolmanManagerOnLocationsLoaded()
+        private void ManagerOnLocationsLoaded()
         {
-            viewModel.ExistingLocations = spoolmanManager?.ExistingLocations ?? [];
+            viewModel.ExistingLocations = ActiveManager.ExistingLocations;
         }
 
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(MainPageViewModel.OverrideLocationOnRead))
-                spoolmanManager.OverrideLocationOnRead = viewModel.OverrideLocationOnRead;
+                foreach (var manager in backends.All) manager.OverrideLocationOnRead = viewModel.OverrideLocationOnRead;
         }
 
         protected override async void OnAppearing()
@@ -166,7 +161,7 @@ namespace BambuMan.UI.Main
             {
                 base.OnAppearing();
                 await SetupEventSubscriptionsAsync();
-                await InitializeSpoolmanAsync();
+                await InitializeBackendsAsync();
                 await SetupNfcAsync();
 #if !GOOGLE_PLAY
                 await CheckVersion().ConfigureAwait(false);
@@ -182,38 +177,41 @@ namespace BambuMan.UI.Main
         {
             try
             {
-                spoolmanManager.OnStatusChanged += SpoolmanManagerOnStatusChanged;
-                spoolmanManager.OnLogMessage += SpoolmanManagerOnLogMessage;
-                spoolmanManager.OnShowMessage += SpoolmanManagerOnShowMessage;
-                spoolmanManager.OnSpoolFound += SpoolmanManagerOnSpoolFound;
-                spoolmanManager.OnPlayErrorTone += SpoolmanManagerOnPlayErrorTone;
-                spoolmanManager.OnLocationsLoaded += SpoolmanManagerOnLocationsLoaded;
+                foreach (var manager in backends.All)
+                {
+                    manager.OnStatusChanged += ManagerOnStatusChanged;
+                    manager.OnLogMessage += ManagerOnLogMessage;
+                    manager.OnShowMessage += ManagerOnShowMessage;
+                    manager.OnPlayErrorTone += ManagerOnPlayErrorTone;
+                    manager.OnSpoolFound += ManagerOnSpoolFound;
+                    manager.OnLocationsLoaded += ManagerOnLocationsLoaded;
+                }
+
                 viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
                 viewModel.ShowSpoolEdit = false;
-                currentSpool = null;
-                currentBambuFilamentInfo = null;
 
                 viewModel.ShowLogsOnMainPage = Preferences.Default.Get(SettingsPage.ShowLogsOnMainPage, true);
                 viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
-                viewModel.OverrideLocationOnRead = spoolmanManager.OverrideLocationOnRead;
-                viewModel.ExistingLocations = spoolmanManager.ExistingLocations ?? [];
 
-                var newUrl = Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
-                var urlChanged = newUrl != spoolmanManager.ApiUrl;
-                spoolmanManager.ApiUrl = newUrl;
-                spoolmanManager.UnknownFilamentEnabled = Preferences.Default.Get(SettingsPage.UnknownFilamentEnabled, true);
-                spoolmanManager.HasNetworkAccess = () => Connectivity.Current.NetworkAccess == NetworkAccess.Internet;
+                var active = ActiveManager;
+                var activeChanged = ConfigureBackends(active);
 
-                // Only show connecting animation if URL changed or not yet initialized
-                if (urlChanged || !spoolmanManager.IsInitialized)
+                viewModel.OverrideLocationOnRead = active.OverrideLocationOnRead;
+                viewModel.ExistingLocations = active.ExistingLocations;
+                viewModel.BackendLabel = active.Backend.ToString().ToUpperInvariant();
+                viewModel.ShowBuyDate = active.EditFields.BuyDate;
+                viewModel.ShowLotNr = active.EditFields.LotNr;
+
+                // Only show connecting animation if the active backend's config changed or it's not yet initialized
+                if (activeChanged || !active.IsInitialized)
                 {
                     viewModel.SpoolmanOk = false;
                     viewModel.SpoolmanConnecting = true;
                 }
 
                 //viewModel.Logs.Clear();
-                await viewModel.Validate(spoolmanManager);
+                await viewModel.Validate(active);
             }
             catch (Exception e)
             {
@@ -221,17 +219,62 @@ namespace BambuMan.UI.Main
             }
         }
 
-        private async Task InitializeSpoolmanAsync()
+        /// <summary>Push current settings onto every backend; returns whether the ACTIVE backend's config changed (URL/key).</summary>
+        private bool ConfigureBackends(BaseManager active)
         {
-            try
+            var unknownFilamentEnabled = Preferences.Default.Get(SettingsPage.UnknownFilamentEnabled, true);
+            bool HasNetwork() => Connectivity.Current.NetworkAccess == NetworkAccess.Internet;
+
+            var activeChanged = false;
+
+            foreach (var manager in backends.All)
             {
-                await spoolmanManager.Init();
-                _ = spoolmanManager.RefreshLocationsAsync();
+                manager.AppVersion = BuildVersionModel.CurrentBuildVersion;
+                manager.ShowLogs = true;
+                manager.UnknownFilamentEnabled = unknownFilamentEnabled;
+                manager.HasNetworkAccess = HasNetwork;
+
+                var changed = false;
+
+                switch (manager.Backend)
+                {
+                    case InventoryBackend.Spoolman:
+                        var spoolmanUrl = Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
+                        changed = spoolmanUrl != manager.ApiUrl;
+                        manager.ApiUrl = spoolmanUrl;
+                        break;
+
+                    case InventoryBackend.Bambuddy when manager is BambuddyManager bambuddy:
+                        var bambuddyUrl = Preferences.Default.Get(SettingsPage.KeyBambuddyUrl, string.Empty);
+                        var bambuddyApiKey = Preferences.Default.Get(SettingsPage.KeyBambuddyApiKey, string.Empty);
+                        changed = bambuddyUrl != bambuddy.ApiUrl || bambuddyApiKey != bambuddy.ApiKey;
+                        bambuddy.ApiUrl = bambuddyUrl;
+                        bambuddy.ApiKey = bambuddyApiKey;
+                        if (changed) bambuddy.ResetInitialization();
+                        break;
+                }
+
+                if (manager.Backend == active.Backend) activeChanged = changed;
             }
-            catch (Exception e)
+
+            return activeChanged;
+        }
+
+        private async Task InitializeBackendsAsync()
+        {
+            foreach (var manager in backends.All)
             {
-                logger.LogError(e, "Error in SpoolmanManager.Init");
+                try
+                {
+                    await manager.Init();
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error initializing {Backend}", manager.Backend);
+                }
             }
+
+            _ = ActiveManager.RefreshLocationsAsync();
         }
 
         private async Task SetupNfcAsync()
@@ -246,7 +289,7 @@ namespace BambuMan.UI.Main
                     viewModel.NfcIsEnabled = CrossNfc.Current.IsEnabled;
                     viewModel.NfcText = CrossNfc.Current.IsEnabled ? "NFC ENABLED" : "NFC DISABLED";
 
-                    await viewModel.Validate(spoolmanManager);
+                    await viewModel.Validate(ActiveManager);
 
                     if (DeviceInfo.Platform == DevicePlatform.iOS) viewModel.IsDeviceOs = true;
 
@@ -263,12 +306,16 @@ namespace BambuMan.UI.Main
         {
             base.OnDisappearing();
 
-            spoolmanManager.OnStatusChanged -= SpoolmanManagerOnStatusChanged;
-            spoolmanManager.OnLogMessage -= SpoolmanManagerOnLogMessage;
-            spoolmanManager.OnShowMessage -= SpoolmanManagerOnShowMessage;
-            spoolmanManager.OnSpoolFound -= SpoolmanManagerOnSpoolFound;
-            spoolmanManager.OnPlayErrorTone -= SpoolmanManagerOnPlayErrorTone;
-            spoolmanManager.OnLocationsLoaded -= SpoolmanManagerOnLocationsLoaded;
+            foreach (var manager in backends.All)
+            {
+                manager.OnStatusChanged -= ManagerOnStatusChanged;
+                manager.OnLogMessage -= ManagerOnLogMessage;
+                manager.OnShowMessage -= ManagerOnShowMessage;
+                manager.OnPlayErrorTone -= ManagerOnPlayErrorTone;
+                manager.OnSpoolFound -= ManagerOnSpoolFound;
+                manager.OnLocationsLoaded -= ManagerOnLocationsLoaded;
+            }
+
             viewModel.PropertyChanged -= ViewModel_PropertyChanged;
         }
 
@@ -421,7 +468,7 @@ namespace BambuMan.UI.Main
                 viewModel.NfcIsEnabled = isEnabled;
                 viewModel.NfcText = isEnabled ? "NFC ENABLED" : "NFC DISABLED";
 
-                await viewModel.Validate(spoolmanManager);
+                await viewModel.Validate(ActiveManager);
             }
             catch (Exception ex)
             {
@@ -466,7 +513,10 @@ namespace BambuMan.UI.Main
                     var defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
 
                     await viewModel.ClearMessages();
-                    await spoolmanManager.InventorySpool(bambuFilamentInfo, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+
+                    var active = ActiveManager;
+                    SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
+                    await active.InventorySpool(bambuFilamentInfo, buyDate, defaultPrice, defaultLotNr, defaultLocation);
 
                     if (viewModel.FullTagScanAndUpload)
                     {
@@ -593,7 +643,8 @@ namespace BambuMan.UI.Main
                     var defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
 
                     await viewModel.ClearMessages();
-                    await spoolmanManager.InventorySpool(bambuFilamentInfo!, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+
+                    await ActiveManager.InventorySpool(bambuFilamentInfo!, buyDate, defaultPrice, defaultLotNr, defaultLocation);
 
                     await Task.Delay(2000);
                 }
@@ -611,8 +662,6 @@ namespace BambuMan.UI.Main
                 await TfSpoolWeight.EntryView.HideKeyboardAsync(CancellationToken.None);
 
                 viewModel.ShowSpoolEdit = false;
-                currentSpool = null;
-                currentBambuFilamentInfo = null;
             }
             catch (Exception ex)
             {
@@ -665,25 +714,21 @@ namespace BambuMan.UI.Main
 
                 FormView.Submit();
 
-                if (!FormView.IsValidated || currentSpool == null) return;
+                if (!FormView.IsValidated) return;
 
                 await TfSpoolWeight.EntryView.HideKeyboardAsync(CancellationToken.None);
 
-                await spoolmanManager.UpdateSpool(
-                    currentSpool,
-                    viewModel.SpoolBuyDate,
+                var input = new SpoolEditInput(
+                    viewModel.SpoolWeight,
+                    viewModel.SpoolEmptyWeight,
                     viewModel.SpoolPrice,
+                    viewModel.SpoolBuyDate,
                     viewModel.SpoolLotNr,
-                    viewModel.SpoolLocation,
-                    viewModel.SpoolEmptyWeight.GetValueOrDefault(),
-                    viewModel.SpoolInitialWeight.GetValueOrDefault(),
-                    viewModel.SpoolWeight.GetValueOrDefault(),
-                    currentBambuFilamentInfo?.TrayUid,
-                    currentBambuFilamentInfo?.ProductionDateTime);
+                    viewModel.SpoolLocation);
+
+                await ActiveManager.UpdateCurrentSpoolAsync(input);
 
                 viewModel.ShowSpoolEdit = false;
-                currentSpool = null;
-                currentBambuFilamentInfo = null;
             }
             catch (Exception ex)
             {

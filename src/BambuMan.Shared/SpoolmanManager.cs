@@ -16,12 +16,6 @@ namespace BambuMan.Shared
 {
     public class SpoolmanManager(ILogger<SpoolmanManager>? logger) : BaseManager(logger)
     {
-        public delegate void LocationsLoadedEventHandler();
-        public delegate void SpoolFoundEventHandler(Spool spool, BambuFilamentInfo info);
-
-        public event LocationsLoadedEventHandler? OnLocationsLoaded;
-        public event SpoolFoundEventHandler? OnSpoolFound;
-
         public const string DefaultBambuLabVendor = "Bambu Lab";
         public const string ExtraBuyDate = "buy_date";
         public const string ExtraTag = "tag";
@@ -33,11 +27,16 @@ namespace BambuMan.Shared
         private readonly Lock filamentLock = new();
         private readonly Lock spoolLock = new();
 
+        // The spool most recently surfaced via OnSpoolFound, retained for UpdateCurrentSpoolAsync.
+        private Spool? currentSpool;
+        private BambuFilamentInfo? currentInfo;
+
+        /// <summary>The full Spool most recently surfaced via OnSpoolFound (for consumers needing richer data than <see cref="SpoolFound"/>, e.g. the desktop app).</summary>
+        public Spool? CurrentSpool => currentSpool;
+
         public SpoolManDefaults Defaults { get; } = new();
 
         public Vendor? BambuLabsVendor { get; set; }
-
-        public string[] ExistingLocations { get; set; } = [];
 
         /// <summary>
         /// All external filaments
@@ -71,7 +70,9 @@ namespace BambuMan.Shared
 
         #region BaseManager overrides
 
-        protected override string BackendName => "Spoolman";
+        public override InventoryBackend Backend => InventoryBackend.Spoolman;
+
+        public override SpoolEditFields EditFields => new(BuyDate: true, LotNr: true);
 
         protected override string NormalizeApiUrl(string apiUrl)
         {
@@ -397,7 +398,7 @@ namespace BambuMan.Shared
             }
         }
 
-        public async Task RefreshLocationsAsync()
+        public override async Task RefreshLocationsAsync()
         {
             try
             {
@@ -423,7 +424,7 @@ namespace BambuMan.Shared
             {
                 ExistingLocations = JsonConvert.DeserializeObject<string[]>(locations.Value) ?? [];
 
-                OnLocationsLoaded?.Invoke();
+                RaiseLocationsLoaded();
             }
 
             #endregion
@@ -435,10 +436,10 @@ namespace BambuMan.Shared
             if (ExistingLocations.Any(l => l.EqualsCI(location))) return;
 
             ExistingLocations = [.. ExistingLocations, location];
-            OnLocationsLoaded?.Invoke();
+            RaiseLocationsLoaded();
         }
 
-        public async Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
+        public override async Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
             if (ApiHost == null) return false;
 
@@ -508,7 +509,7 @@ namespace BambuMan.Shared
 
                     ShowMessage(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
                     await Log(LogLevel.Success, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
-                    OnSpoolFound?.Invoke(spool, info);
+                    OnSpoolInventoried(spool, info);
                 }
 
                 return result;
@@ -641,7 +642,7 @@ namespace BambuMan.Shared
                     TrackNewLocation(location);
                     ShowMessage(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
                     await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
-                    OnSpoolFound?.Invoke(addedSpool, info);
+                    OnSpoolInventoried(addedSpool, info);
                 }
                 else
                 {
@@ -722,6 +723,40 @@ namespace BambuMan.Shared
 
             await Log(LogLevel.Error, $"Failed to update location: {result.RawContent}");
             return spool;
+        }
+
+        private void OnSpoolInventoried(Spool spool, BambuFilamentInfo info)
+        {
+            currentSpool = spool;
+            currentInfo = info;
+            RaiseSpoolFound(BuildSpoolFound(spool, info), info);
+        }
+
+        private static SpoolFound BuildSpoolFound(Spool spool, BambuFilamentInfo info) => new(
+            Material: spool.Filament.Material,
+            TrayUid: info.TrayUid,
+            Weight: spool.SpoolWeight.GetValueOrDefault() + spool.InitialWeight.GetValueOrDefault() - spool.UsedWeight,
+            EmptyWeight: spool.SpoolWeight,
+            Price: spool.Price,
+            BuyDate: spool.Extra.TryGetValue(ExtraBuyDate, out var buyDateOut) && DateTime.TryParse(buyDateOut.Replace("\"", ""), out var buyDate) ? buyDate : null,
+            LotNr: spool.LotNr,
+            Location: spool.Location);
+
+        public override async Task UpdateCurrentSpoolAsync(SpoolEditInput input)
+        {
+            if (currentSpool == null) return;
+
+            await UpdateSpool(
+                currentSpool,
+                input.BuyDate,
+                input.Price,
+                input.LotNr,
+                input.Location,
+                input.EmptyWeight.GetValueOrDefault(),
+                currentSpool.InitialWeight.GetValueOrDefault(),
+                input.Weight.GetValueOrDefault(),
+                currentInfo?.TrayUid,
+                currentInfo?.ProductionDateTime);
         }
     }
 }

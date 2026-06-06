@@ -10,6 +10,8 @@
         {
             InitializeComponent();
 
+            HorusStudio.Maui.MaterialDesignControls.MaterialDesignControls.InitializeComponents();
+
             Preferences.Default.Set("default_buy_date", $"{DateTime.Today:yyyy-MM-dd}");
 
             // UraniumUI controls cache theme colors at construction time (issue #660).

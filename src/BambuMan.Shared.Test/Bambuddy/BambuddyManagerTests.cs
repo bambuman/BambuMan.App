@@ -16,10 +16,12 @@ namespace BambuMan.Shared.Test.Bambuddy
             var create = BambuddyManager.BuildSpoolCreate(info, matched: null, price: 25m, location: "Shelf A");
 
             Assert.Equal("ABS", create.Material);
-            Assert.Equal("ABS", create.Subtype);
+            Assert.Null(create.Subtype); // detailed "ABS" == material -> no subtype
+            Assert.Equal("GFB00", create.SlicerFilament); // tray_info_idx = "G" + FB00
+            Assert.Equal("Bambu ABS", create.SlicerFilamentName);
             Assert.Equal("FFFFFFFF", create.Rgba);
             Assert.Equal("FFFFFFFF", create.ColorName);
-            Assert.Equal("Bambu Lab", create.Brand);
+            Assert.Equal("Bambu", create.Brand);
             Assert.Equal(1000, create.LabelWeight);
             Assert.Equal(250, create.CoreWeight);
             Assert.Equal(240, create.NozzleTempMin);
@@ -28,6 +30,31 @@ namespace BambuMan.Shared.Test.Bambuddy
             Assert.Equal("nfc_scan", create.DataOrigin);
             Assert.Equal("bambu_rfid", create.TagType);
             Assert.Equal(25m, create.CostPerKg); // 25 / (1000 / 1000)
+        }
+
+        [Fact(DisplayName = "BuildSpoolCreate strips the material prefix off the subtype and maps the slicer preset")]
+        public void BuildSpoolCreate_StripsSubtypePrefixAndMapsSlicerPreset()
+        {
+            var info = JsonConvert.DeserializeObject<BambuFilamentInfo>(SampleTags.PlaWood)!;
+
+            var create = BambuddyManager.BuildSpoolCreate(info, matched: null, price: null, location: null);
+
+            Assert.Equal("PLA", create.Material);
+            Assert.Equal("Wood", create.Subtype); // "PLA Wood" -> "Wood"
+            Assert.Equal("GFA16", create.SlicerFilament); // tray_info_idx = "G" + FA16 (Bambu PLA Wood)
+            Assert.Equal("Bambu PLA Wood", create.SlicerFilamentName);
+        }
+
+        [Fact(DisplayName = "BuildSpoolCreate normalizes an Aero variant to the base material with no subtype")]
+        public void BuildSpoolCreate_NormalizesAeroToBaseMaterial()
+        {
+            var info = JsonConvert.DeserializeObject<BambuFilamentInfo>(SampleTags.AsaAero)!;
+
+            var create = BambuddyManager.BuildSpoolCreate(info, matched: null, price: null, location: null);
+
+            Assert.Equal("ASA", create.Material); // "ASA Aero" -> base "ASA"
+            Assert.Null(create.Subtype);          // Aero finish lives in the slicer preset, not the subtype
+            Assert.Equal("GFB02", create.SlicerFilament); // Bambu ASA-Aero
         }
 
         [Fact(DisplayName = "BuildSpoolCreate converts price by label weight")]

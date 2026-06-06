@@ -2,7 +2,6 @@
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
-using SpoolMan.Api.Model;
 using System.Collections.ObjectModel;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
@@ -40,6 +39,12 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private bool spoolmanOk;
 
         [ObservableProperty] private bool spoolmanConnecting = true;
+
+        [ObservableProperty] private string backendLabel = "SPOOLMAN";
+
+        // Edit-panel field visibility, driven by the active backend's BaseManager.EditFields.
+        [ObservableProperty] private bool showBuyDate = true;
+        [ObservableProperty] private bool showLotNr = true;
 
         [ObservableProperty] private string nfcText = "NFC ENABLED";
 
@@ -104,35 +109,34 @@ namespace BambuMan.UI.Main
             return logService.AddLog(level, text);
         }
 
-        public void ShowSpool(Spool spool)
+        public void ShowSpool(SpoolFound found)
         {
-            SpoolWeight = spool.SpoolWeight.GetValueOrDefault() + spool.InitialWeight.GetValueOrDefault() - spool.UsedWeight;
-            SpoolInitialWeight = spool.InitialWeight;
-            SpoolEmptyWeight = spool.SpoolWeight;
-            SpoolPrice = spool.Price;
-            SpoolBuyDate = spool.Extra.TryGetValue(SpoolmanManager.ExtraBuyDate, out var buyDateOut) ? DateTime.TryParse(buyDateOut.Replace("\"", ""), out var buyDate) ? buyDate : null : null;
-            SpoolLotNr = spool.LotNr;
-            SpoolLocation = spool.Location;
+            SpoolWeight = found.Weight;
+            SpoolEmptyWeight = found.EmptyWeight;
+            SpoolPrice = found.Price;
+            SpoolBuyDate = found.BuyDate;
+            SpoolLotNr = found.LotNr;
+            SpoolLocation = found.Location;
             ShowSpoolEdit = true;
         }
 
-        public async Task Validate(SpoolmanManager spoolmanManager)
+        public async Task Validate(BaseManager manager)
         {
             await ClearMessages();
 
-            if (string.IsNullOrEmpty(spoolmanManager.ApiUrl))
+            if (string.IsNullOrEmpty(manager.ApiUrl))
             {
-                await ShowErrorMessage("Spoolman url is missing, please fill in settings page!");
+                await ShowErrorMessage("Inventory server url is missing, please fill in settings page!");
                 return;
             }
 
             SettingsOk = true;
 
-            SpoolmanOk = spoolmanManager.Status == ManagerStatusType.Ready;
+            SpoolmanOk = manager.Status == ManagerStatusType.Ready;
 
-            if (!SpoolmanConnecting && !spoolmanManager.IsHealth)
+            if (!SpoolmanConnecting && !manager.IsHealth)
             {
-                await ShowErrorMessage("Spoolman api is not healthy");
+                await ShowErrorMessage("Inventory api is not healthy");
                 return;
             }
 
@@ -140,9 +144,9 @@ namespace BambuMan.UI.Main
                 await ShowErrorMessage("NFC is not enabled. Check if you're phone supports nfc.");
         }
 
-        public void InventorySpool(Spool spool, BambuFilamentInfo info)
+        public void InventorySpool(SpoolFound found, BambuFilamentInfo info)
         {
-            inventoryService.InventorySpool(spool, info);
+            inventoryService.InventorySpool(found, info);
             HasInventoryItems = inventoryService.HasItems;
         }
 

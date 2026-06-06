@@ -1,6 +1,6 @@
 using BambuMan.Shared;
+using BambuMan.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
-using SpoolMan.Api.Model;
 using System.Collections.ObjectModel;
 
 namespace BambuMan
@@ -11,30 +11,30 @@ namespace BambuMan
 
         public bool HasItems => Inventory.Count > 0;
 
-        public void InventorySpool(Spool spool, BambuFilamentInfo info)
+        public void InventorySpool(SpoolFound found, BambuFilamentInfo info)
         {
-            if (info.TrayUid == null) return;
+            if (string.IsNullOrEmpty(info.TrayUid)) return;
 
-            if (MainThread.IsMainThread) InventorySpoolCore(spool, info);
-            else MainThread.BeginInvokeOnMainThread(() => InventorySpoolCore(spool, info));
+            if (MainThread.IsMainThread) InventorySpoolCore(found, info);
+            else MainThread.BeginInvokeOnMainThread(() => InventorySpoolCore(found, info));
         }
 
-        private void InventorySpoolCore(Spool spool, BambuFilamentInfo info)
+        private void InventorySpoolCore(SpoolFound found, BambuFilamentInfo info)
         {
-            if (info.TrayUid == null) return;
+            if (string.IsNullOrEmpty(info.TrayUid)) return;
 
-            var inventoryModel = Inventory.FirstOrDefault(x => x.Material == spool.Filament.Material);
+            var inventoryModel = Inventory.FirstOrDefault(x => x.Material == found.Material);
 
             if (inventoryModel == null)
             {
-                Inventory.Add(new InventoryModel(spool.Filament.Material, info.TrayUid!));
+                Inventory.Add(new InventoryModel(found.Material, info.TrayUid));
                 return;
             }
 
-            if (!inventoryModel.Tags.Contains(info.TrayUid!))
+            if (!inventoryModel.Tags.Contains(info.TrayUid))
             {
                 inventoryModel.Quantity++;
-                inventoryModel.Tags.Add(info.TrayUid!);
+                inventoryModel.Tags.Add(info.TrayUid);
             }
         }
 

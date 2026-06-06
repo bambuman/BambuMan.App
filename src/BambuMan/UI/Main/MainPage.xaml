@@ -68,7 +68,7 @@
                             </Image.Source>
                         </Image>
 
-                        <Label Margin="0" Padding="8,4,8,4" FontSize="13" HeightRequest="26" HorizontalTextAlignment="Center" Text="SPOOLMAN"></Label>
+                        <Label Margin="0" Padding="8,4,8,4" FontSize="13" HeightRequest="26" HorizontalTextAlignment="Center" Text="{Binding BackendLabel}"></Label>
                     </HorizontalStackLayout>
                 </Border>
                 <Border Grid.Column="2" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
@@ -155,7 +155,7 @@
 
             <VerticalStackLayout HorizontalOptions="Center" Margin="0,20,0,20" IsVisible="{Binding SpoolmanConnecting}">
                 <ActivityIndicator IsRunning="true" HeightRequest="110" />
-                <Label Text="Connecting to Spoolman, please wait ..." Margin="0,10,0,0" FontAttributes="Bold"></Label>
+                <Label Text="Connecting, please wait ..." Margin="0,10,0,0" FontAttributes="Bold"></Label>
             </VerticalStackLayout>
 
             <Border Stroke="{AppThemeBinding Light={StaticResource SpoolCardStroke}, Dark={StaticResource SpoolCardStrokeDark}}" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Background="{AppThemeBinding Light={StaticResource SpoolCardBackground}, Dark={StaticResource SpoolCardBackgroundDark}}" Margin="0,0,0,5" Padding="5" IsVisible="{Binding ShowSpoolEdit}">
@@ -163,36 +163,35 @@
                     <Label Text="Spool info:" FontAttributes="Bold"></Label>
 
                     <input:FormView x:Name="FormView" Padding="0" Margin="0">
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*,*" ColumnSpacing="5" RowSpacing="5" Margin="5,5,0,0" Padding="0">
+                        <!-- FlexLayout so hidden fields (Bambuddy: Buy date / Lot nr) reflow without leaving gaps -->
+                        <FlexLayout Wrap="Wrap" JustifyContent="SpaceBetween" AlignItems="Start" Margin="5">
 
-                            <material:TextField x:Name="TfSpoolWeight" Grid.Column="0" Grid.Row="0" Title="Weight (g):" Keyboard="Numeric" Text="{Binding SpoolWeight,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Weight}}">
+                            <material:TextField x:Name="TfSpoolWeight" FlexLayout.Basis="49%" Margin="0" Title="Weight (g):" Keyboard="Numeric" Text="{Binding SpoolWeight,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Weight}}">
                                 <validation:NumericValidation />
                                 <validation:MinValueValidation MinValue="0" />
                             </material:TextField>
 
-                            <material:TextField x:Name="TfSpoolEmptyWeight" Grid.Column="1" Grid.Row="0" Title="Empty weight (g):" Keyboard="Numeric" Text="{Binding SpoolEmptyWeight,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Settings_backup_restore}}">
+                            <material:TextField x:Name="TfSpoolEmptyWeight" FlexLayout.Basis="49%" Margin="0" Title="Empty weight (g):" Keyboard="Numeric" Text="{Binding SpoolEmptyWeight,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Settings_backup_restore}}">
                                 <validation:NumericValidation />
                                 <validation:MinValueValidation MinValue="0" />
                             </material:TextField>
 
-                            <material:TextField x:Name="TfSpoolPrice" Grid.Column="0" Grid.Row="1" Title="Price:" Keyboard="Numeric" AllowClear="True" Text="{Binding SpoolPrice,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}">
+                            <material:TextField x:Name="TfSpoolPrice" FlexLayout.Basis="49%" Margin="0" Title="Price:" Keyboard="Numeric" AllowClear="True" Text="{Binding SpoolPrice,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}">
                                 <validation1:NumericNullableValidation  />
                                 <validation:MinValueValidation MinValue="0" />
                             </material:TextField>
 
-                            <controls:NullableDatePickerField x:Name="TfSpoolBuyDate" Grid.Column="1" Grid.Row="1" Title="Buy date:" Date="{Binding SpoolBuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
+                            <controls:NullableDatePickerField x:Name="TfSpoolBuyDate" FlexLayout.Basis="49%" Margin="0" IsVisible="{Binding ShowBuyDate}" Title="Buy date:" Date="{Binding SpoolBuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
 
-                            <material:TextField x:Name="TfSpoolLotNr" Grid.Column="0" Grid.Row="2" Title="Lot nr:" AllowClear="True" Text="{Binding SpoolLotNr,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
+                            <material:TextField x:Name="TfSpoolLotNr" FlexLayout.Basis="49%" Margin="0" IsVisible="{Binding ShowLotNr}" Title="Lot nr:" AllowClear="True" Text="{Binding SpoolLotNr,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
 
-                            <material:AutoCompleteTextField x:Name="TfSpoolLocation" Grid.Column="1" Grid.Row="2" Title="Location:" Threshold="1" Text="{Binding SpoolLocation,Mode=TwoWay}" AllowClear="True" ItemsSource="{Binding ExistingLocations}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
+                            <material:AutoCompleteTextField x:Name="TfSpoolLocation" FlexLayout.Basis="49%" Margin="0" Title="Location:" Threshold="1" Text="{Binding SpoolLocation,Mode=TwoWay}" AllowClear="True" ItemsSource="{Binding ExistingLocations}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
 
-                            <!--<material:TextField x:Name="TfSpoolLocation" Grid.Column="1" Grid.Row="2" TextColor="Black" Title="Location:" AllowClear="True" Text="{Binding SpoolLocation,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />-->
+                            <Button FlexLayout.Basis="49%" Margin="0,5,0,0" BackgroundColor="{AppThemeBinding Light={StaticResource TertiaryButtonBackground}, Dark={StaticResource TertiaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource TertiaryButtonText}, Dark={StaticResource TertiaryButtonTextDark}}" Text="Cancel" Clicked="CloseButton_OnClicked"/>
 
-                            <Button Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="1" BackgroundColor="{AppThemeBinding Light={StaticResource TertiaryButtonBackground}, Dark={StaticResource TertiaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource TertiaryButtonText}, Dark={StaticResource TertiaryButtonTextDark}}" Text="Cancel" Clicked="CloseButton_OnClicked"/>
+                            <Button FlexLayout.Basis="49%" Margin="0,5,0,0" StyleClass="FilledButton" Text="Save changes" Clicked="SaveChanges_OnClicked"/>
 
-                            <Button Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="1" StyleClass="FilledButton" Text="Save changes" Clicked="SaveChanges_OnClicked"/>
-
-                        </Grid>
+                        </FlexLayout>
                     </input:FormView>
                 </VerticalStackLayout>
             </Border>

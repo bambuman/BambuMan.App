@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Models;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.Shared
@@ -16,17 +17,30 @@ namespace BambuMan.Shared
         public delegate void ShowMessageEventHandler(bool isError, string message);
         public delegate void LogMessageEventHandler(LogLevel level, string message);
         public delegate void PlayErrorToneEventHandler();
+        public delegate void SpoolFoundEventHandler(SpoolFound found, BambuFilamentInfo info);
+        public delegate void LocationsLoadedEventHandler();
 
         public event StatusChangedEventHandler? OnStatusChanged;
         public event ShowMessageEventHandler? OnShowMessage;
         public event LogMessageEventHandler? OnLogMessage;
         public event PlayErrorToneEventHandler? OnPlayErrorTone;
+        public event SpoolFoundEventHandler? OnSpoolFound;
+        public event LocationsLoadedEventHandler? OnLocationsLoaded;
 
         /// <summary>Raise <see cref="OnShowMessage"/> from a subclass (base events can only be invoked here).</summary>
         protected void ShowMessage(bool isError, string message) => OnShowMessage?.Invoke(isError, message);
 
         /// <summary>Raise <see cref="OnPlayErrorTone"/> from a subclass.</summary>
         protected void PlayErrorTone() => OnPlayErrorTone?.Invoke();
+
+        /// <summary>Raise <see cref="OnSpoolFound"/> from a subclass. Pass the scanned <paramref name="info"/> so consumers can read raw tag fields without extending <see cref="SpoolFound"/>.</summary>
+        protected void RaiseSpoolFound(SpoolFound found, BambuFilamentInfo info) => OnSpoolFound?.Invoke(found, info);
+
+        /// <summary>Raise <see cref="OnLocationsLoaded"/> from a subclass.</summary>
+        protected void RaiseLocationsLoaded() => OnLocationsLoaded?.Invoke();
+
+        /// <summary>Known storage locations for the location autocomplete (backend-specific; empty when unsupported).</summary>
+        public string[] ExistingLocations { get; protected set; } = [];
 
         private string? initializedApiUrl;
         private bool isInitialized;
@@ -53,6 +67,14 @@ namespace BambuMan.Shared
         public bool IsInitialized => isInitialized;
 
         public ManagerStatusType Status { get; private set; } = ManagerStatusType.Initializing;
+
+        /// <summary>Force the next <see cref="Init"/> to fully re-initialize (rebuild the API host), e.g. after credentials change.</summary>
+        public void ResetInitialization()
+        {
+            isInitialized = false;
+            initializedApiUrl = null;
+            ResetInitState();
+        }
 
         public async Task Init()
         {
@@ -174,8 +196,14 @@ namespace BambuMan.Shared
 
         #region Backend-specific hooks
 
-        /// <summary>Human-readable backend name used in status/log messages (e.g. "Spoolman", "Bambuddy").</summary>
-        protected abstract string BackendName { get; }
+        /// <summary>Which backend this manager talks to. Also the source of the name used in status/log messages.</summary>
+        public abstract InventoryBackend Backend { get; }
+
+        /// <summary>Which optional edit-panel fields this backend supports (drives the single adaptive edit panel).</summary>
+        public abstract SpoolEditFields EditFields { get; }
+
+        /// <summary>Human-readable backend name used in status/log messages.</summary>
+        protected string BackendName => Backend.ToString();
 
         /// <summary>Build the DI host wrapping the generated API client (base address, auth, retry).</summary>
         protected abstract IHost CreateApiHost(string normalizedApiUrl);
@@ -197,6 +225,19 @@ namespace BambuMan.Shared
 
         /// <summary>Fire-and-forget background work after the manager reaches Ready. Base no-op.</summary>
         protected virtual Task OnReady() => Task.CompletedTask;
+
+        #endregion
+
+        #region Inventory operations
+
+        /// <summary>Inventory a scanned spool: match, create-or-find, link, then fire <see cref="OnSpoolFound"/>. Returns false on no/ambiguous filament match.</summary>
+        public abstract Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location);
+
+        /// <summary>Persist edits to the spool most recently surfaced via <see cref="OnSpoolFound"/>. Fields the backend doesn't model are ignored.</summary>
+        public abstract Task UpdateCurrentSpoolAsync(SpoolEditInput input);
+
+        /// <summary>Refresh known storage locations (backend-specific; base no-op).</summary>
+        public virtual Task RefreshLocationsAsync() => Task.CompletedTask;
 
         #endregion
 

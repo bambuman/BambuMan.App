@@ -1,4 +1,5 @@
 using BambuMan.Shared;
+using BambuMan.Shared.Enums;
 using BambuMan.UI.Consent;
 using BambuMan.UI.Scan;
 using CommunityToolkit.Maui;
@@ -25,26 +26,33 @@ public partial class SettingsPage
     public const string ShowKeyboardOnSpoolRead = "show_keyboard_on_spool_read";
     public const string FullTagScanAndUpload = "full_tag_scan_and_upload";
     public const string TagUploadConsentShown = "tag_upload_consent_shown";
+    public const string KeyInventoryBackend = "inventory_backend";
+    public const string KeyBambuddyUrl = "bambuddy_url";
+    public const string KeyBambuddyApiKey = "bambuddy_api_key";
 
     private readonly SettingsPageViewModel viewModel;
     private readonly ILogger<SettingsPage> logger;
     private readonly IPopupService popupService;
-    private readonly SpoolmanManager spoolmanManager;
+    private readonly IInventoryBackendResolver backends;
 
     private bool consentPopupShowing;
     private IHost? apiHost;
     private string? apiHostUrl;
 
-    public SettingsPage(SettingsPageViewModel viewModel, ILogger<SettingsPage> logger, IPopupService popupService, SpoolmanManager spoolmanManager)
+    public SettingsPage(SettingsPageViewModel viewModel, ILogger<SettingsPage> logger, IPopupService popupService, IInventoryBackendResolver backends)
     {
         InitializeComponent();
 
         this.viewModel = viewModel;
         this.logger = logger;
         this.popupService = popupService;
-        this.spoolmanManager = spoolmanManager;
+        this.backends = backends;
         BindingContext = viewModel;
     }
+
+    /// <summary>The active inventory backend, parsed from preferences (defaults to Spoolman).</summary>
+    public static InventoryBackend GetInventoryBackend() =>
+        Enum.TryParse<InventoryBackend>(Preferences.Default.Get(KeyInventoryBackend, nameof(InventoryBackend.Spoolman)), out var backend) ? backend : InventoryBackend.Spoolman;
 
     protected override async void OnAppearing()
     {
@@ -52,7 +60,11 @@ public partial class SettingsPage
         {
             base.OnAppearing();
 
+            viewModel.InventoryBackend = GetInventoryBackend();
+            viewModel.SyncBackendSelection();
             viewModel.SpoolmanUrl = Preferences.Default.Get(KeySpoolmanUrl, string.Empty);
+            viewModel.BambuddyUrl = Preferences.Default.Get(KeyBambuddyUrl, string.Empty);
+            viewModel.BambuddyApiKey = Preferences.Default.Get(KeyBambuddyApiKey, string.Empty);
             viewModel.BuyDate = DateTime.TryParse(Preferences.Default.Get(KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? resultDate : null;
             viewModel.DefaultPrice = decimal.TryParse(Preferences.Default.Get(KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? result : null;
             viewModel.DefaultLotNr = Preferences.Default.Get(KeyDefaultLotNr, string.Empty);
@@ -61,7 +73,7 @@ public partial class SettingsPage
             viewModel.ShowLogsOnMainPage = Preferences.Default.Get(ShowLogsOnMainPage, true);
             viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(ShowKeyboardOnSpoolRead, true);
             viewModel.FullTagScanAndUpload = Preferences.Default.Get(FullTagScanAndUpload, false);
-            viewModel.OverrideLocationOnRead = spoolmanManager.OverrideLocationOnRead;
+            viewModel.OverrideLocationOnRead = backends.Resolve(GetInventoryBackend()).OverrideLocationOnRead;
 
             await ShowConsentPopupIfNeeded();
 
@@ -129,11 +141,12 @@ public partial class SettingsPage
         return true;
     }
 
-    private async void ImageButton_OnClicked(object? sender, EventArgs e)
+    private async void ScanQr_OnClicked(object? sender, EventArgs e)
     {
         try
         {
-            await Shell.Current.GoToAsync(nameof(ScanPage));
+            var target = (sender as Button)?.CommandParameter as string ?? "spoolman_url";
+            await Shell.Current.GoToAsync(nameof(ScanPage), new Dictionary<string, object> { { "target", target } });
         }
         catch (Exception ex)
         {
@@ -281,6 +294,31 @@ public partial class SettingsPage
         }
     }
 
+    private async void TestBambuddyUrl_OnClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            var url = viewModel.BambuddyUrl;
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                await CommunityToolkit.Maui.Alerts.Toast.Make("Bambuddy URL is empty").Show();
+                return;
+            }
+
+            var (ok, error) = await BambuddyManager.TestConnectionAsync(url, viewModel.BambuddyApiKey);
+
+            if (ok)
+                await CommunityToolkit.Maui.Alerts.Toast.Make("Connection successful", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
+            else
+                await CommunityToolkit.Maui.Alerts.Toast.Make($"Connection failed: {error}", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug("Test Bambuddy URL failed: {Message}", ex.Message);
+            await CommunityToolkit.Maui.Alerts.Toast.Make($"Connection failed: {ex.Message}", CommunityToolkit.Maui.Core.ToastDuration.Long).Show();
+        }
+    }
+
     private async void BackToMain_OnClicked(object? sender, EventArgs e)
     {
         try
@@ -295,7 +333,16 @@ public partial class SettingsPage
 
     protected override void OnNavigatingFrom(NavigatingFromEventArgs args)
     {
-        if (TfSpoolmanUrl.IsValid) Preferences.Default.Set(KeySpoolmanUrl, viewModel.SpoolmanUrl);
+        Preferences.Default.Set(KeyInventoryBackend, viewModel.InventoryBackend.ToString());
+
+        // One visible URL field proxies to the active backend; persist both so the inactive one isn't lost.
+        if (TfServerUrl.IsValid)
+        {
+            Preferences.Default.Set(KeySpoolmanUrl, viewModel.SpoolmanUrl ?? string.Empty);
+            Preferences.Default.Set(KeyBambuddyUrl, viewModel.BambuddyUrl ?? string.Empty);
+        }
+
+        if (TfBambuddyApiKey.IsValid) Preferences.Default.Set(KeyBambuddyApiKey, viewModel.BambuddyApiKey);
 
         if (TfBuyDate.IsValid)
         {
@@ -321,7 +368,8 @@ public partial class SettingsPage
 
         if (TfFullTagScanAndUpload.IsValid) Preferences.Default.Set(FullTagScanAndUpload, viewModel.FullTagScanAndUpload);
 
-        if (TfOverrideLocationOnRead.IsValid) spoolmanManager.OverrideLocationOnRead = viewModel.OverrideLocationOnRead;
+        if (TfOverrideLocationOnRead.IsValid)
+            foreach (var manager in backends.All) manager.OverrideLocationOnRead = viewModel.OverrideLocationOnRead;
 
         base.OnNavigatingFrom(args);
     }

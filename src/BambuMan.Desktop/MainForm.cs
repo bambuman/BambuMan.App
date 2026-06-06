@@ -1,5 +1,6 @@
 using BambuMan.Shared;
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Models;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using SpoolMan.Api.Model;
@@ -136,13 +137,16 @@ public partial class MainForm : Form
         AppendText(level, message);
     }
 
-    private void SpoolmanManagerOnSpoolFound(Spool spool, BambuFilamentInfo info)
+    private void SpoolmanManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
     {
         if (InvokeRequired)
         {
-            BeginInvoke(new MethodInvoker(delegate { SpoolmanManagerOnSpoolFound(spool, info); }));
+            BeginInvoke(new MethodInvoker(delegate { SpoolmanManagerOnSpoolFound(found, info); }));
             return;
         }
+
+        var spool = spoolmanManager?.CurrentSpool;
+        if (spool == null) return;
 
         nudEmptyWeight.Value = spool.SpoolWeight ?? spool.Filament.SpoolWeight ?? spool.Filament.Vendor?.EmptySpoolWeight ?? 0;
         nudInitialWeight.Value = spool.InitialWeight ?? spool.Filament.Weight ?? 0;

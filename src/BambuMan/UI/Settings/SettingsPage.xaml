@@ -10,6 +10,7 @@
              xmlns:validation1="clr-namespace:BambuMan.Validation"
              xmlns:controls="clr-namespace:BambuMan.UI.Controls"
              xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+             xmlns:md="clr-namespace:HorusStudio.Maui.MaterialDesignControls;assembly=HorusStudio.Maui.MaterialDesignControls"
              x:Class="BambuMan.UI.Settings.SettingsPage"
              x:DataType="main:SettingsPageViewModel"
              Title="BambuMan Settings">
@@ -24,23 +25,38 @@
         </ToolbarItem>
     </ContentPage.ToolbarItems>
 
+    <ScrollView>
     <VerticalStackLayout Padding="10">
 
         <input:FormView Spacing="10">
+            <md:MaterialSegmentedButton ItemsSource="{Binding BackendItems}" SelectedItem="{Binding SelectedBackendItem}" Type="Filled" HorizontalOptions="Fill" Margin="0,0,0,5" />
+
             <Grid ColumnDefinitions="*,Auto">
-                <material:TextField x:Name="TfSpoolmanUrl" Title="Spoolman url:" Grid.Column="0"
-                                    Text="{Binding SpoolmanUrl,Mode=TwoWay}"
+                <material:TextField x:Name="TfServerUrl" Grid.Column="0" Title="Server url:"
+                                    Text="{Binding ServerUrl,Mode=TwoWay}"
                                     Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}}">
                     <validation:RequiredValidation />
                     <validation:RegexValidation Message="Invalid url, must start with http:// or https://" Pattern="{x:Static constants:Constants.UrlValidation }" />
                 </material:TextField>
-                <Button Grid.Column="1" Text="Scan QR" Clicked="ImageButton_OnClicked"
+                <Button Grid.Column="1" Text="Scan QR" Clicked="ScanQr_OnClicked" CommandParameter="server_url"
                         VerticalOptions="Start" Margin="6,6,0,0" Padding="10,4"
                         HeightRequest="48" FontSize="14"
-                        BackgroundColor="Transparent"
-                        TextColor="Crimson"
-                        BorderColor="Crimson" BorderWidth="1"
-                        CornerRadius="6"
+                        BackgroundColor="Transparent" TextColor="Crimson"
+                        BorderColor="Crimson" BorderWidth="1" CornerRadius="6"
+                        ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Qr_code_scanner}, Color=Crimson, Size=18}" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsBambuddy}">
+                <material:TextField x:Name="TfBambuddyApiKey" Grid.Column="0" Title="Bambuddy API key:" AllowClear="True"
+                                    Text="{Binding BambuddyApiKey,Mode=TwoWay}"
+                                    Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Key}}">
+                    <validation:RequiredValidation />
+                </material:TextField>
+                <Button Grid.Column="1" Text="Scan QR" Clicked="ScanQr_OnClicked" CommandParameter="bambuddy_key"
+                        VerticalOptions="Start" Margin="6,6,0,0" Padding="10,4"
+                        HeightRequest="48" FontSize="14"
+                        BackgroundColor="Transparent" TextColor="Crimson"
+                        BorderColor="Crimson" BorderWidth="1" CornerRadius="6"
                         ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Qr_code_scanner}, Color=Crimson, Size=18}" />
             </Grid>
 
@@ -61,7 +77,7 @@
 
             <material:CheckBox x:Name="TfOverrideLocationOnRead" Text="Override location on read" IsChecked="{Binding OverrideLocationOnRead, Mode=TwoWay}" Margin="10,0,10,5"></material:CheckBox>
 
-            <controls:NullableDatePickerField x:Name="TfBuyDate" Title="Buy date:" Date="{Binding BuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}">
+            <controls:NullableDatePickerField x:Name="TfBuyDate" IsVisible="{Binding IsSpoolman}" Title="Buy date:" Date="{Binding BuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}">
 
             </controls:NullableDatePickerField>
 
@@ -70,7 +86,7 @@
                 <validation:MinValueValidation MinValue="0" />
             </material:TextField>
 
-            <material:TextField x:Name="TfLotNr" Title="Lot nr:" Text="{Binding DefaultLotNr,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
+            <material:TextField x:Name="TfLotNr" IsVisible="{Binding IsSpoolman}" Title="Lot nr:" Text="{Binding DefaultLotNr,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
 
             <!--<material:TextField x:Name="TfLocation" Title="Location:" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />-->
 
@@ -90,6 +106,14 @@
         </input:FormView>
 
         <Button Text="Test Spoolman Url" Clicked="TestSpoolmanUrl_OnClicked"
+                IsVisible="{Binding IsSpoolman}"
+                Margin="0,20,0,0"
+                StyleClass="OutlinedButton"
+                ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}, Color={AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}, Size=18}"
+                />
+
+        <Button Text="Test Bambuddy Url" Clicked="TestBambuddyUrl_OnClicked"
+                IsVisible="{Binding IsBambuddy}"
                 Margin="0,20,0,0"
                 StyleClass="OutlinedButton"
                 ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}, Color={AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}, Size=18}"
@@ -102,4 +126,5 @@
                 />
 
     </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

@@ -5,10 +5,22 @@ using Microsoft.Extensions.Logging;
 
 namespace BambuMan.UI.Scan
 {
-    public partial class ScanPage
+    public partial class ScanPage : IQueryAttributable
     {
         private readonly ILogger<ScanPage> logger;
         private bool isPageVisible;
+        private string scanTarget = "spoolman_url";
+        private bool requireUrl = true;
+
+        public void ApplyQueryAttributes(IDictionary<string, object> query)
+        {
+            if (query.TryGetValue("target", out var t) && t is string target)
+            {
+                scanTarget = target;
+                // URLs are validated against the URL regex; API keys (and other free text) are not.
+                requireUrl = target.EndsWith("url", StringComparison.OrdinalIgnoreCase);
+            }
+        }
 
         public ScanPage(ILogger<ScanPage> logger)
         {
@@ -83,11 +95,13 @@ namespace BambuMan.UI.Scan
             {
                 if (!e.BarcodeResults.Any()) return;
 
-                var url = e.BarcodeResults.FirstOrDefault(x => Regex.IsMatch(x.RawValue, Constants.UrlValidation))?.RawValue ?? string.Empty;
-                if (string.IsNullOrEmpty(url)) return;
+                var value = requireUrl
+                    ? e.BarcodeResults.FirstOrDefault(x => Regex.IsMatch(x.RawValue, Constants.UrlValidation))?.RawValue ?? string.Empty
+                    : e.BarcodeResults.FirstOrDefault()?.RawValue ?? string.Empty;
+                if (string.IsNullOrEmpty(value)) return;
 
                 Barcode.PauseScanning = true;
-                await Shell.Current.GoToAsync("..", new Dictionary<string, object> { { "url", url } });
+                await Shell.Current.GoToAsync("..", new Dictionary<string, object> { { "scan_target", scanTarget }, { "scan_value", value } });
             }
             catch (Exception ex)
             {

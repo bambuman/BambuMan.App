@@ -55,6 +55,8 @@ Solution file: `src/BambuMan.sln`
 - **I** prefix for interfaces (e.g., `ISettingsService`)
 
 ## Code Style
+- Prefer **enums over magic strings** for fixed sets of values (e.g. inventory backend selection). Persist them by name (`enum.ToString()` / `Enum.TryParse`), not as ad-hoc string literals scattered across the code.
+- **Don't strip source objects when raising events / calling handlers.** When an event carries a projected/derived model (e.g. `SpoolFound`), also pass the original source object (e.g. the scanned `BambuFilamentInfo`) alongside it — `OnSpoolFound(SpoolFound spool, BambuFilamentInfo info)`. Consumers can then read additional source fields directly instead of forcing a change across the projection record **and** every mapping site. Pass rich source objects rather than pre-extracting individual values.
 - No curly braces for single-line if/else:
   ```csharp
   if (condition) field = "test";

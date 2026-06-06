@@ -1,4 +1,6 @@
-﻿using BambuMan.UI.Scan;
+﻿using BambuMan.Shared.Enums;
+using BambuMan.UI.Scan;
+using BambuMan.UI.Settings;
 
 namespace BambuMan
 {
@@ -10,7 +12,11 @@ namespace BambuMan
 
             InitializeComponent();
 
-            if (string.IsNullOrWhiteSpace(Preferences.Default.Get("spoolman_url", string.Empty)))
+            var activeUrl = SettingsPage.GetInventoryBackend() == InventoryBackend.Bambuddy
+                ? Preferences.Default.Get(SettingsPage.KeyBambuddyUrl, string.Empty)
+                : Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
+
+            if (string.IsNullOrWhiteSpace(activeUrl))
             {
                 CurrentItem = Items.First(x => x.Title == "Settings");
                 //Dispatcher.DispatchAsync(async () => await GoToAsync("//SettingsPage"));

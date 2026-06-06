@@ -7,6 +7,7 @@ using BambuMan.UI.Settings;
 using BarcodeScanning;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Markup;
+using HorusStudio.Maui.MaterialDesignControls;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
@@ -36,6 +37,16 @@ namespace BambuMan
                 .UseBarcodeScanning()
                 .UseUraniumUI()
                 .UseUraniumUIMaterial()
+                .UseMaterialDesignControls(options =>
+                {
+                    // Brand the segmented button (partial merge — other colors keep library defaults):
+                    //   selected segment  -> M3 SecondaryContainer (default is lavender)
+                    //   unselected segment + track -> M3 Surface
+                    // Selected/unselected text stays OnSurface, which reads on these tones.
+                    options.ConfigureThemes(
+                        lightTheme: new MaterialTheme { SecondaryContainer = Color.FromArgb("#FFE5B9"), Surface = Color.FromArgb("#F4F4F4") },
+                        darkTheme: new MaterialTheme { SecondaryContainer = Color.FromArgb("#AC99EA"), Surface = Color.FromArgb("#302F35") });
+                })
                 .UseSentry(options =>
                 {
                     options.Dsn = "https://1881c4151cf22d2ff6c3d92fa5d68d87@o4509141125365760.ingest.de.sentry.io/4509141131198544";
@@ -108,6 +119,9 @@ namespace BambuMan
             services.AddSingleton<TagApiService>();
             services.AddSingleton<SpoolmanManager>();
             services.AddSingleton<BambuddyManager>();
+            services.AddSingleton<BaseManager>(sp => sp.GetRequiredService<SpoolmanManager>());
+            services.AddSingleton<BaseManager>(sp => sp.GetRequiredService<BambuddyManager>());
+            services.AddSingleton<IInventoryBackendResolver, InventoryBackendResolver>();
             services.AddSingleton<InventoryService>();
         }
 
