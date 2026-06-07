@@ -32,6 +32,7 @@ namespace BambuMan.Shared
 
         private bool catalogLoaded;
         private bool spoolsLoaded;
+        private bool byTagSupported; // server exposes GET /inventory/spools/by-tag -> per-scan lookup, no cache preload
 
         /// <summary>
         /// All spools cached locally, scanned by tray_uuid (thread-safe; refreshed on init, appended on create).
@@ -97,12 +98,24 @@ namespace BambuMan.Shared
             {
                 try
                 {
-                    await LoadSpools();
+                    if (ApiHost != null)
+                    {
+                        var inventoryApi = ApiHost.Services.GetRequiredService<IInventoryApi>();
+                        byTagSupported = await ProbeByTagSupportAsync(inventoryApi);
+
+                        // With by-tag we look up per scan, so the full-list preload is only needed as the
+                        // fallback for older servers that don't expose the endpoint.
+                        if (!byTagSupported) await LoadSpools();
+                    }
+
                     spoolsLoaded = true;
+                    await Log(LogLevel.Information, byTagSupported
+                        ? "by-tag endpoint available; skipped spool cache preload"
+                        : $"by-tag endpoint unavailable; cached {CachedSpools.Count} spools for fallback");
                 }
                 catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
                 {
-                    await Log(LogLevel.Warning, $"LoadSpools failed: {ex.Message}");
+                    await Log(LogLevel.Warning, $"Spool init failed: {ex.Message}");
                 }
             }
 
@@ -113,6 +126,7 @@ namespace BambuMan.Shared
         {
             catalogLoaded = false;
             spoolsLoaded = false;
+            byTagSupported = false;
         }
 
         #endregion
@@ -146,7 +160,7 @@ namespace BambuMan.Shared
 
                 var inventoryApi = ApiHost.Services.GetRequiredService<IInventoryApi>();
 
-                var existing = FindSpoolByTag(info.TrayUid, info.SerialNumber);
+                var existing = await FindSpoolByTagAsync(info.TrayUid, info.SerialNumber);
 
                 if (existing == null)
                 {
@@ -333,6 +347,57 @@ namespace BambuMan.Shared
 
             // When unknown filaments are enabled, proceed with raw tag data (no catalog enrichment).
             return (UnknownFilamentEnabled, null);
+        }
+
+        /// <summary>
+        /// Resolve a spool for a scanned tag. When the server exposes the by-tag endpoint (detected at init), looks
+        /// it up directly via <see cref="GetSpoolByTagAsync"/> (which also matches archived spools); otherwise scans
+        /// the in-memory cache preloaded for older Bambuddy servers. A transient by-tag network error propagates to
+        /// the caller's handler rather than being treated as "not found" (which would risk creating a duplicate).
+        /// </summary>
+        private async Task<SpoolResponse?> FindSpoolByTagAsync(string? trayUid, string? tagUid)
+            => byTagSupported ? await GetSpoolByTagAsync(trayUid, tagUid) : FindSpoolByTag(trayUid, tagUid);
+
+        /// <summary>
+        /// Direct server lookup of a spool by tag via <c>GET /inventory/spools/by-tag</c> (archived included by
+        /// default). Returns null when no spool matches the tag; throws on a transient network error so the caller
+        /// can abort instead of mistaking it for "not found".
+        /// </summary>
+        public async Task<SpoolResponse?> GetSpoolByTagAsync(string? trayUid, string? tagUid, bool includeArchived = true)
+        {
+            if (ApiHost == null || (string.IsNullOrEmpty(trayUid) && string.IsNullOrEmpty(tagUid))) return null;
+
+            var inventoryApi = ApiHost.Services.GetRequiredService<IInventoryApi>();
+            var result = await inventoryApi.GetSpoolByTagApiV1InventorySpoolsByTagGetAsync(
+                trayUuid: string.IsNullOrEmpty(trayUid) ? default : new Option<string?>(trayUid),
+                tagUid: string.IsNullOrEmpty(tagUid) ? default : new Option<string?>(tagUid),
+                includeArchived: new Option<bool>(includeArchived));
+
+            return result.TryOk(out var found) ? found : null;
+        }
+
+        /// <summary>
+        /// One-shot init probe for the by-tag endpoint. A server that has it answers a miss with the endpoint's own
+        /// 404 (which names the spool); an older server without the route returns FastAPI's bare
+        /// <c>{"detail":"Not Found"}</c>. Fails safe: anything ambiguous (other status, non-JSON, network error)
+        /// returns false, so the caller preloads the cache and behaves exactly as before.
+        /// </summary>
+        private static async Task<bool> ProbeByTagSupportAsync(IInventoryApi inventoryApi)
+        {
+            try
+            {
+                var probe = await inventoryApi.GetSpoolByTagApiV1InventorySpoolsByTagGetAsync(
+                    trayUuid: new Option<string?>("00000000000000000000000000000000"), // valid 32-hex form, won't match
+                    includeArchived: new Option<bool>(false));
+
+                if (probe.TryOk(out _)) return true;
+
+                return (int)probe.StatusCode == 404 && probe.RawContent.Contains("spool", StringComparison.OrdinalIgnoreCase);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                return false;
+            }
         }
 
         /// <summary>Find a cached spool by tray_uuid, falling back to tag_uid.</summary>

@@ -7,14 +7,16 @@ namespace BambuMan.Shared.Test.Bambuddy
     /// </summary>
     internal static class BambuddyTestConfig
     {
-        public static bool TryLoad(out string url, out string key)
+        /// <param name="fileName">Credential file under <c>tmp/</c> (default = the current/prod test env).</param>
+        /// <param name="envPrefix">Env-var prefix; resolves <c>{envPrefix}_URL</c> / <c>{envPrefix}_KEY</c> first.</param>
+        public static bool TryLoad(out string url, out string key, string fileName = "test_bambuddy.txt", string envPrefix = "BAMBUDDY_TEST")
         {
-            url = Environment.GetEnvironmentVariable("BAMBUDDY_TEST_URL") ?? string.Empty;
-            key = Environment.GetEnvironmentVariable("BAMBUDDY_TEST_KEY") ?? string.Empty;
+            url = Environment.GetEnvironmentVariable($"{envPrefix}_URL") ?? string.Empty;
+            key = Environment.GetEnvironmentVariable($"{envPrefix}_KEY") ?? string.Empty;
 
             if (!string.IsNullOrWhiteSpace(url) && !string.IsNullOrWhiteSpace(key)) return true;
 
-            var file = FindCredentialFile();
+            var file = FindCredentialFile(fileName);
             if (file == null) return false;
 
             foreach (var line in File.ReadAllLines(file))
@@ -32,13 +34,13 @@ namespace BambuMan.Shared.Test.Bambuddy
             return !string.IsNullOrWhiteSpace(url) && !string.IsNullOrWhiteSpace(key);
         }
 
-        private static string? FindCredentialFile()
+        private static string? FindCredentialFile(string fileName)
         {
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
 
             while (dir != null)
             {
-                var candidate = Path.Combine(dir.FullName, "tmp", "test_bambuddy.txt");
+                var candidate = Path.Combine(dir.FullName, "tmp", fileName);
                 if (File.Exists(candidate)) return candidate;
                 dir = dir.Parent;
             }
