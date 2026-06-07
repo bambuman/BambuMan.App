@@ -1,4 +1,5 @@
-﻿using BambuMan.Shared.Enums;
+﻿using BambuMan.Shared;
+using BambuMan.Shared.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
 using HorusStudio.Maui.MaterialDesignControls;
 using Microsoft.Extensions.Logging;
@@ -72,6 +73,17 @@ namespace BambuMan.UI.Settings
                 await Task.Delay(100);
 
                 if (!query.TryGetValue("scan_value", out var raw) || raw is not string value || string.IsNullOrEmpty(value)) return;
+
+                // A combined Bambuddy config QR carries both fields — switch to Bambuddy first so ServerUrl routes
+                // to the Bambuddy URL, then fill both and reflect the backend in the selector.
+                if (BambuddyConfigUri.TryParse(value, out var configUrl, out var configKey))
+                {
+                    InventoryBackend = InventoryBackend.Bambuddy;
+                    if (!string.IsNullOrEmpty(configUrl)) ServerUrl = configUrl;
+                    if (!string.IsNullOrEmpty(configKey)) BambuddyApiKey = configKey;
+                    SyncBackendSelection();
+                    return;
+                }
 
                 var target = query.TryGetValue("scan_target", out var t) ? t as string : null;
                 switch (target)

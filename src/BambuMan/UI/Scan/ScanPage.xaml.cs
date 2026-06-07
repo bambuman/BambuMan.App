@@ -95,9 +95,11 @@ namespace BambuMan.UI.Scan
             {
                 if (!e.BarcodeResults.Any()) return;
 
-                var value = requireUrl
+                // A combined Bambuddy config QR (url + key) is accepted whichever field was being scanned.
+                var combined = e.BarcodeResults.FirstOrDefault(x => BambuddyConfigUri.IsConfigUri(x.RawValue))?.RawValue;
+                var value = combined ?? (requireUrl
                     ? e.BarcodeResults.FirstOrDefault(x => Regex.IsMatch(x.RawValue, Constants.UrlValidation))?.RawValue ?? string.Empty
-                    : e.BarcodeResults.FirstOrDefault()?.RawValue ?? string.Empty;
+                    : e.BarcodeResults.FirstOrDefault()?.RawValue ?? string.Empty);
                 if (string.IsNullOrEmpty(value)) return;
 
                 Barcode.PauseScanning = true;
