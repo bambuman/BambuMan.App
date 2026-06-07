@@ -462,7 +462,7 @@ namespace Bambuddy.Api.Api
         /// Diagnose Printer
         /// </summary>
         /// <remarks>
-        /// Run connection diagnostics for an existing saved printer.
+        /// Run connection diagnostics for an existing saved printer.  On-demand run from the UI: wait up to PUBLISH_WAIT_DEFAULT seconds for the printer to publish a status report so a fresh reconnect (counter reset to 0) isn&#39;t reported as &#x60;printer_publishing: fail&#x60; prematurely. The support package code path calls run_connection_diagnostic without the wait so bundling stays fast.
         /// </remarks>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="printerId"></param>
@@ -475,7 +475,7 @@ namespace Bambuddy.Api.Api
         /// Diagnose Printer
         /// </summary>
         /// <remarks>
-        /// Run connection diagnostics for an existing saved printer.
+        /// Run connection diagnostics for an existing saved printer.  On-demand run from the UI: wait up to PUBLISH_WAIT_DEFAULT seconds for the printer to publish a status report so a fresh reconnect (counter reset to 0) isn&#39;t reported as &#x60;printer_publishing: fail&#x60; prematurely. The support package code path calls run_connection_diagnostic without the wait so bundling stays fast.
         /// </remarks>
         /// <param name="printerId"></param>
         /// <param name="xAPIKey"> (optional)</param>
@@ -8772,7 +8772,7 @@ namespace Bambuddy.Api.Api
         partial void OnErrorDiagnosePrinterApiV1PrintersPrinterIdDiagnosticGet(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, int printerId, Option<string?> xAPIKey);
 
         /// <summary>
-        /// Diagnose Printer Run connection diagnostics for an existing saved printer.
+        /// Diagnose Printer Run connection diagnostics for an existing saved printer.  On-demand run from the UI: wait up to PUBLISH_WAIT_DEFAULT seconds for the printer to publish a status report so a fresh reconnect (counter reset to 0) isn&#39;t reported as &#x60;printer_publishing: fail&#x60; prematurely. The support package code path calls run_connection_diagnostic without the wait so bundling stays fast.
         /// </summary>
         /// <param name="printerId"></param>
         /// <param name="xAPIKey"> (optional)</param>
@@ -8791,7 +8791,7 @@ namespace Bambuddy.Api.Api
         }
 
         /// <summary>
-        /// Diagnose Printer Run connection diagnostics for an existing saved printer.
+        /// Diagnose Printer Run connection diagnostics for an existing saved printer.  On-demand run from the UI: wait up to PUBLISH_WAIT_DEFAULT seconds for the printer to publish a status report so a fresh reconnect (counter reset to 0) isn&#39;t reported as &#x60;printer_publishing: fail&#x60; prematurely. The support package code path calls run_connection_diagnostic without the wait so bundling stays fast.
         /// </summary>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="printerId"></param>

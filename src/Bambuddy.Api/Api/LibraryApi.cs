@@ -613,59 +613,67 @@ namespace Bambuddy.Api.Api
         /// List Files
         /// </summary>
         /// <remarks>
-        /// List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.
+        /// List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.     internal_only: Restrict the result to files in managed storage (&#x60;is_external&#x3D;False&#x60;).                    Used by the File Manager&#39;s \&quot;All Files\&quot; sidebar entry so a linked NAS                    with hundreds of files doesn&#39;t drown the user&#39;s own uploads (#1621).     external_only: Restrict the result to files under external folders                    (&#x60;is_external&#x3D;True&#x60;) — the symmetric combined view for users with                    multiple linked external sources (#1621).
         /// </remarks>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="folderId"> (optional)</param>
         /// <param name="projectId"> (optional)</param>
         /// <param name="includeRoot"> (optional, default to true)</param>
+        /// <param name="internalOnly"> (optional, default to false)</param>
+        /// <param name="externalOnly"> (optional, default to false)</param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="IListFilesApiV1LibraryFilesGetApiResponse"/>&gt;</returns>
-        Task<IListFilesApiV1LibraryFilesGetApiResponse> ListFilesApiV1LibraryFilesGetAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
+        Task<IListFilesApiV1LibraryFilesGetApiResponse> ListFilesApiV1LibraryFilesGetAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<bool> internalOnly = default, Option<bool> externalOnly = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
         /// List Files
         /// </summary>
         /// <remarks>
-        /// List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.
+        /// List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.     internal_only: Restrict the result to files in managed storage (&#x60;is_external&#x3D;False&#x60;).                    Used by the File Manager&#39;s \&quot;All Files\&quot; sidebar entry so a linked NAS                    with hundreds of files doesn&#39;t drown the user&#39;s own uploads (#1621).     external_only: Restrict the result to files under external folders                    (&#x60;is_external&#x3D;True&#x60;) — the symmetric combined view for users with                    multiple linked external sources (#1621).
         /// </remarks>
         /// <param name="folderId"> (optional)</param>
         /// <param name="projectId"> (optional)</param>
         /// <param name="includeRoot"> (optional, default to true)</param>
+        /// <param name="internalOnly"> (optional, default to false)</param>
+        /// <param name="externalOnly"> (optional, default to false)</param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="IListFilesApiV1LibraryFilesGetApiResponse"/>?&gt;</returns>
-        Task<IListFilesApiV1LibraryFilesGetApiResponse?> ListFilesApiV1LibraryFilesGetOrDefaultAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
+        Task<IListFilesApiV1LibraryFilesGetApiResponse?> ListFilesApiV1LibraryFilesGetOrDefaultAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<bool> internalOnly = default, Option<bool> externalOnly = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
         /// List Files
         /// </summary>
         /// <remarks>
-        /// List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.
+        /// List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.     internal_only: Restrict the result to files in managed storage (&#x60;is_external&#x3D;False&#x60;).                    Used by the File Manager&#39;s \&quot;All Files\&quot; sidebar entry so a linked NAS                    with hundreds of files doesn&#39;t drown the user&#39;s own uploads (#1621).     external_only: Restrict the result to files under external folders                    (&#x60;is_external&#x3D;True&#x60;) — the symmetric combined view for users with                    multiple linked external sources (#1621).
         /// </remarks>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="folderId"> (optional)</param>
         /// <param name="projectId"> (optional)</param>
         /// <param name="includeRoot"> (optional, default to true)</param>
+        /// <param name="internalOnly"> (optional, default to false)</param>
+        /// <param name="externalOnly"> (optional, default to false)</param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="IListFilesApiV1LibraryFilesGet_0ApiResponse"/>&gt;</returns>
-        Task<IListFilesApiV1LibraryFilesGet_0ApiResponse> ListFilesApiV1LibraryFilesGet_0Async(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
+        Task<IListFilesApiV1LibraryFilesGet_0ApiResponse> ListFilesApiV1LibraryFilesGet_0Async(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<bool> internalOnly = default, Option<bool> externalOnly = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
         /// List Files
         /// </summary>
         /// <remarks>
-        /// List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.
+        /// List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.     internal_only: Restrict the result to files in managed storage (&#x60;is_external&#x3D;False&#x60;).                    Used by the File Manager&#39;s \&quot;All Files\&quot; sidebar entry so a linked NAS                    with hundreds of files doesn&#39;t drown the user&#39;s own uploads (#1621).     external_only: Restrict the result to files under external folders                    (&#x60;is_external&#x3D;True&#x60;) — the symmetric combined view for users with                    multiple linked external sources (#1621).
         /// </remarks>
         /// <param name="folderId"> (optional)</param>
         /// <param name="projectId"> (optional)</param>
         /// <param name="includeRoot"> (optional, default to true)</param>
+        /// <param name="internalOnly"> (optional, default to false)</param>
+        /// <param name="externalOnly"> (optional, default to false)</param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="IListFilesApiV1LibraryFilesGet_0ApiResponse"/>?&gt;</returns>
-        Task<IListFilesApiV1LibraryFilesGet_0ApiResponse?> ListFilesApiV1LibraryFilesGet_0OrDefaultAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
+        Task<IListFilesApiV1LibraryFilesGet_0ApiResponse?> ListFilesApiV1LibraryFilesGet_0OrDefaultAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<bool> internalOnly = default, Option<bool> externalOnly = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
         /// List Folders
@@ -9057,7 +9065,7 @@ namespace Bambuddy.Api.Api
             partial void OnDeserializationError(ref bool suppressDefaultLog, Exception exception, HttpStatusCode httpStatusCode);
         }
 
-        partial void FormatListFilesApiV1LibraryFilesGet(ref Option<int?> folderId, ref Option<int?> projectId, ref Option<bool> includeRoot, ref Option<string?> xAPIKey);
+        partial void FormatListFilesApiV1LibraryFilesGet(ref Option<int?> folderId, ref Option<int?> projectId, ref Option<bool> includeRoot, ref Option<bool> internalOnly, ref Option<bool> externalOnly, ref Option<string?> xAPIKey);
 
         /// <summary>
         /// Processes the server response
@@ -9066,11 +9074,13 @@ namespace Bambuddy.Api.Api
         /// <param name="folderId"></param>
         /// <param name="projectId"></param>
         /// <param name="includeRoot"></param>
+        /// <param name="internalOnly"></param>
+        /// <param name="externalOnly"></param>
         /// <param name="xAPIKey"></param>
-        private void AfterListFilesApiV1LibraryFilesGetDefaultImplementation(IListFilesApiV1LibraryFilesGetApiResponse apiResponseLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<string?> xAPIKey)
+        private void AfterListFilesApiV1LibraryFilesGetDefaultImplementation(IListFilesApiV1LibraryFilesGetApiResponse apiResponseLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<bool> internalOnly, Option<bool> externalOnly, Option<string?> xAPIKey)
         {
             bool suppressDefaultLog = false;
-            AfterListFilesApiV1LibraryFilesGet(ref suppressDefaultLog, apiResponseLocalVar, folderId, projectId, includeRoot, xAPIKey);
+            AfterListFilesApiV1LibraryFilesGet(ref suppressDefaultLog, apiResponseLocalVar, folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey);
             if (!suppressDefaultLog)
                 Logger.LogInformation("{0,-9} | {1} | {2}", (apiResponseLocalVar.DownloadedAt - apiResponseLocalVar.RequestedAt).TotalSeconds, apiResponseLocalVar.StatusCode, apiResponseLocalVar.Path);
         }
@@ -9083,8 +9093,10 @@ namespace Bambuddy.Api.Api
         /// <param name="folderId"></param>
         /// <param name="projectId"></param>
         /// <param name="includeRoot"></param>
+        /// <param name="internalOnly"></param>
+        /// <param name="externalOnly"></param>
         /// <param name="xAPIKey"></param>
-        partial void AfterListFilesApiV1LibraryFilesGet(ref bool suppressDefaultLog, IListFilesApiV1LibraryFilesGetApiResponse apiResponseLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<string?> xAPIKey);
+        partial void AfterListFilesApiV1LibraryFilesGet(ref bool suppressDefaultLog, IListFilesApiV1LibraryFilesGetApiResponse apiResponseLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<bool> internalOnly, Option<bool> externalOnly, Option<string?> xAPIKey);
 
         /// <summary>
         /// Logs exceptions that occur while retrieving the server response
@@ -9095,11 +9107,13 @@ namespace Bambuddy.Api.Api
         /// <param name="folderId"></param>
         /// <param name="projectId"></param>
         /// <param name="includeRoot"></param>
+        /// <param name="internalOnly"></param>
+        /// <param name="externalOnly"></param>
         /// <param name="xAPIKey"></param>
-        private void OnErrorListFilesApiV1LibraryFilesGetDefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<string?> xAPIKey)
+        private void OnErrorListFilesApiV1LibraryFilesGetDefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<bool> internalOnly, Option<bool> externalOnly, Option<string?> xAPIKey)
         {
             bool suppressDefaultLogLocalVar = false;
-            OnErrorListFilesApiV1LibraryFilesGet(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, folderId, projectId, includeRoot, xAPIKey);
+            OnErrorListFilesApiV1LibraryFilesGet(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey);
             if (!suppressDefaultLogLocalVar)
                 Logger.LogError(exceptionLocalVar, "An error occurred while sending the request to the server.");
         }
@@ -9114,23 +9128,27 @@ namespace Bambuddy.Api.Api
         /// <param name="folderId"></param>
         /// <param name="projectId"></param>
         /// <param name="includeRoot"></param>
+        /// <param name="internalOnly"></param>
+        /// <param name="externalOnly"></param>
         /// <param name="xAPIKey"></param>
-        partial void OnErrorListFilesApiV1LibraryFilesGet(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<string?> xAPIKey);
+        partial void OnErrorListFilesApiV1LibraryFilesGet(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<bool> internalOnly, Option<bool> externalOnly, Option<string?> xAPIKey);
 
         /// <summary>
-        /// List Files List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.
+        /// List Files List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.     internal_only: Restrict the result to files in managed storage (&#x60;is_external&#x3D;False&#x60;).                    Used by the File Manager&#39;s \&quot;All Files\&quot; sidebar entry so a linked NAS                    with hundreds of files doesn&#39;t drown the user&#39;s own uploads (#1621).     external_only: Restrict the result to files under external folders                    (&#x60;is_external&#x3D;True&#x60;) — the symmetric combined view for users with                    multiple linked external sources (#1621).
         /// </summary>
         /// <param name="folderId"> (optional)</param>
         /// <param name="projectId"> (optional)</param>
         /// <param name="includeRoot"> (optional, default to true)</param>
+        /// <param name="internalOnly"> (optional, default to false)</param>
+        /// <param name="externalOnly"> (optional, default to false)</param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="IListFilesApiV1LibraryFilesGetApiResponse"/>&gt;</returns>
-        public async Task<IListFilesApiV1LibraryFilesGetApiResponse?> ListFilesApiV1LibraryFilesGetOrDefaultAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
+        public async Task<IListFilesApiV1LibraryFilesGetApiResponse?> ListFilesApiV1LibraryFilesGetOrDefaultAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<bool> internalOnly = default, Option<bool> externalOnly = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
         {
             try
             {
-                return await ListFilesApiV1LibraryFilesGetAsync(folderId, projectId, includeRoot, xAPIKey, cancellationToken).ConfigureAwait(false);
+                return await ListFilesApiV1LibraryFilesGetAsync(folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -9139,22 +9157,24 @@ namespace Bambuddy.Api.Api
         }
 
         /// <summary>
-        /// List Files List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.
+        /// List Files List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.     internal_only: Restrict the result to files in managed storage (&#x60;is_external&#x3D;False&#x60;).                    Used by the File Manager&#39;s \&quot;All Files\&quot; sidebar entry so a linked NAS                    with hundreds of files doesn&#39;t drown the user&#39;s own uploads (#1621).     external_only: Restrict the result to files under external folders                    (&#x60;is_external&#x3D;True&#x60;) — the symmetric combined view for users with                    multiple linked external sources (#1621).
         /// </summary>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="folderId"> (optional)</param>
         /// <param name="projectId"> (optional)</param>
         /// <param name="includeRoot"> (optional, default to true)</param>
+        /// <param name="internalOnly"> (optional, default to false)</param>
+        /// <param name="externalOnly"> (optional, default to false)</param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="IListFilesApiV1LibraryFilesGetApiResponse"/>&gt;</returns>
-        public async Task<IListFilesApiV1LibraryFilesGetApiResponse> ListFilesApiV1LibraryFilesGetAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
+        public async Task<IListFilesApiV1LibraryFilesGetApiResponse> ListFilesApiV1LibraryFilesGetAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<bool> internalOnly = default, Option<bool> externalOnly = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
         {
             UriBuilder uriBuilderLocalVar = new UriBuilder();
 
             try
             {
-                FormatListFilesApiV1LibraryFilesGet(ref folderId, ref projectId, ref includeRoot, ref xAPIKey);
+                FormatListFilesApiV1LibraryFilesGet(ref folderId, ref projectId, ref includeRoot, ref internalOnly, ref externalOnly, ref xAPIKey);
 
                 using (HttpRequestMessage httpRequestMessageLocalVar = new HttpRequestMessage())
                 {
@@ -9175,6 +9195,12 @@ namespace Bambuddy.Api.Api
 
                     if (includeRoot.IsSet)
                         parseQueryStringLocalVar["include_root"] = ClientUtils.ParameterToString(includeRoot.Value);
+
+                    if (internalOnly.IsSet)
+                        parseQueryStringLocalVar["internal_only"] = ClientUtils.ParameterToString(internalOnly.Value);
+
+                    if (externalOnly.IsSet)
+                        parseQueryStringLocalVar["external_only"] = ClientUtils.ParameterToString(externalOnly.Value);
 
                     uriBuilderLocalVar.Query = parseQueryStringLocalVar.ToString();
 
@@ -9227,7 +9253,7 @@ namespace Bambuddy.Api.Api
                             }
                         }
 
-                        AfterListFilesApiV1LibraryFilesGetDefaultImplementation(apiResponseLocalVar, folderId, projectId, includeRoot, xAPIKey);
+                        AfterListFilesApiV1LibraryFilesGetDefaultImplementation(apiResponseLocalVar, folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey);
 
                         Events.ExecuteOnListFilesApiV1LibraryFilesGet(apiResponseLocalVar);
 
@@ -9241,7 +9267,7 @@ namespace Bambuddy.Api.Api
             }
             catch(Exception e)
             {
-                OnErrorListFilesApiV1LibraryFilesGetDefaultImplementation(e, "/api/v1/library/files/", uriBuilderLocalVar.Path, folderId, projectId, includeRoot, xAPIKey);
+                OnErrorListFilesApiV1LibraryFilesGetDefaultImplementation(e, "/api/v1/library/files/", uriBuilderLocalVar.Path, folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey);
                 Events.ExecuteOnErrorListFilesApiV1LibraryFilesGet(e);
                 throw;
             }
@@ -9378,7 +9404,7 @@ namespace Bambuddy.Api.Api
             partial void OnDeserializationError(ref bool suppressDefaultLog, Exception exception, HttpStatusCode httpStatusCode);
         }
 
-        partial void FormatListFilesApiV1LibraryFilesGet_0(ref Option<int?> folderId, ref Option<int?> projectId, ref Option<bool> includeRoot, ref Option<string?> xAPIKey);
+        partial void FormatListFilesApiV1LibraryFilesGet_0(ref Option<int?> folderId, ref Option<int?> projectId, ref Option<bool> includeRoot, ref Option<bool> internalOnly, ref Option<bool> externalOnly, ref Option<string?> xAPIKey);
 
         /// <summary>
         /// Processes the server response
@@ -9387,11 +9413,13 @@ namespace Bambuddy.Api.Api
         /// <param name="folderId"></param>
         /// <param name="projectId"></param>
         /// <param name="includeRoot"></param>
+        /// <param name="internalOnly"></param>
+        /// <param name="externalOnly"></param>
         /// <param name="xAPIKey"></param>
-        private void AfterListFilesApiV1LibraryFilesGet_0DefaultImplementation(IListFilesApiV1LibraryFilesGet_0ApiResponse apiResponseLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<string?> xAPIKey)
+        private void AfterListFilesApiV1LibraryFilesGet_0DefaultImplementation(IListFilesApiV1LibraryFilesGet_0ApiResponse apiResponseLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<bool> internalOnly, Option<bool> externalOnly, Option<string?> xAPIKey)
         {
             bool suppressDefaultLog = false;
-            AfterListFilesApiV1LibraryFilesGet_0(ref suppressDefaultLog, apiResponseLocalVar, folderId, projectId, includeRoot, xAPIKey);
+            AfterListFilesApiV1LibraryFilesGet_0(ref suppressDefaultLog, apiResponseLocalVar, folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey);
             if (!suppressDefaultLog)
                 Logger.LogInformation("{0,-9} | {1} | {2}", (apiResponseLocalVar.DownloadedAt - apiResponseLocalVar.RequestedAt).TotalSeconds, apiResponseLocalVar.StatusCode, apiResponseLocalVar.Path);
         }
@@ -9404,8 +9432,10 @@ namespace Bambuddy.Api.Api
         /// <param name="folderId"></param>
         /// <param name="projectId"></param>
         /// <param name="includeRoot"></param>
+        /// <param name="internalOnly"></param>
+        /// <param name="externalOnly"></param>
         /// <param name="xAPIKey"></param>
-        partial void AfterListFilesApiV1LibraryFilesGet_0(ref bool suppressDefaultLog, IListFilesApiV1LibraryFilesGet_0ApiResponse apiResponseLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<string?> xAPIKey);
+        partial void AfterListFilesApiV1LibraryFilesGet_0(ref bool suppressDefaultLog, IListFilesApiV1LibraryFilesGet_0ApiResponse apiResponseLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<bool> internalOnly, Option<bool> externalOnly, Option<string?> xAPIKey);
 
         /// <summary>
         /// Logs exceptions that occur while retrieving the server response
@@ -9416,11 +9446,13 @@ namespace Bambuddy.Api.Api
         /// <param name="folderId"></param>
         /// <param name="projectId"></param>
         /// <param name="includeRoot"></param>
+        /// <param name="internalOnly"></param>
+        /// <param name="externalOnly"></param>
         /// <param name="xAPIKey"></param>
-        private void OnErrorListFilesApiV1LibraryFilesGet_0DefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<string?> xAPIKey)
+        private void OnErrorListFilesApiV1LibraryFilesGet_0DefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<bool> internalOnly, Option<bool> externalOnly, Option<string?> xAPIKey)
         {
             bool suppressDefaultLogLocalVar = false;
-            OnErrorListFilesApiV1LibraryFilesGet_0(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, folderId, projectId, includeRoot, xAPIKey);
+            OnErrorListFilesApiV1LibraryFilesGet_0(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey);
             if (!suppressDefaultLogLocalVar)
                 Logger.LogError(exceptionLocalVar, "An error occurred while sending the request to the server.");
         }
@@ -9435,23 +9467,27 @@ namespace Bambuddy.Api.Api
         /// <param name="folderId"></param>
         /// <param name="projectId"></param>
         /// <param name="includeRoot"></param>
+        /// <param name="internalOnly"></param>
+        /// <param name="externalOnly"></param>
         /// <param name="xAPIKey"></param>
-        partial void OnErrorListFilesApiV1LibraryFilesGet_0(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<string?> xAPIKey);
+        partial void OnErrorListFilesApiV1LibraryFilesGet_0(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<int?> folderId, Option<int?> projectId, Option<bool> includeRoot, Option<bool> internalOnly, Option<bool> externalOnly, Option<string?> xAPIKey);
 
         /// <summary>
-        /// List Files List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.
+        /// List Files List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.     internal_only: Restrict the result to files in managed storage (&#x60;is_external&#x3D;False&#x60;).                    Used by the File Manager&#39;s \&quot;All Files\&quot; sidebar entry so a linked NAS                    with hundreds of files doesn&#39;t drown the user&#39;s own uploads (#1621).     external_only: Restrict the result to files under external folders                    (&#x60;is_external&#x3D;True&#x60;) — the symmetric combined view for users with                    multiple linked external sources (#1621).
         /// </summary>
         /// <param name="folderId"> (optional)</param>
         /// <param name="projectId"> (optional)</param>
         /// <param name="includeRoot"> (optional, default to true)</param>
+        /// <param name="internalOnly"> (optional, default to false)</param>
+        /// <param name="externalOnly"> (optional, default to false)</param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="IListFilesApiV1LibraryFilesGet_0ApiResponse"/>&gt;</returns>
-        public async Task<IListFilesApiV1LibraryFilesGet_0ApiResponse?> ListFilesApiV1LibraryFilesGet_0OrDefaultAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
+        public async Task<IListFilesApiV1LibraryFilesGet_0ApiResponse?> ListFilesApiV1LibraryFilesGet_0OrDefaultAsync(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<bool> internalOnly = default, Option<bool> externalOnly = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
         {
             try
             {
-                return await ListFilesApiV1LibraryFilesGet_0Async(folderId, projectId, includeRoot, xAPIKey, cancellationToken).ConfigureAwait(false);
+                return await ListFilesApiV1LibraryFilesGet_0Async(folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -9460,22 +9496,24 @@ namespace Bambuddy.Api.Api
         }
 
         /// <summary>
-        /// List Files List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.
+        /// List Files List files, optionally filtered by folder or project.  Args:     folder_id: Filter by folder ID. If None and include_root&#x3D;True, returns root files.     project_id: Return all files across folders linked to this project (bulk fetch, avoids N+1).     include_root: If True and folder_id is None, returns files at root level.                  If False and folder_id is None, returns all files.     internal_only: Restrict the result to files in managed storage (&#x60;is_external&#x3D;False&#x60;).                    Used by the File Manager&#39;s \&quot;All Files\&quot; sidebar entry so a linked NAS                    with hundreds of files doesn&#39;t drown the user&#39;s own uploads (#1621).     external_only: Restrict the result to files under external folders                    (&#x60;is_external&#x3D;True&#x60;) — the symmetric combined view for users with                    multiple linked external sources (#1621).
         /// </summary>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="folderId"> (optional)</param>
         /// <param name="projectId"> (optional)</param>
         /// <param name="includeRoot"> (optional, default to true)</param>
+        /// <param name="internalOnly"> (optional, default to false)</param>
+        /// <param name="externalOnly"> (optional, default to false)</param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="IListFilesApiV1LibraryFilesGet_0ApiResponse"/>&gt;</returns>
-        public async Task<IListFilesApiV1LibraryFilesGet_0ApiResponse> ListFilesApiV1LibraryFilesGet_0Async(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
+        public async Task<IListFilesApiV1LibraryFilesGet_0ApiResponse> ListFilesApiV1LibraryFilesGet_0Async(Option<int?> folderId = default, Option<int?> projectId = default, Option<bool> includeRoot = default, Option<bool> internalOnly = default, Option<bool> externalOnly = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
         {
             UriBuilder uriBuilderLocalVar = new UriBuilder();
 
             try
             {
-                FormatListFilesApiV1LibraryFilesGet_0(ref folderId, ref projectId, ref includeRoot, ref xAPIKey);
+                FormatListFilesApiV1LibraryFilesGet_0(ref folderId, ref projectId, ref includeRoot, ref internalOnly, ref externalOnly, ref xAPIKey);
 
                 using (HttpRequestMessage httpRequestMessageLocalVar = new HttpRequestMessage())
                 {
@@ -9496,6 +9534,12 @@ namespace Bambuddy.Api.Api
 
                     if (includeRoot.IsSet)
                         parseQueryStringLocalVar["include_root"] = ClientUtils.ParameterToString(includeRoot.Value);
+
+                    if (internalOnly.IsSet)
+                        parseQueryStringLocalVar["internal_only"] = ClientUtils.ParameterToString(internalOnly.Value);
+
+                    if (externalOnly.IsSet)
+                        parseQueryStringLocalVar["external_only"] = ClientUtils.ParameterToString(externalOnly.Value);
 
                     uriBuilderLocalVar.Query = parseQueryStringLocalVar.ToString();
 
@@ -9548,7 +9592,7 @@ namespace Bambuddy.Api.Api
                             }
                         }
 
-                        AfterListFilesApiV1LibraryFilesGet_0DefaultImplementation(apiResponseLocalVar, folderId, projectId, includeRoot, xAPIKey);
+                        AfterListFilesApiV1LibraryFilesGet_0DefaultImplementation(apiResponseLocalVar, folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey);
 
                         Events.ExecuteOnListFilesApiV1LibraryFilesGet_0(apiResponseLocalVar);
 
@@ -9562,7 +9606,7 @@ namespace Bambuddy.Api.Api
             }
             catch(Exception e)
             {
-                OnErrorListFilesApiV1LibraryFilesGet_0DefaultImplementation(e, "/api/v1/library/files", uriBuilderLocalVar.Path, folderId, projectId, includeRoot, xAPIKey);
+                OnErrorListFilesApiV1LibraryFilesGet_0DefaultImplementation(e, "/api/v1/library/files", uriBuilderLocalVar.Path, folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey);
                 Events.ExecuteOnErrorListFilesApiV1LibraryFilesGet_0(e);
                 throw;
             }

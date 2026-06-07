@@ -356,8 +356,10 @@ namespace Bambuddy.Api.Test.Api
             Client.Option<int?> folderId = default!;
             Client.Option<int?> projectId = default!;
             Client.Option<bool> includeRoot = default!;
+            Client.Option<bool> internalOnly = default!;
+            Client.Option<bool> externalOnly = default!;
             Client.Option<string?> xAPIKey = default!;
-            var response = await _instance.ListFilesApiV1LibraryFilesGetAsync(folderId, projectId, includeRoot, xAPIKey);
+            var response = await _instance.ListFilesApiV1LibraryFilesGetAsync(folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey);
             var model = response.Ok();
             Assert.IsType<List<FileListResponse>>(model);
         }
@@ -371,8 +373,10 @@ namespace Bambuddy.Api.Test.Api
             Client.Option<int?> folderId = default!;
             Client.Option<int?> projectId = default!;
             Client.Option<bool> includeRoot = default!;
+            Client.Option<bool> internalOnly = default!;
+            Client.Option<bool> externalOnly = default!;
             Client.Option<string?> xAPIKey = default!;
-            var response = await _instance.ListFilesApiV1LibraryFilesGet_0Async(folderId, projectId, includeRoot, xAPIKey);
+            var response = await _instance.ListFilesApiV1LibraryFilesGet_0Async(folderId, projectId, includeRoot, internalOnly, externalOnly, xAPIKey);
             var model = response.Ok();
             Assert.IsType<List<FileListResponse>>(model);
         }

@@ -54,6 +54,15 @@ namespace Bambuddy.Api.Test.Model
         }
 
         /// <summary>
+        /// Test the property 'OrcaCloud'
+        /// </summary>
+        [Fact]
+        public void OrcaCloudTest()
+        {
+            // TODO unit test for the property 'OrcaCloud'
+        }
+
+        /// <summary>
         /// Test the property 'Cloud'
         /// </summary>
         [Fact]
@@ -87,6 +96,15 @@ namespace Bambuddy.Api.Test.Model
         public void CloudStatusTest()
         {
             // TODO unit test for the property 'CloudStatus'
+        }
+
+        /// <summary>
+        /// Test the property 'OrcaCloudStatus'
+        /// </summary>
+        [Fact]
+        public void OrcaCloudStatusTest()
+        {
+            // TODO unit test for the property 'OrcaCloudStatus'
         }
     }
 }

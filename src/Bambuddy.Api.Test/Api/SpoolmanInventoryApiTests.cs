@@ -90,14 +90,14 @@ namespace Bambuddy.Api.Test.Api
         }
 
         /// <summary>
-        /// Test BulkResetSpoolUsageApiV1SpoolmanInventorySpoolsResetUsageBulkPost
+        /// Test BulkResetSpoolConsumedCounterApiV1SpoolmanInventorySpoolsResetConsumedCounterBulkPost
         /// </summary>
         [Fact (Skip = "not implemented")]
-        public async Task BulkResetSpoolUsageApiV1SpoolmanInventorySpoolsResetUsageBulkPostAsyncTest()
+        public async Task BulkResetSpoolConsumedCounterApiV1SpoolmanInventorySpoolsResetConsumedCounterBulkPostAsyncTest()
         {
             Dictionary<string, Object> requestBody = default!;
             Client.Option<string?> xAPIKey = default!;
-            var response = await _instance.BulkResetSpoolUsageApiV1SpoolmanInventorySpoolsResetUsageBulkPostAsync(requestBody, xAPIKey);
+            var response = await _instance.BulkResetSpoolConsumedCounterApiV1SpoolmanInventorySpoolsResetConsumedCounterBulkPostAsync(requestBody, xAPIKey);
             var model = response.Ok();
             Assert.IsType<Dictionary<string, Object>>(model);
         }
@@ -236,14 +236,14 @@ namespace Bambuddy.Api.Test.Api
         }
 
         /// <summary>
-        /// Test ResetSpoolUsageApiV1SpoolmanInventorySpoolsSpoolIdResetUsagePost
+        /// Test ResetSpoolConsumedCounterApiV1SpoolmanInventorySpoolsSpoolIdResetConsumedCounterPost
         /// </summary>
         [Fact (Skip = "not implemented")]
-        public async Task ResetSpoolUsageApiV1SpoolmanInventorySpoolsSpoolIdResetUsagePostAsyncTest()
+        public async Task ResetSpoolConsumedCounterApiV1SpoolmanInventorySpoolsSpoolIdResetConsumedCounterPostAsyncTest()
         {
             int spoolId = default!;
             Client.Option<string?> xAPIKey = default!;
-            var response = await _instance.ResetSpoolUsageApiV1SpoolmanInventorySpoolsSpoolIdResetUsagePostAsync(spoolId, xAPIKey);
+            var response = await _instance.ResetSpoolConsumedCounterApiV1SpoolmanInventorySpoolsSpoolIdResetConsumedCounterPostAsync(spoolId, xAPIKey);
             var model = response.Ok();
             Assert.IsType<Dictionary<string, Object>>(model);
         }

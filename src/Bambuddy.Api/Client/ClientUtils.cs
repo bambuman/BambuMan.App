@@ -126,6 +126,8 @@ namespace Bambuddy.Api.Client
                 return EncryptionStatusResponse.KeySourceEnumToJsonValue(encryptionStatusResponseKeySourceEnum);
             if (obj is LabelRequest.TemplateEnum labelRequestTemplateEnum)
                 return LabelRequest.TemplateEnumToJsonValue(labelRequestTemplateEnum);
+            if (obj is OrcaAuthStartRequest.ProviderEnum orcaAuthStartRequestProviderEnum)
+                return OrcaAuthStartRequest.ProviderEnumToJsonValue(orcaAuthStartRequestProviderEnum);
             if (obj is PresetRef.SourceEnum presetRefSourceEnum)
                 return PresetRef.SourceEnumToJsonValue(presetRefSourceEnum);
             if (obj is PrintQueueItemResponse.StatusEnum printQueueItemResponseStatusEnum)
@@ -162,6 +164,8 @@ namespace Bambuddy.Api.Client
                 return UnifiedPreset.SourceEnumToJsonValue(unifiedPresetSourceEnum);
             if (obj is UnifiedPresetsResponse.CloudStatusEnum unifiedPresetsResponseCloudStatusEnum)
                 return UnifiedPresetsResponse.CloudStatusEnumToJsonValue(unifiedPresetsResponseCloudStatusEnum);
+            if (obj is UnifiedPresetsResponse.OrcaCloudStatusEnum unifiedPresetsResponseOrcaCloudStatusEnum)
+                return UnifiedPresetsResponse.OrcaCloudStatusEnumToJsonValue(unifiedPresetsResponseOrcaCloudStatusEnum);
             if (obj is UpdateStatusRequest.StatusEnum updateStatusRequestStatusEnum)
                 return UpdateStatusRequest.StatusEnumToJsonValue(updateStatusRequestStatusEnum);
             if (obj is ICollection collection)

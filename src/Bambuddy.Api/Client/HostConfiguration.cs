@@ -231,6 +231,14 @@ namespace Bambuddy.Api.Client
             _jsonOptions.Converters.Add(new OIDCProviderCreateJsonConverter());
             _jsonOptions.Converters.Add(new OIDCProviderResponseJsonConverter());
             _jsonOptions.Converters.Add(new OIDCProviderUpdateJsonConverter());
+            _jsonOptions.Converters.Add(new OrcaAuthFinishRequestJsonConverter());
+            _jsonOptions.Converters.Add(new OrcaAuthPasswordRequestJsonConverter());
+            _jsonOptions.Converters.Add(new OrcaAuthStartRequestJsonConverter());
+            _jsonOptions.Converters.Add(new OrcaAuthStartResponseJsonConverter());
+            _jsonOptions.Converters.Add(new OrcaAuthStatusResponseJsonConverter());
+            _jsonOptions.Converters.Add(new OrcaProfileDetailJsonConverter());
+            _jsonOptions.Converters.Add(new OrcaProfileListResponseJsonConverter());
+            _jsonOptions.Converters.Add(new OrcaProfileMetaJsonConverter());
             _jsonOptions.Converters.Add(new PendingUploadResponseJsonConverter());
             _jsonOptions.Converters.Add(new PerformMaintenanceRequestJsonConverter());
             _jsonOptions.Converters.Add(new PermissionCategoryJsonConverter());
@@ -408,6 +416,7 @@ namespace Bambuddy.Api.Client
             _services.AddSingleton<NotificationsApiEvents>();
             _services.AddSingleton<ObicoApiEvents>();
             _services.AddSingleton<OidcApiEvents>();
+            _services.AddSingleton<OrcaCloudApiEvents>();
             _services.AddSingleton<PendingUploadsApiEvents>();
             _services.AddSingleton<PrintLogApiEvents>();
             _services.AddSingleton<PrintersApiEvents>();
@@ -475,6 +484,7 @@ namespace Bambuddy.Api.Client
             builders.Add(_services.AddHttpClient<INotificationsApi, NotificationsApi>("Bambuddy.Api.Api.INotificationsApi", client));
             builders.Add(_services.AddHttpClient<IObicoApi, ObicoApi>("Bambuddy.Api.Api.IObicoApi", client));
             builders.Add(_services.AddHttpClient<IOidcApi, OidcApi>("Bambuddy.Api.Api.IOidcApi", client));
+            builders.Add(_services.AddHttpClient<IOrcaCloudApi, OrcaCloudApi>("Bambuddy.Api.Api.IOrcaCloudApi", client));
             builders.Add(_services.AddHttpClient<IPendingUploadsApi, PendingUploadsApi>("Bambuddy.Api.Api.IPendingUploadsApi", client));
             builders.Add(_services.AddHttpClient<IPrintLogApi, PrintLogApi>("Bambuddy.Api.Api.IPrintLogApi", client));
             builders.Add(_services.AddHttpClient<IPrintersApi, PrintersApi>("Bambuddy.Api.Api.IPrintersApi", client));

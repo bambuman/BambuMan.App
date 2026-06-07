@@ -26,7 +26,7 @@ using Bambuddy.Api.Client;
 namespace Bambuddy.Api.Model
 {
     /// <summary>
-    /// A source-aware reference to a printer / process / filament preset.  The SliceModal pulls dropdown options from three tiers (cloud / local / standard). At submit time the client sends one of these per slot so the backend knows where to fetch the preset content from at slice time.
+    /// A source-aware reference to a printer / process / filament preset.  The SliceModal pulls dropdown options from four tiers (orca_cloud / cloud / local / standard). At submit time the client sends one of these per slot so the backend knows where to fetch the preset content from at slice time. &#x60;&#x60;cloud&#x60;&#x60; is Bambu Cloud (kept as the bare name for backward compatibility with existing requests); &#x60;&#x60;orca_cloud&#x60;&#x60; is Orca Cloud.
     /// </summary>
     public partial class PresetRef : IValidatableObject
     {
@@ -34,7 +34,7 @@ namespace Bambuddy.Api.Model
         /// Initializes a new instance of the <see cref="PresetRef" /> class.
         /// </summary>
         /// <param name="source">source</param>
-        /// <param name="id">Cloud setting_id, local DB row id (stringified), or standard preset name.</param>
+        /// <param name="id">Orca Cloud profile id, Bambu Cloud setting_id, local DB row id (stringified), or standard preset name.</param>
         [JsonConstructor]
         public PresetRef(SourceEnum source, string id)
         {
@@ -51,19 +51,24 @@ namespace Bambuddy.Api.Model
         public enum SourceEnum
         {
             /// <summary>
+            /// Enum OrcaCloud for value: orca_cloud
+            /// </summary>
+            OrcaCloud = 1,
+
+            /// <summary>
             /// Enum Cloud for value: cloud
             /// </summary>
-            Cloud = 1,
+            Cloud = 2,
 
             /// <summary>
             /// Enum Local for value: local
             /// </summary>
-            Local = 2,
+            Local = 3,
 
             /// <summary>
             /// Enum Standard for value: standard
             /// </summary>
-            Standard = 3
+            Standard = 4
         }
 
         /// <summary>
@@ -74,6 +79,9 @@ namespace Bambuddy.Api.Model
         /// <exception cref="NotImplementedException"></exception>
         public static SourceEnum SourceEnumFromString(string value)
         {
+            if (value.Equals("orca_cloud"))
+                return SourceEnum.OrcaCloud;
+
             if (value.Equals("cloud"))
                 return SourceEnum.Cloud;
 
@@ -93,6 +101,9 @@ namespace Bambuddy.Api.Model
         /// <returns></returns>
         public static SourceEnum? SourceEnumFromStringOrDefault(string value)
         {
+            if (value.Equals("orca_cloud"))
+                return SourceEnum.OrcaCloud;
+
             if (value.Equals("cloud"))
                 return SourceEnum.Cloud;
 
@@ -113,6 +124,9 @@ namespace Bambuddy.Api.Model
         /// <exception cref="NotImplementedException"></exception>
         public static string SourceEnumToJsonValue(SourceEnum value)
         {
+            if (value == SourceEnum.OrcaCloud)
+                return "orca_cloud";
+
             if (value == SourceEnum.Cloud)
                 return "cloud";
 
@@ -132,9 +146,9 @@ namespace Bambuddy.Api.Model
         public SourceEnum Source { get; set; }
 
         /// <summary>
-        /// Cloud setting_id, local DB row id (stringified), or standard preset name.
+        /// Orca Cloud profile id, Bambu Cloud setting_id, local DB row id (stringified), or standard preset name.
         /// </summary>
-        /// <value>Cloud setting_id, local DB row id (stringified), or standard preset name.</value>
+        /// <value>Orca Cloud profile id, Bambu Cloud setting_id, local DB row id (stringified), or standard preset name.</value>
         [JsonPropertyName("id")]
         public string Id { get; set; }
 

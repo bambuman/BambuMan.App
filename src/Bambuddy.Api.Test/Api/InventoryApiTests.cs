@@ -155,14 +155,14 @@ namespace Bambuddy.Api.Test.Api
         }
 
         /// <summary>
-        /// Test BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost
+        /// Test BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost
         /// </summary>
         [Fact (Skip = "not implemented")]
-        public async Task BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostAsyncTest()
+        public async Task BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostAsyncTest()
         {
             Dictionary<string, Object> requestBody = default!;
             Client.Option<string?> xAPIKey = default!;
-            var response = await _instance.BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostAsync(requestBody, xAPIKey);
+            var response = await _instance.BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostAsync(requestBody, xAPIKey);
             var model = response.Ok();
             Assert.IsType<Object>(model);
         }
@@ -303,6 +303,21 @@ namespace Bambuddy.Api.Test.Api
             int spoolId = default!;
             Client.Option<string?> xAPIKey = default!;
             var response = await _instance.GetSpoolApiV1InventorySpoolsSpoolIdGetAsync(spoolId, xAPIKey);
+            var model = response.Ok();
+            Assert.IsType<SpoolResponse>(model);
+        }
+
+        /// <summary>
+        /// Test GetSpoolByTagApiV1InventorySpoolsByTagGet
+        /// </summary>
+        [Fact (Skip = "not implemented")]
+        public async Task GetSpoolByTagApiV1InventorySpoolsByTagGetAsyncTest()
+        {
+            Client.Option<string?> trayUuid = default!;
+            Client.Option<string?> tagUid = default!;
+            Client.Option<bool> includeArchived = default!;
+            Client.Option<string?> xAPIKey = default!;
+            var response = await _instance.GetSpoolByTagApiV1InventorySpoolsByTagGetAsync(trayUuid, tagUid, includeArchived, xAPIKey);
             var model = response.Ok();
             Assert.IsType<SpoolResponse>(model);
         }
@@ -465,14 +480,14 @@ namespace Bambuddy.Api.Test.Api
         }
 
         /// <summary>
-        /// Test ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost
+        /// Test ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost
         /// </summary>
         [Fact (Skip = "not implemented")]
-        public async Task ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostAsyncTest()
+        public async Task ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostAsyncTest()
         {
             int spoolId = default!;
             Client.Option<string?> xAPIKey = default!;
-            var response = await _instance.ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostAsync(spoolId, xAPIKey);
+            var response = await _instance.ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostAsync(spoolId, xAPIKey);
             var model = response.Ok();
             Assert.IsType<SpoolResponse>(model);
         }

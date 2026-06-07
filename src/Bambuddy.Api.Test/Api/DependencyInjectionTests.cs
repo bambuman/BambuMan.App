@@ -163,6 +163,9 @@ namespace Bambuddy.Api.Test.Api
             var oidcApi = _hostUsingConfigureWithAClient.Services.GetRequiredService<IOidcApi>();
             Assert.True(oidcApi.HttpClient.BaseAddress != null);
 
+            var orcaCloudApi = _hostUsingConfigureWithAClient.Services.GetRequiredService<IOrcaCloudApi>();
+            Assert.True(orcaCloudApi.HttpClient.BaseAddress != null);
+
             var pendingUploadsApi = _hostUsingConfigureWithAClient.Services.GetRequiredService<IPendingUploadsApi>();
             Assert.True(pendingUploadsApi.HttpClient.BaseAddress != null);
 
@@ -319,6 +322,9 @@ namespace Bambuddy.Api.Test.Api
 
             var oidcApi = _hostUsingConfigureWithoutAClient.Services.GetRequiredService<IOidcApi>();
             Assert.True(oidcApi.HttpClient.BaseAddress != null);
+
+            var orcaCloudApi = _hostUsingConfigureWithoutAClient.Services.GetRequiredService<IOrcaCloudApi>();
+            Assert.True(orcaCloudApi.HttpClient.BaseAddress != null);
 
             var pendingUploadsApi = _hostUsingConfigureWithoutAClient.Services.GetRequiredService<IPendingUploadsApi>();
             Assert.True(pendingUploadsApi.HttpClient.BaseAddress != null);
@@ -477,6 +483,9 @@ namespace Bambuddy.Api.Test.Api
             var oidcApi = _hostUsingAddWithAClient.Services.GetRequiredService<IOidcApi>();
             Assert.True(oidcApi.HttpClient.BaseAddress != null);
             
+            var orcaCloudApi = _hostUsingAddWithAClient.Services.GetRequiredService<IOrcaCloudApi>();
+            Assert.True(orcaCloudApi.HttpClient.BaseAddress != null);
+            
             var pendingUploadsApi = _hostUsingAddWithAClient.Services.GetRequiredService<IPendingUploadsApi>();
             Assert.True(pendingUploadsApi.HttpClient.BaseAddress != null);
             
@@ -633,6 +642,9 @@ namespace Bambuddy.Api.Test.Api
 
             var oidcApi = _hostUsingAddWithoutAClient.Services.GetRequiredService<IOidcApi>();
             Assert.True(oidcApi.HttpClient.BaseAddress != null);
+
+            var orcaCloudApi = _hostUsingAddWithoutAClient.Services.GetRequiredService<IOrcaCloudApi>();
+            Assert.True(orcaCloudApi.HttpClient.BaseAddress != null);
 
             var pendingUploadsApi = _hostUsingAddWithoutAClient.Services.GetRequiredService<IPendingUploadsApi>();
             Assert.True(pendingUploadsApi.HttpClient.BaseAddress != null);

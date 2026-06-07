@@ -26,24 +26,28 @@ using Bambuddy.Api.Client;
 namespace Bambuddy.Api.Model
 {
     /// <summary>
-    /// Each tier carries only the names that didn&#39;t appear in a higher tier.  Cloud is the highest priority (user&#39;s personal customisations win), then the local imports the user explicitly curated, then the slicer&#39;s stock fallback. A name that appears in cloud is filtered out of local and standard; a name that appears in local is filtered out of standard.  &#x60;&#x60;cloud_status&#x60;&#x60; lets the frontend show a banner explaining why the cloud tier is empty when the user expected to see it (signed out / token expired / network down).
+    /// Each tier carries only the names that didn&#39;t appear in a higher tier.  Priority order: &#x60;&#x60;orca_cloud &gt; cloud &gt; local &gt; standard&#x60;&#x60;. Orca Cloud is highest because it&#39;s the most-recently-explicitly-curated source for users who set up Orca sync (they did it on purpose; their Orca picks should outrank everything else). Bambu Cloud follows as the next-most- curated tier. Local imports beat the slicer&#39;s stock fallback.  &#x60;&#x60;cloud_status&#x60;&#x60; / &#x60;&#x60;orca_cloud_status&#x60;&#x60; let the frontend show a banner explaining why a cloud tier is empty when the user expected to see it (signed out / token expired / network down). Each tier has its own status because they can fail independently.
     /// </summary>
     public partial class UnifiedPresetsResponse : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="UnifiedPresetsResponse" /> class.
         /// </summary>
+        /// <param name="orcaCloud">orcaCloud</param>
         /// <param name="cloud">cloud</param>
         /// <param name="local">local</param>
         /// <param name="standard">standard</param>
         /// <param name="cloudStatus">cloudStatus (default to CloudStatusEnum.Ok)</param>
+        /// <param name="orcaCloudStatus">orcaCloudStatus (default to OrcaCloudStatusEnum.Ok)</param>
         [JsonConstructor]
-        public UnifiedPresetsResponse(Option<UnifiedPresetsBySlot?> cloud = default, Option<UnifiedPresetsBySlot?> local = default, Option<UnifiedPresetsBySlot?> standard = default, Option<CloudStatusEnum?> cloudStatus = default)
+        public UnifiedPresetsResponse(Option<UnifiedPresetsBySlot?> orcaCloud = default, Option<UnifiedPresetsBySlot?> cloud = default, Option<UnifiedPresetsBySlot?> local = default, Option<UnifiedPresetsBySlot?> standard = default, Option<CloudStatusEnum?> cloudStatus = default, Option<OrcaCloudStatusEnum?> orcaCloudStatus = default)
         {
+            OrcaCloudOption = orcaCloud;
             CloudOption = cloud;
             LocalOption = local;
             StandardOption = standard;
             CloudStatusOption = cloudStatus;
+            OrcaCloudStatusOption = orcaCloudStatus;
             OnCreated();
         }
 
@@ -157,6 +161,126 @@ namespace Bambuddy.Api.Model
         public CloudStatusEnum? CloudStatus { get { return this.CloudStatusOption.Value; } set { this.CloudStatusOption = new(value); } }
 
         /// <summary>
+        /// Defines OrcaCloudStatus
+        /// </summary>
+        public enum OrcaCloudStatusEnum
+        {
+            /// <summary>
+            /// Enum Ok for value: ok
+            /// </summary>
+            Ok = 1,
+
+            /// <summary>
+            /// Enum NotAuthenticated for value: not_authenticated
+            /// </summary>
+            NotAuthenticated = 2,
+
+            /// <summary>
+            /// Enum Expired for value: expired
+            /// </summary>
+            Expired = 3,
+
+            /// <summary>
+            /// Enum Unreachable for value: unreachable
+            /// </summary>
+            Unreachable = 4
+        }
+
+        /// <summary>
+        /// Returns a <see cref="OrcaCloudStatusEnum"/>
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public static OrcaCloudStatusEnum OrcaCloudStatusEnumFromString(string value)
+        {
+            if (value.Equals("ok"))
+                return OrcaCloudStatusEnum.Ok;
+
+            if (value.Equals("not_authenticated"))
+                return OrcaCloudStatusEnum.NotAuthenticated;
+
+            if (value.Equals("expired"))
+                return OrcaCloudStatusEnum.Expired;
+
+            if (value.Equals("unreachable"))
+                return OrcaCloudStatusEnum.Unreachable;
+
+            throw new NotImplementedException($"Could not convert value to type OrcaCloudStatusEnum: '{value}'");
+        }
+
+        /// <summary>
+        /// Returns a <see cref="OrcaCloudStatusEnum"/>
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static OrcaCloudStatusEnum? OrcaCloudStatusEnumFromStringOrDefault(string value)
+        {
+            if (value.Equals("ok"))
+                return OrcaCloudStatusEnum.Ok;
+
+            if (value.Equals("not_authenticated"))
+                return OrcaCloudStatusEnum.NotAuthenticated;
+
+            if (value.Equals("expired"))
+                return OrcaCloudStatusEnum.Expired;
+
+            if (value.Equals("unreachable"))
+                return OrcaCloudStatusEnum.Unreachable;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Converts the <see cref="OrcaCloudStatusEnum"/> to the json value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public static string OrcaCloudStatusEnumToJsonValue(OrcaCloudStatusEnum? value)
+        {
+            if (value == OrcaCloudStatusEnum.Ok)
+                return "ok";
+
+            if (value == OrcaCloudStatusEnum.NotAuthenticated)
+                return "not_authenticated";
+
+            if (value == OrcaCloudStatusEnum.Expired)
+                return "expired";
+
+            if (value == OrcaCloudStatusEnum.Unreachable)
+                return "unreachable";
+
+            throw new NotImplementedException($"Value could not be handled: '{value}'");
+        }
+
+        /// <summary>
+        /// Used to track the state of OrcaCloudStatus
+        /// </summary>
+        [JsonIgnore]
+        [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
+        public Option<OrcaCloudStatusEnum?> OrcaCloudStatusOption { get; private set; }
+
+        /// <summary>
+        /// Gets or Sets OrcaCloudStatus
+        /// </summary>
+        [JsonPropertyName("orca_cloud_status")]
+        public OrcaCloudStatusEnum? OrcaCloudStatus { get { return this.OrcaCloudStatusOption.Value; } set { this.OrcaCloudStatusOption = new(value); } }
+
+        /// <summary>
+        /// Used to track the state of OrcaCloud
+        /// </summary>
+        [JsonIgnore]
+        [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
+        public Option<UnifiedPresetsBySlot?> OrcaCloudOption { get; private set; }
+
+        /// <summary>
+        /// Gets or Sets OrcaCloud
+        /// </summary>
+        [JsonPropertyName("orca_cloud")]
+        public UnifiedPresetsBySlot? OrcaCloud { get { return this.OrcaCloudOption.Value; } set { this.OrcaCloudOption = new(value); } }
+
+        /// <summary>
         /// Used to track the state of Cloud
         /// </summary>
         [JsonIgnore]
@@ -203,10 +327,12 @@ namespace Bambuddy.Api.Model
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("class UnifiedPresetsResponse {\n");
+            sb.Append("  OrcaCloud: ").Append(OrcaCloud).Append("\n");
             sb.Append("  Cloud: ").Append(Cloud).Append("\n");
             sb.Append("  Local: ").Append(Local).Append("\n");
             sb.Append("  Standard: ").Append(Standard).Append("\n");
             sb.Append("  CloudStatus: ").Append(CloudStatus).Append("\n");
+            sb.Append("  OrcaCloudStatus: ").Append(OrcaCloudStatus).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -244,10 +370,12 @@ namespace Bambuddy.Api.Model
 
             JsonTokenType startingTokenType = utf8JsonReader.TokenType;
 
+            Option<UnifiedPresetsBySlot?> orcaCloud = default;
             Option<UnifiedPresetsBySlot?> cloud = default;
             Option<UnifiedPresetsBySlot?> local = default;
             Option<UnifiedPresetsBySlot?> standard = default;
             Option<UnifiedPresetsResponse.CloudStatusEnum?> cloudStatus = default;
+            Option<UnifiedPresetsResponse.OrcaCloudStatusEnum?> orcaCloudStatus = default;
 
             while (utf8JsonReader.Read())
             {
@@ -264,6 +392,9 @@ namespace Bambuddy.Api.Model
 
                     switch (localVarJsonPropertyName)
                     {
+                        case "orca_cloud":
+                            orcaCloud = new Option<UnifiedPresetsBySlot?>(JsonSerializer.Deserialize<UnifiedPresetsBySlot>(ref utf8JsonReader, jsonSerializerOptions)!);
+                            break;
                         case "cloud":
                             cloud = new Option<UnifiedPresetsBySlot?>(JsonSerializer.Deserialize<UnifiedPresetsBySlot>(ref utf8JsonReader, jsonSerializerOptions)!);
                             break;
@@ -278,11 +409,19 @@ namespace Bambuddy.Api.Model
                             if (cloudStatusRawValue != null)
                                 cloudStatus = new Option<UnifiedPresetsResponse.CloudStatusEnum?>(UnifiedPresetsResponse.CloudStatusEnumFromStringOrDefault(cloudStatusRawValue));
                             break;
+                        case "orca_cloud_status":
+                            string? orcaCloudStatusRawValue = utf8JsonReader.GetString();
+                            if (orcaCloudStatusRawValue != null)
+                                orcaCloudStatus = new Option<UnifiedPresetsResponse.OrcaCloudStatusEnum?>(UnifiedPresetsResponse.OrcaCloudStatusEnumFromStringOrDefault(orcaCloudStatusRawValue));
+                            break;
                         default:
                             break;
                     }
                 }
             }
+
+            if (orcaCloud.IsSet && orcaCloud.Value == null)
+                throw new ArgumentNullException(nameof(orcaCloud), "Property is not nullable for class UnifiedPresetsResponse.");
 
             if (cloud.IsSet && cloud.Value == null)
                 throw new ArgumentNullException(nameof(cloud), "Property is not nullable for class UnifiedPresetsResponse.");
@@ -296,7 +435,10 @@ namespace Bambuddy.Api.Model
             if (cloudStatus.IsSet && cloudStatus.Value == null)
                 throw new ArgumentNullException(nameof(cloudStatus), "Property is not nullable for class UnifiedPresetsResponse.");
 
-            return new UnifiedPresetsResponse(cloud, local, standard, cloudStatus);
+            if (orcaCloudStatus.IsSet && orcaCloudStatus.Value == null)
+                throw new ArgumentNullException(nameof(orcaCloudStatus), "Property is not nullable for class UnifiedPresetsResponse.");
+
+            return new UnifiedPresetsResponse(orcaCloud, cloud, local, standard, cloudStatus, orcaCloudStatus);
         }
 
         /// <summary>
@@ -323,6 +465,9 @@ namespace Bambuddy.Api.Model
         /// <exception cref="NotImplementedException"></exception>
         public void WriteProperties(Utf8JsonWriter writer, UnifiedPresetsResponse unifiedPresetsResponse, JsonSerializerOptions jsonSerializerOptions)
         {
+            if (unifiedPresetsResponse.OrcaCloudOption.IsSet && unifiedPresetsResponse.OrcaCloud == null)
+                throw new ArgumentNullException(nameof(unifiedPresetsResponse.OrcaCloud), "Property is required for class UnifiedPresetsResponse.");
+
             if (unifiedPresetsResponse.CloudOption.IsSet && unifiedPresetsResponse.Cloud == null)
                 throw new ArgumentNullException(nameof(unifiedPresetsResponse.Cloud), "Property is required for class UnifiedPresetsResponse.");
 
@@ -332,6 +477,11 @@ namespace Bambuddy.Api.Model
             if (unifiedPresetsResponse.StandardOption.IsSet && unifiedPresetsResponse.Standard == null)
                 throw new ArgumentNullException(nameof(unifiedPresetsResponse.Standard), "Property is required for class UnifiedPresetsResponse.");
 
+            if (unifiedPresetsResponse.OrcaCloudOption.IsSet)
+            {
+                writer.WritePropertyName("orca_cloud");
+                JsonSerializer.Serialize(writer, unifiedPresetsResponse.OrcaCloud, jsonSerializerOptions);
+            }
             if (unifiedPresetsResponse.CloudOption.IsSet)
             {
                 writer.WritePropertyName("cloud");
@@ -349,6 +499,8 @@ namespace Bambuddy.Api.Model
             }
             var cloudStatusRawValue = UnifiedPresetsResponse.CloudStatusEnumToJsonValue(unifiedPresetsResponse.CloudStatusOption.Value!.Value);
             writer.WriteString("cloud_status", cloudStatusRawValue);
+            var orcaCloudStatusRawValue = UnifiedPresetsResponse.OrcaCloudStatusEnumToJsonValue(unifiedPresetsResponse.OrcaCloudStatusOption.Value!.Value);
+            writer.WriteString("orca_cloud_status", orcaCloudStatusRawValue);
         }
     }
 }

@@ -238,7 +238,7 @@ namespace Bambuddy.Api.Api
         Task<IBulkDeleteColorEntriesApiV1InventoryColorsBulkDeletePostApiResponse?> BulkDeleteColorEntriesApiV1InventoryColorsBulkDeletePostOrDefaultAsync(BulkDeleteIdsRequest bulkDeleteIdsRequest, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Bulk Reset Spool Usage
+        /// Bulk Reset Spool Consumed Counter
         /// </summary>
         /// <remarks>
         /// Bulk-stamp baseline &#x3D; weight_used across the given spool IDs.  Caller passes an explicit list of IDs — no \&quot;reset all\&quot; shortcut, since a typo on a wildcard would wipe the entire inventory&#39;s tracking. Same semantics as the per-spool endpoint: remaining is preserved, weight_locked is left alone.
@@ -247,11 +247,11 @@ namespace Bambuddy.Api.Api
         /// <param name="requestBody"></param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
-        /// <returns><see cref="Task"/>&lt;<see cref="IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse"/>&gt;</returns>
-        Task<IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse> BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostAsync(Dictionary<string, Object> requestBody, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
+        /// <returns><see cref="Task"/>&lt;<see cref="IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse"/>&gt;</returns>
+        Task<IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse> BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostAsync(Dictionary<string, Object> requestBody, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Bulk Reset Spool Usage
+        /// Bulk Reset Spool Consumed Counter
         /// </summary>
         /// <remarks>
         /// Bulk-stamp baseline &#x3D; weight_used across the given spool IDs.  Caller passes an explicit list of IDs — no \&quot;reset all\&quot; shortcut, since a typo on a wildcard would wipe the entire inventory&#39;s tracking. Same semantics as the per-spool endpoint: remaining is preserved, weight_locked is left alone.
@@ -259,8 +259,8 @@ namespace Bambuddy.Api.Api
         /// <param name="requestBody"></param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
-        /// <returns><see cref="Task"/>&lt;<see cref="IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse"/>?&gt;</returns>
-        Task<IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse?> BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostOrDefaultAsync(Dictionary<string, Object> requestBody, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
+        /// <returns><see cref="Task"/>&lt;<see cref="IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse"/>?&gt;</returns>
+        Task<IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse?> BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostOrDefaultAsync(Dictionary<string, Object> requestBody, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Clear Shopping List
@@ -530,6 +530,35 @@ namespace Bambuddy.Api.Api
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns><see cref="Task"/>&lt;<see cref="IGetSpoolApiV1InventorySpoolsSpoolIdGetApiResponse"/>?&gt;</returns>
         Task<IGetSpoolApiV1InventorySpoolsSpoolIdGetApiResponse?> GetSpoolApiV1InventorySpoolsSpoolIdGetOrDefaultAsync(int spoolId, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Get Spool By Tag
+        /// </summary>
+        /// <remarks>
+        /// Find a single spool by its NFC &#x60;&#x60;tray_uuid&#x60;&#x60; and/or &#x60;&#x60;tag_uid&#x60;&#x60;.  Lets NFC inventory integrations dedupe a scan without listing the whole inventory. &#x60;&#x60;tray_uuid&#x60;&#x60; is the primary identifier (it matches the value the AMS reports over MQTT), so it is tried first; &#x60;&#x60;tag_uid&#x60;&#x60; is the fallback. At least one identifier must be supplied. Returns 404 when nothing matches.  Requires &#x60;&#x60;inventory:read&#x60;&#x60;, which for API keys is granted by either a read-status or a Manage-Inventory scope (#1663) — so a key that can already create/update spools can read them back too.
+        /// </remarks>
+        /// <exception cref="ApiException">Thrown when fails to make API call</exception>
+        /// <param name="trayUuid"> (optional)</param>
+        /// <param name="tagUid"> (optional)</param>
+        /// <param name="includeArchived"> (optional, default to false)</param>
+        /// <param name="xAPIKey"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse"/>&gt;</returns>
+        Task<IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse> GetSpoolByTagApiV1InventorySpoolsByTagGetAsync(Option<string?> trayUuid = default, Option<string?> tagUid = default, Option<bool> includeArchived = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Get Spool By Tag
+        /// </summary>
+        /// <remarks>
+        /// Find a single spool by its NFC &#x60;&#x60;tray_uuid&#x60;&#x60; and/or &#x60;&#x60;tag_uid&#x60;&#x60;.  Lets NFC inventory integrations dedupe a scan without listing the whole inventory. &#x60;&#x60;tray_uuid&#x60;&#x60; is the primary identifier (it matches the value the AMS reports over MQTT), so it is tried first; &#x60;&#x60;tag_uid&#x60;&#x60; is the fallback. At least one identifier must be supplied. Returns 404 when nothing matches.  Requires &#x60;&#x60;inventory:read&#x60;&#x60;, which for API keys is granted by either a read-status or a Manage-Inventory scope (#1663) — so a key that can already create/update spools can read them back too.
+        /// </remarks>
+        /// <param name="trayUuid"> (optional)</param>
+        /// <param name="tagUid"> (optional)</param>
+        /// <param name="includeArchived"> (optional, default to false)</param>
+        /// <param name="xAPIKey"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse"/>?&gt;</returns>
+        Task<IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse?> GetSpoolByTagApiV1InventorySpoolsByTagGetOrDefaultAsync(Option<string?> trayUuid = default, Option<string?> tagUid = default, Option<bool> includeArchived = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Get Spool Catalog
@@ -834,29 +863,29 @@ namespace Bambuddy.Api.Api
         Task<IResetSpoolCatalogApiV1InventoryCatalogResetPostApiResponse?> ResetSpoolCatalogApiV1InventoryCatalogResetPostOrDefaultAsync(Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Reset Spool Usage
+        /// Reset Spool Consumed Counter
         /// </summary>
         /// <remarks>
-        /// Zero the displayed \&quot;Total Consumed\&quot; counter without touching remaining.  Stamps &#x60;weight_used_baseline &#x3D; weight_used&#x60; so the Inventory page&#39;s &#x60;weight_used - baseline&#x60; display reads 0, while &#x60;label_weight - weight_used&#x60; (remaining) is unchanged. weight_locked is also left alone — the spool keeps receiving AMS auto-sync updates. Matches Spoolman&#39;s split between used_weight and remaining_weight (#1390).
+        /// Zero the displayed \&quot;Total Consumed\&quot; counter without touching remaining.  Stamps &#x60;weight_used_baseline &#x3D; weight_used&#x60; so the Inventory page&#39;s &#x60;weight_used - baseline&#x60; display reads 0, while &#x60;label_weight - weight_used&#x60; (remaining) is unchanged. weight_locked is also left alone — the spool keeps receiving AMS auto-sync updates. Matches Spoolman&#39;s split between used_weight and remaining_weight (#1390).  The earlier name &#x60;/reset-usage&#x60; was misleading: callers reasonably expected &#x60;weight_used&#x60; itself to drop to 0 and were surprised when the response showed it unchanged. The current name describes what the endpoint actually does — reset the \&quot;Total Consumed\&quot; counter widget, not the lifetime weight_used field.
         /// </remarks>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="spoolId"></param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
-        /// <returns><see cref="Task"/>&lt;<see cref="IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse"/>&gt;</returns>
-        Task<IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse> ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostAsync(int spoolId, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
+        /// <returns><see cref="Task"/>&lt;<see cref="IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse"/>&gt;</returns>
+        Task<IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse> ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostAsync(int spoolId, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Reset Spool Usage
+        /// Reset Spool Consumed Counter
         /// </summary>
         /// <remarks>
-        /// Zero the displayed \&quot;Total Consumed\&quot; counter without touching remaining.  Stamps &#x60;weight_used_baseline &#x3D; weight_used&#x60; so the Inventory page&#39;s &#x60;weight_used - baseline&#x60; display reads 0, while &#x60;label_weight - weight_used&#x60; (remaining) is unchanged. weight_locked is also left alone — the spool keeps receiving AMS auto-sync updates. Matches Spoolman&#39;s split between used_weight and remaining_weight (#1390).
+        /// Zero the displayed \&quot;Total Consumed\&quot; counter without touching remaining.  Stamps &#x60;weight_used_baseline &#x3D; weight_used&#x60; so the Inventory page&#39;s &#x60;weight_used - baseline&#x60; display reads 0, while &#x60;label_weight - weight_used&#x60; (remaining) is unchanged. weight_locked is also left alone — the spool keeps receiving AMS auto-sync updates. Matches Spoolman&#39;s split between used_weight and remaining_weight (#1390).  The earlier name &#x60;/reset-usage&#x60; was misleading: callers reasonably expected &#x60;weight_used&#x60; itself to drop to 0 and were surprised when the response showed it unchanged. The current name describes what the endpoint actually does — reset the \&quot;Total Consumed\&quot; counter widget, not the lifetime weight_used field.
         /// </remarks>
         /// <param name="spoolId"></param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
-        /// <returns><see cref="Task"/>&lt;<see cref="IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse"/>?&gt;</returns>
-        Task<IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse?> ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostOrDefaultAsync(int spoolId, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
+        /// <returns><see cref="Task"/>&lt;<see cref="IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse"/>?&gt;</returns>
+        Task<IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse?> ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostOrDefaultAsync(int spoolId, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Restore Spool
@@ -1264,9 +1293,9 @@ namespace Bambuddy.Api.Api
     }
 
     /// <summary>
-    /// The <see cref="IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse"/>
+    /// The <see cref="IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse"/>
     /// </summary>
-    public interface IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse : Bambuddy.Api.Client.IApiResponse, IOk<Object?>, IUnprocessableContent<Bambuddy.Api.Model.HTTPValidationError?>
+    public interface IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse : Bambuddy.Api.Client.IApiResponse, IOk<Object?>, IUnprocessableContent<Bambuddy.Api.Model.HTTPValidationError?>
     {
         /// <summary>
         /// Returns true if the response is 200 Ok
@@ -1465,6 +1494,24 @@ namespace Bambuddy.Api.Api
     /// The <see cref="IGetSpoolApiV1InventorySpoolsSpoolIdGetApiResponse"/>
     /// </summary>
     public interface IGetSpoolApiV1InventorySpoolsSpoolIdGetApiResponse : Bambuddy.Api.Client.IApiResponse, IOk<Bambuddy.Api.Model.SpoolResponse?>, IUnprocessableContent<Bambuddy.Api.Model.HTTPValidationError?>
+    {
+        /// <summary>
+        /// Returns true if the response is 200 Ok
+        /// </summary>
+        /// <returns></returns>
+        bool IsOk { get; }
+
+        /// <summary>
+        /// Returns true if the response is 422 UnprocessableContent
+        /// </summary>
+        /// <returns></returns>
+        bool IsUnprocessableContent { get; }
+    }
+
+    /// <summary>
+    /// The <see cref="IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse"/>
+    /// </summary>
+    public interface IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse : Bambuddy.Api.Client.IApiResponse, IOk<Bambuddy.Api.Model.SpoolResponse?>, IUnprocessableContent<Bambuddy.Api.Model.HTTPValidationError?>
     {
         /// <summary>
         /// Returns true if the response is 200 Ok
@@ -1696,9 +1743,9 @@ namespace Bambuddy.Api.Api
     }
 
     /// <summary>
-    /// The <see cref="IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse"/>
+    /// The <see cref="IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse"/>
     /// </summary>
-    public interface IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse : Bambuddy.Api.Client.IApiResponse, IOk<Bambuddy.Api.Model.SpoolResponse?>, IUnprocessableContent<Bambuddy.Api.Model.HTTPValidationError?>
+    public interface IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse : Bambuddy.Api.Client.IApiResponse, IOk<Bambuddy.Api.Model.SpoolResponse?>, IUnprocessableContent<Bambuddy.Api.Model.HTTPValidationError?>
     {
         /// <summary>
         /// Returns true if the response is 200 Ok
@@ -2061,21 +2108,21 @@ namespace Bambuddy.Api.Api
         /// <summary>
         /// The event raised after the server response
         /// </summary>
-        public event EventHandler<ApiResponseEventArgs>? OnBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost;
+        public event EventHandler<ApiResponseEventArgs>? OnBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost;
 
         /// <summary>
         /// The event raised after an error querying the server
         /// </summary>
-        public event EventHandler<ExceptionEventArgs>? OnErrorBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost;
+        public event EventHandler<ExceptionEventArgs>? OnErrorBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost;
 
-        internal void ExecuteOnBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(InventoryApi.BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse apiResponse)
+        internal void ExecuteOnBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(InventoryApi.BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse apiResponse)
         {
-            OnBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost?.Invoke(this, new ApiResponseEventArgs(apiResponse));
+            OnBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost?.Invoke(this, new ApiResponseEventArgs(apiResponse));
         }
 
-        internal void ExecuteOnErrorBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(Exception exception)
+        internal void ExecuteOnErrorBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(Exception exception)
         {
-            OnErrorBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost?.Invoke(this, new ExceptionEventArgs(exception));
+            OnErrorBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost?.Invoke(this, new ExceptionEventArgs(exception));
         }
 
         /// <summary>
@@ -2296,6 +2343,26 @@ namespace Bambuddy.Api.Api
         internal void ExecuteOnErrorGetSpoolApiV1InventorySpoolsSpoolIdGet(Exception exception)
         {
             OnErrorGetSpoolApiV1InventorySpoolsSpoolIdGet?.Invoke(this, new ExceptionEventArgs(exception));
+        }
+
+        /// <summary>
+        /// The event raised after the server response
+        /// </summary>
+        public event EventHandler<ApiResponseEventArgs>? OnGetSpoolByTagApiV1InventorySpoolsByTagGet;
+
+        /// <summary>
+        /// The event raised after an error querying the server
+        /// </summary>
+        public event EventHandler<ExceptionEventArgs>? OnErrorGetSpoolByTagApiV1InventorySpoolsByTagGet;
+
+        internal void ExecuteOnGetSpoolByTagApiV1InventorySpoolsByTagGet(InventoryApi.GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse apiResponse)
+        {
+            OnGetSpoolByTagApiV1InventorySpoolsByTagGet?.Invoke(this, new ApiResponseEventArgs(apiResponse));
+        }
+
+        internal void ExecuteOnErrorGetSpoolByTagApiV1InventorySpoolsByTagGet(Exception exception)
+        {
+            OnErrorGetSpoolByTagApiV1InventorySpoolsByTagGet?.Invoke(this, new ExceptionEventArgs(exception));
         }
 
         /// <summary>
@@ -2541,21 +2608,21 @@ namespace Bambuddy.Api.Api
         /// <summary>
         /// The event raised after the server response
         /// </summary>
-        public event EventHandler<ApiResponseEventArgs>? OnResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost;
+        public event EventHandler<ApiResponseEventArgs>? OnResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost;
 
         /// <summary>
         /// The event raised after an error querying the server
         /// </summary>
-        public event EventHandler<ExceptionEventArgs>? OnErrorResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost;
+        public event EventHandler<ExceptionEventArgs>? OnErrorResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost;
 
-        internal void ExecuteOnResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost(InventoryApi.ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse apiResponse)
+        internal void ExecuteOnResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost(InventoryApi.ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse apiResponse)
         {
-            OnResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost?.Invoke(this, new ApiResponseEventArgs(apiResponse));
+            OnResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost?.Invoke(this, new ApiResponseEventArgs(apiResponse));
         }
 
-        internal void ExecuteOnErrorResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost(Exception exception)
+        internal void ExecuteOnErrorResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost(Exception exception)
         {
-            OnErrorResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost?.Invoke(this, new ExceptionEventArgs(exception));
+            OnErrorResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost?.Invoke(this, new ExceptionEventArgs(exception));
         }
 
         /// <summary>
@@ -5357,14 +5424,14 @@ namespace Bambuddy.Api.Api
             partial void OnDeserializationError(ref bool suppressDefaultLog, Exception exception, HttpStatusCode httpStatusCode);
         }
 
-        partial void FormatBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(Dictionary<string, Object> requestBody, ref Option<string?> xAPIKey);
+        partial void FormatBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(Dictionary<string, Object> requestBody, ref Option<string?> xAPIKey);
 
         /// <summary>
         /// Validates the request parameters
         /// </summary>
         /// <param name="requestBody"></param>
         /// <returns></returns>
-        private void ValidateBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(Dictionary<string, Object> requestBody)
+        private void ValidateBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(Dictionary<string, Object> requestBody)
         {
             if (requestBody == null)
                 throw new ArgumentNullException(nameof(requestBody));
@@ -5376,10 +5443,10 @@ namespace Bambuddy.Api.Api
         /// <param name="apiResponseLocalVar"></param>
         /// <param name="requestBody"></param>
         /// <param name="xAPIKey"></param>
-        private void AfterBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostDefaultImplementation(IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse apiResponseLocalVar, Dictionary<string, Object> requestBody, Option<string?> xAPIKey)
+        private void AfterBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostDefaultImplementation(IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse apiResponseLocalVar, Dictionary<string, Object> requestBody, Option<string?> xAPIKey)
         {
             bool suppressDefaultLog = false;
-            AfterBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(ref suppressDefaultLog, apiResponseLocalVar, requestBody, xAPIKey);
+            AfterBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(ref suppressDefaultLog, apiResponseLocalVar, requestBody, xAPIKey);
             if (!suppressDefaultLog)
                 Logger.LogInformation("{0,-9} | {1} | {2}", (apiResponseLocalVar.DownloadedAt - apiResponseLocalVar.RequestedAt).TotalSeconds, apiResponseLocalVar.StatusCode, apiResponseLocalVar.Path);
         }
@@ -5391,7 +5458,7 @@ namespace Bambuddy.Api.Api
         /// <param name="apiResponseLocalVar"></param>
         /// <param name="requestBody"></param>
         /// <param name="xAPIKey"></param>
-        partial void AfterBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(ref bool suppressDefaultLog, IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse apiResponseLocalVar, Dictionary<string, Object> requestBody, Option<string?> xAPIKey);
+        partial void AfterBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(ref bool suppressDefaultLog, IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse apiResponseLocalVar, Dictionary<string, Object> requestBody, Option<string?> xAPIKey);
 
         /// <summary>
         /// Logs exceptions that occur while retrieving the server response
@@ -5401,10 +5468,10 @@ namespace Bambuddy.Api.Api
         /// <param name="pathLocalVar"></param>
         /// <param name="requestBody"></param>
         /// <param name="xAPIKey"></param>
-        private void OnErrorBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostDefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Dictionary<string, Object> requestBody, Option<string?> xAPIKey)
+        private void OnErrorBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostDefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Dictionary<string, Object> requestBody, Option<string?> xAPIKey)
         {
             bool suppressDefaultLogLocalVar = false;
-            OnErrorBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, requestBody, xAPIKey);
+            OnErrorBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, requestBody, xAPIKey);
             if (!suppressDefaultLogLocalVar)
                 Logger.LogError(exceptionLocalVar, "An error occurred while sending the request to the server.");
         }
@@ -5418,20 +5485,20 @@ namespace Bambuddy.Api.Api
         /// <param name="pathLocalVar"></param>
         /// <param name="requestBody"></param>
         /// <param name="xAPIKey"></param>
-        partial void OnErrorBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Dictionary<string, Object> requestBody, Option<string?> xAPIKey);
+        partial void OnErrorBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Dictionary<string, Object> requestBody, Option<string?> xAPIKey);
 
         /// <summary>
-        /// Bulk Reset Spool Usage Bulk-stamp baseline &#x3D; weight_used across the given spool IDs.  Caller passes an explicit list of IDs — no \&quot;reset all\&quot; shortcut, since a typo on a wildcard would wipe the entire inventory&#39;s tracking. Same semantics as the per-spool endpoint: remaining is preserved, weight_locked is left alone.
+        /// Bulk Reset Spool Consumed Counter Bulk-stamp baseline &#x3D; weight_used across the given spool IDs.  Caller passes an explicit list of IDs — no \&quot;reset all\&quot; shortcut, since a typo on a wildcard would wipe the entire inventory&#39;s tracking. Same semantics as the per-spool endpoint: remaining is preserved, weight_locked is left alone.
         /// </summary>
         /// <param name="requestBody"></param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
-        /// <returns><see cref="Task"/>&lt;<see cref="IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse"/>&gt;</returns>
-        public async Task<IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse?> BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostOrDefaultAsync(Dictionary<string, Object> requestBody, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
+        /// <returns><see cref="Task"/>&lt;<see cref="IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse"/>&gt;</returns>
+        public async Task<IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse?> BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostOrDefaultAsync(Dictionary<string, Object> requestBody, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
         {
             try
             {
-                return await BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostAsync(requestBody, xAPIKey, cancellationToken).ConfigureAwait(false);
+                return await BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostAsync(requestBody, xAPIKey, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -5440,22 +5507,22 @@ namespace Bambuddy.Api.Api
         }
 
         /// <summary>
-        /// Bulk Reset Spool Usage Bulk-stamp baseline &#x3D; weight_used across the given spool IDs.  Caller passes an explicit list of IDs — no \&quot;reset all\&quot; shortcut, since a typo on a wildcard would wipe the entire inventory&#39;s tracking. Same semantics as the per-spool endpoint: remaining is preserved, weight_locked is left alone.
+        /// Bulk Reset Spool Consumed Counter Bulk-stamp baseline &#x3D; weight_used across the given spool IDs.  Caller passes an explicit list of IDs — no \&quot;reset all\&quot; shortcut, since a typo on a wildcard would wipe the entire inventory&#39;s tracking. Same semantics as the per-spool endpoint: remaining is preserved, weight_locked is left alone.
         /// </summary>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="requestBody"></param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
-        /// <returns><see cref="Task"/>&lt;<see cref="IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse"/>&gt;</returns>
-        public async Task<IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse> BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostAsync(Dictionary<string, Object> requestBody, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
+        /// <returns><see cref="Task"/>&lt;<see cref="IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse"/>&gt;</returns>
+        public async Task<IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse> BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostAsync(Dictionary<string, Object> requestBody, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
         {
             UriBuilder uriBuilderLocalVar = new UriBuilder();
 
             try
             {
-                ValidateBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(requestBody);
+                ValidateBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(requestBody);
 
-                FormatBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(requestBody, ref xAPIKey);
+                FormatBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(requestBody, ref xAPIKey);
 
                 using (HttpRequestMessage httpRequestMessageLocalVar = new HttpRequestMessage())
                 {
@@ -5463,8 +5530,8 @@ namespace Bambuddy.Api.Api
                     uriBuilderLocalVar.Port = HttpClient.BaseAddress.Port;
                     uriBuilderLocalVar.Scheme = HttpClient.BaseAddress.Scheme;
                     uriBuilderLocalVar.Path = HttpClient.BaseAddress.AbsolutePath == "/"
-                        ? "/api/v1/inventory/spools/reset-usage-bulk"
-                        : string.Concat(HttpClient.BaseAddress.AbsolutePath.TrimEnd('/'), "/api/v1/inventory/spools/reset-usage-bulk");
+                        ? "/api/v1/inventory/spools/reset-consumed-counter-bulk"
+                        : string.Concat(HttpClient.BaseAddress.AbsolutePath.TrimEnd('/'), "/api/v1/inventory/spools/reset-consumed-counter-bulk");
 
                     httpRequestMessageLocalVar.Content = (requestBody as object) is Bambuddy.Api.Client.FileParameter fileParameterLocalVar
                         ? httpRequestMessageLocalVar.Content = new StreamContent(fileParameterLocalVar.Content)
@@ -5516,21 +5583,21 @@ namespace Bambuddy.Api.Api
 
                     using (HttpResponseMessage httpResponseMessageLocalVar = await HttpClient.SendAsync(httpRequestMessageLocalVar, cancellationToken).ConfigureAwait(false))
                     {
-                        ILogger<BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse> apiResponseLoggerLocalVar = LoggerFactory.CreateLogger<BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse>();
-                        BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse apiResponseLocalVar;
+                        ILogger<BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse> apiResponseLoggerLocalVar = LoggerFactory.CreateLogger<BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse>();
+                        BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse apiResponseLocalVar;
 
                         switch ((int)httpResponseMessageLocalVar.StatusCode) {
                             default: {
                                 string responseContentLocalVar = await httpResponseMessageLocalVar.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                                apiResponseLocalVar = new(apiResponseLoggerLocalVar, httpRequestMessageLocalVar, httpResponseMessageLocalVar, responseContentLocalVar, "/api/v1/inventory/spools/reset-usage-bulk", requestedAtLocalVar, _jsonSerializerOptions);
+                                apiResponseLocalVar = new(apiResponseLoggerLocalVar, httpRequestMessageLocalVar, httpResponseMessageLocalVar, responseContentLocalVar, "/api/v1/inventory/spools/reset-consumed-counter-bulk", requestedAtLocalVar, _jsonSerializerOptions);
 
                                 break;
                             }
                         }
 
-                        AfterBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostDefaultImplementation(apiResponseLocalVar, requestBody, xAPIKey);
+                        AfterBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostDefaultImplementation(apiResponseLocalVar, requestBody, xAPIKey);
 
-                        Events.ExecuteOnBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(apiResponseLocalVar);
+                        Events.ExecuteOnBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(apiResponseLocalVar);
 
                         if (apiResponseLocalVar.StatusCode == (HttpStatusCode) 429)
                             foreach(TokenBase tokenBaseLocalVar in tokenBaseLocalVars)
@@ -5542,24 +5609,24 @@ namespace Bambuddy.Api.Api
             }
             catch(Exception e)
             {
-                OnErrorBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostDefaultImplementation(e, "/api/v1/inventory/spools/reset-usage-bulk", uriBuilderLocalVar.Path, requestBody, xAPIKey);
-                Events.ExecuteOnErrorBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPost(e);
+                OnErrorBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostDefaultImplementation(e, "/api/v1/inventory/spools/reset-consumed-counter-bulk", uriBuilderLocalVar.Path, requestBody, xAPIKey);
+                Events.ExecuteOnErrorBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPost(e);
                 throw;
             }
         }
 
         /// <summary>
-        /// The <see cref="BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse"/>
+        /// The <see cref="BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse"/>
         /// </summary>
-        public partial class BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse : Bambuddy.Api.Client.ApiResponse, IBulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse
+        public partial class BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse : Bambuddy.Api.Client.ApiResponse, IBulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse
         {
             /// <summary>
             /// The logger
             /// </summary>
-            public ILogger<BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse> Logger { get; }
+            public ILogger<BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse> Logger { get; }
 
             /// <summary>
-            /// The <see cref="BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse"/>
+            /// The <see cref="BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse"/>
             /// </summary>
             /// <param name="logger"></param>
             /// <param name="httpRequestMessage"></param>
@@ -5568,14 +5635,14 @@ namespace Bambuddy.Api.Api
             /// <param name="path"></param>
             /// <param name="requestedAt"></param>
             /// <param name="jsonSerializerOptions"></param>
-            public BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse(ILogger<BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, string rawContent, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, rawContent, path, requestedAt, jsonSerializerOptions)
+            public BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse(ILogger<BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, string rawContent, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, rawContent, path, requestedAt, jsonSerializerOptions)
             {
                 Logger = logger;
                 OnCreated(httpRequestMessage, httpResponseMessage);
             }
 
             /// <summary>
-            /// The <see cref="BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse"/>
+            /// The <see cref="BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse"/>
             /// </summary>
             /// <param name="logger"></param>
             /// <param name="httpRequestMessage"></param>
@@ -5584,7 +5651,7 @@ namespace Bambuddy.Api.Api
             /// <param name="path"></param>
             /// <param name="requestedAt"></param>
             /// <param name="jsonSerializerOptions"></param>
-            public BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse(ILogger<BulkResetSpoolUsageApiV1InventorySpoolsResetUsageBulkPostApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, System.IO.Stream contentStream, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, contentStream, path, requestedAt, jsonSerializerOptions)
+            public BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse(ILogger<BulkResetSpoolConsumedCounterApiV1InventorySpoolsResetConsumedCounterBulkPostApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, System.IO.Stream contentStream, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, contentStream, path, requestedAt, jsonSerializerOptions)
             {
                 Logger = logger;
                 OnCreated(httpRequestMessage, httpResponseMessage);
@@ -8864,6 +8931,327 @@ namespace Bambuddy.Api.Api
             /// <param name="requestedAt"></param>
             /// <param name="jsonSerializerOptions"></param>
             public GetSpoolApiV1InventorySpoolsSpoolIdGetApiResponse(ILogger<GetSpoolApiV1InventorySpoolsSpoolIdGetApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, System.IO.Stream contentStream, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, contentStream, path, requestedAt, jsonSerializerOptions)
+            {
+                Logger = logger;
+                OnCreated(httpRequestMessage, httpResponseMessage);
+            }
+
+            partial void OnCreated(global::System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage);
+
+            /// <summary>
+            /// Returns true if the response is 200 Ok
+            /// </summary>
+            /// <returns></returns>
+            public bool IsOk => 200 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 200 Ok
+            /// </summary>
+            /// <returns></returns>
+            public Bambuddy.Api.Model.SpoolResponse? Ok()
+            {
+                // This logic may be modified with the AsModel.mustache template
+                return IsOk
+                    ? System.Text.Json.JsonSerializer.Deserialize<Bambuddy.Api.Model.SpoolResponse>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 200 Ok and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryOk([NotNullWhen(true)]out Bambuddy.Api.Model.SpoolResponse? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = Ok();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)200);
+                }
+
+                return result != null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 422 UnprocessableContent
+            /// </summary>
+            /// <returns></returns>
+            public bool IsUnprocessableContent => 422 == (int)StatusCode;
+
+            /// <summary>
+            /// Deserializes the response if the response is 422 UnprocessableContent
+            /// </summary>
+            /// <returns></returns>
+            public Bambuddy.Api.Model.HTTPValidationError? UnprocessableContent()
+            {
+                // This logic may be modified with the AsModel.mustache template
+                return IsUnprocessableContent
+                    ? System.Text.Json.JsonSerializer.Deserialize<Bambuddy.Api.Model.HTTPValidationError>(RawContent, _jsonSerializerOptions)
+                    : null;
+            }
+
+            /// <summary>
+            /// Returns true if the response is 422 UnprocessableContent and the deserialized response is not null
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool TryUnprocessableContent([NotNullWhen(true)]out Bambuddy.Api.Model.HTTPValidationError? result)
+            {
+                result = null;
+
+                try
+                {
+                    result = UnprocessableContent();
+                } catch (Exception e)
+                {
+                    OnDeserializationErrorDefaultImplementation(e, (HttpStatusCode)422);
+                }
+
+                return result != null;
+            }
+
+            private void OnDeserializationErrorDefaultImplementation(Exception exception, HttpStatusCode httpStatusCode)
+            {
+                bool suppressDefaultLog = false;
+                OnDeserializationError(ref suppressDefaultLog, exception, httpStatusCode);
+                if (!suppressDefaultLog)
+                    Logger.LogError(exception, "An error occurred while deserializing the {code} response.", httpStatusCode);
+            }
+
+            partial void OnDeserializationError(ref bool suppressDefaultLog, Exception exception, HttpStatusCode httpStatusCode);
+        }
+
+        partial void FormatGetSpoolByTagApiV1InventorySpoolsByTagGet(ref Option<string?> trayUuid, ref Option<string?> tagUid, ref Option<bool> includeArchived, ref Option<string?> xAPIKey);
+
+        /// <summary>
+        /// Processes the server response
+        /// </summary>
+        /// <param name="apiResponseLocalVar"></param>
+        /// <param name="trayUuid"></param>
+        /// <param name="tagUid"></param>
+        /// <param name="includeArchived"></param>
+        /// <param name="xAPIKey"></param>
+        private void AfterGetSpoolByTagApiV1InventorySpoolsByTagGetDefaultImplementation(IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse apiResponseLocalVar, Option<string?> trayUuid, Option<string?> tagUid, Option<bool> includeArchived, Option<string?> xAPIKey)
+        {
+            bool suppressDefaultLog = false;
+            AfterGetSpoolByTagApiV1InventorySpoolsByTagGet(ref suppressDefaultLog, apiResponseLocalVar, trayUuid, tagUid, includeArchived, xAPIKey);
+            if (!suppressDefaultLog)
+                Logger.LogInformation("{0,-9} | {1} | {2}", (apiResponseLocalVar.DownloadedAt - apiResponseLocalVar.RequestedAt).TotalSeconds, apiResponseLocalVar.StatusCode, apiResponseLocalVar.Path);
+        }
+
+        /// <summary>
+        /// Processes the server response
+        /// </summary>
+        /// <param name="suppressDefaultLog"></param>
+        /// <param name="apiResponseLocalVar"></param>
+        /// <param name="trayUuid"></param>
+        /// <param name="tagUid"></param>
+        /// <param name="includeArchived"></param>
+        /// <param name="xAPIKey"></param>
+        partial void AfterGetSpoolByTagApiV1InventorySpoolsByTagGet(ref bool suppressDefaultLog, IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse apiResponseLocalVar, Option<string?> trayUuid, Option<string?> tagUid, Option<bool> includeArchived, Option<string?> xAPIKey);
+
+        /// <summary>
+        /// Logs exceptions that occur while retrieving the server response
+        /// </summary>
+        /// <param name="exceptionLocalVar"></param>
+        /// <param name="pathFormatLocalVar"></param>
+        /// <param name="pathLocalVar"></param>
+        /// <param name="trayUuid"></param>
+        /// <param name="tagUid"></param>
+        /// <param name="includeArchived"></param>
+        /// <param name="xAPIKey"></param>
+        private void OnErrorGetSpoolByTagApiV1InventorySpoolsByTagGetDefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<string?> trayUuid, Option<string?> tagUid, Option<bool> includeArchived, Option<string?> xAPIKey)
+        {
+            bool suppressDefaultLogLocalVar = false;
+            OnErrorGetSpoolByTagApiV1InventorySpoolsByTagGet(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, trayUuid, tagUid, includeArchived, xAPIKey);
+            if (!suppressDefaultLogLocalVar)
+                Logger.LogError(exceptionLocalVar, "An error occurred while sending the request to the server.");
+        }
+
+        /// <summary>
+        /// A partial method that gives developers a way to provide customized exception handling
+        /// </summary>
+        /// <param name="suppressDefaultLogLocalVar"></param>
+        /// <param name="exceptionLocalVar"></param>
+        /// <param name="pathFormatLocalVar"></param>
+        /// <param name="pathLocalVar"></param>
+        /// <param name="trayUuid"></param>
+        /// <param name="tagUid"></param>
+        /// <param name="includeArchived"></param>
+        /// <param name="xAPIKey"></param>
+        partial void OnErrorGetSpoolByTagApiV1InventorySpoolsByTagGet(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, Option<string?> trayUuid, Option<string?> tagUid, Option<bool> includeArchived, Option<string?> xAPIKey);
+
+        /// <summary>
+        /// Get Spool By Tag Find a single spool by its NFC &#x60;&#x60;tray_uuid&#x60;&#x60; and/or &#x60;&#x60;tag_uid&#x60;&#x60;.  Lets NFC inventory integrations dedupe a scan without listing the whole inventory. &#x60;&#x60;tray_uuid&#x60;&#x60; is the primary identifier (it matches the value the AMS reports over MQTT), so it is tried first; &#x60;&#x60;tag_uid&#x60;&#x60; is the fallback. At least one identifier must be supplied. Returns 404 when nothing matches.  Requires &#x60;&#x60;inventory:read&#x60;&#x60;, which for API keys is granted by either a read-status or a Manage-Inventory scope (#1663) — so a key that can already create/update spools can read them back too.
+        /// </summary>
+        /// <param name="trayUuid"> (optional)</param>
+        /// <param name="tagUid"> (optional)</param>
+        /// <param name="includeArchived"> (optional, default to false)</param>
+        /// <param name="xAPIKey"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse"/>&gt;</returns>
+        public async Task<IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse?> GetSpoolByTagApiV1InventorySpoolsByTagGetOrDefaultAsync(Option<string?> trayUuid = default, Option<string?> tagUid = default, Option<bool> includeArchived = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await GetSpoolByTagApiV1InventorySpoolsByTagGetAsync(trayUuid, tagUid, includeArchived, xAPIKey, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Get Spool By Tag Find a single spool by its NFC &#x60;&#x60;tray_uuid&#x60;&#x60; and/or &#x60;&#x60;tag_uid&#x60;&#x60;.  Lets NFC inventory integrations dedupe a scan without listing the whole inventory. &#x60;&#x60;tray_uuid&#x60;&#x60; is the primary identifier (it matches the value the AMS reports over MQTT), so it is tried first; &#x60;&#x60;tag_uid&#x60;&#x60; is the fallback. At least one identifier must be supplied. Returns 404 when nothing matches.  Requires &#x60;&#x60;inventory:read&#x60;&#x60;, which for API keys is granted by either a read-status or a Manage-Inventory scope (#1663) — so a key that can already create/update spools can read them back too.
+        /// </summary>
+        /// <exception cref="ApiException">Thrown when fails to make API call</exception>
+        /// <param name="trayUuid"> (optional)</param>
+        /// <param name="tagUid"> (optional)</param>
+        /// <param name="includeArchived"> (optional, default to false)</param>
+        /// <param name="xAPIKey"> (optional)</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns><see cref="Task"/>&lt;<see cref="IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse"/>&gt;</returns>
+        public async Task<IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse> GetSpoolByTagApiV1InventorySpoolsByTagGetAsync(Option<string?> trayUuid = default, Option<string?> tagUid = default, Option<bool> includeArchived = default, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
+        {
+            UriBuilder uriBuilderLocalVar = new UriBuilder();
+
+            try
+            {
+                FormatGetSpoolByTagApiV1InventorySpoolsByTagGet(ref trayUuid, ref tagUid, ref includeArchived, ref xAPIKey);
+
+                using (HttpRequestMessage httpRequestMessageLocalVar = new HttpRequestMessage())
+                {
+                    uriBuilderLocalVar.Host = HttpClient.BaseAddress!.Host;
+                    uriBuilderLocalVar.Port = HttpClient.BaseAddress.Port;
+                    uriBuilderLocalVar.Scheme = HttpClient.BaseAddress.Scheme;
+                    uriBuilderLocalVar.Path = HttpClient.BaseAddress.AbsolutePath == "/"
+                        ? "/api/v1/inventory/spools/by-tag"
+                        : string.Concat(HttpClient.BaseAddress.AbsolutePath.TrimEnd('/'), "/api/v1/inventory/spools/by-tag");
+
+                    System.Collections.Specialized.NameValueCollection parseQueryStringLocalVar = System.Web.HttpUtility.ParseQueryString(string.Empty);
+
+                    if (trayUuid.IsSet)
+                        parseQueryStringLocalVar["tray_uuid"] = ClientUtils.ParameterToString(trayUuid.Value);
+
+                    if (tagUid.IsSet)
+                        parseQueryStringLocalVar["tag_uid"] = ClientUtils.ParameterToString(tagUid.Value);
+
+                    if (includeArchived.IsSet)
+                        parseQueryStringLocalVar["include_archived"] = ClientUtils.ParameterToString(includeArchived.Value);
+
+                    uriBuilderLocalVar.Query = parseQueryStringLocalVar.ToString();
+
+                    if (xAPIKey.IsSet)
+                    {
+                      // Set client side default value of Header Param "X-API-Key".                    
+                      if (ClientUtils.IsContentHeader("X-API-Key"))
+                      {
+                          httpRequestMessageLocalVar.Content?.Headers.Add("X-API-Key", ClientUtils.ParameterToString(xAPIKey.Value));
+                      }
+                      else
+                      {
+                          httpRequestMessageLocalVar.Headers.Add("X-API-Key", ClientUtils.ParameterToString(xAPIKey.Value));
+                      }
+                    }
+
+                    List<TokenBase> tokenBaseLocalVars = new List<TokenBase>();
+                    httpRequestMessageLocalVar.RequestUri = uriBuilderLocalVar.Uri;
+
+                    BearerToken bearerTokenLocalVar1 = (BearerToken) await BearerTokenProvider.GetAsync(cancellation: cancellationToken).ConfigureAwait(false);
+
+                    tokenBaseLocalVars.Add(bearerTokenLocalVar1);
+
+                    bearerTokenLocalVar1.UseInHeader(httpRequestMessageLocalVar, "");
+
+                    string[] acceptLocalVars = new string[] {
+                        "application/json"
+                    };
+
+                    IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaderValuesLocalVar = ClientUtils.SelectHeaderAcceptArray(acceptLocalVars);
+
+                    foreach (var acceptLocalVar in acceptHeaderValuesLocalVar)
+                        httpRequestMessageLocalVar.Headers.Accept.Add(acceptLocalVar);
+
+                    httpRequestMessageLocalVar.Method = HttpMethod.Get;
+
+                    DateTime requestedAtLocalVar = DateTime.UtcNow;
+
+                    using (HttpResponseMessage httpResponseMessageLocalVar = await HttpClient.SendAsync(httpRequestMessageLocalVar, cancellationToken).ConfigureAwait(false))
+                    {
+                        ILogger<GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse> apiResponseLoggerLocalVar = LoggerFactory.CreateLogger<GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse>();
+                        GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse apiResponseLocalVar;
+
+                        switch ((int)httpResponseMessageLocalVar.StatusCode) {
+                            default: {
+                                string responseContentLocalVar = await httpResponseMessageLocalVar.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                                apiResponseLocalVar = new(apiResponseLoggerLocalVar, httpRequestMessageLocalVar, httpResponseMessageLocalVar, responseContentLocalVar, "/api/v1/inventory/spools/by-tag", requestedAtLocalVar, _jsonSerializerOptions);
+
+                                break;
+                            }
+                        }
+
+                        AfterGetSpoolByTagApiV1InventorySpoolsByTagGetDefaultImplementation(apiResponseLocalVar, trayUuid, tagUid, includeArchived, xAPIKey);
+
+                        Events.ExecuteOnGetSpoolByTagApiV1InventorySpoolsByTagGet(apiResponseLocalVar);
+
+                        if (apiResponseLocalVar.StatusCode == (HttpStatusCode) 429)
+                            foreach(TokenBase tokenBaseLocalVar in tokenBaseLocalVars)
+                                tokenBaseLocalVar.BeginRateLimit();
+
+                        return apiResponseLocalVar;
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                OnErrorGetSpoolByTagApiV1InventorySpoolsByTagGetDefaultImplementation(e, "/api/v1/inventory/spools/by-tag", uriBuilderLocalVar.Path, trayUuid, tagUid, includeArchived, xAPIKey);
+                Events.ExecuteOnErrorGetSpoolByTagApiV1InventorySpoolsByTagGet(e);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse"/>
+        /// </summary>
+        public partial class GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse : Bambuddy.Api.Client.ApiResponse, IGetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse
+        {
+            /// <summary>
+            /// The logger
+            /// </summary>
+            public ILogger<GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse> Logger { get; }
+
+            /// <summary>
+            /// The <see cref="GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse"/>
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="httpRequestMessage"></param>
+            /// <param name="httpResponseMessage"></param>
+            /// <param name="rawContent"></param>
+            /// <param name="path"></param>
+            /// <param name="requestedAt"></param>
+            /// <param name="jsonSerializerOptions"></param>
+            public GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse(ILogger<GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, string rawContent, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, rawContent, path, requestedAt, jsonSerializerOptions)
+            {
+                Logger = logger;
+                OnCreated(httpRequestMessage, httpResponseMessage);
+            }
+
+            /// <summary>
+            /// The <see cref="GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse"/>
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="httpRequestMessage"></param>
+            /// <param name="httpResponseMessage"></param>
+            /// <param name="contentStream"></param>
+            /// <param name="path"></param>
+            /// <param name="requestedAt"></param>
+            /// <param name="jsonSerializerOptions"></param>
+            public GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse(ILogger<GetSpoolByTagApiV1InventorySpoolsByTagGetApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, System.IO.Stream contentStream, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, contentStream, path, requestedAt, jsonSerializerOptions)
             {
                 Logger = logger;
                 OnCreated(httpRequestMessage, httpResponseMessage);
@@ -12621,7 +13009,7 @@ namespace Bambuddy.Api.Api
             partial void OnDeserializationError(ref bool suppressDefaultLog, Exception exception, HttpStatusCode httpStatusCode);
         }
 
-        partial void FormatResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost(ref int spoolId, ref Option<string?> xAPIKey);
+        partial void FormatResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost(ref int spoolId, ref Option<string?> xAPIKey);
 
         /// <summary>
         /// Processes the server response
@@ -12629,10 +13017,10 @@ namespace Bambuddy.Api.Api
         /// <param name="apiResponseLocalVar"></param>
         /// <param name="spoolId"></param>
         /// <param name="xAPIKey"></param>
-        private void AfterResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostDefaultImplementation(IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse apiResponseLocalVar, int spoolId, Option<string?> xAPIKey)
+        private void AfterResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostDefaultImplementation(IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse apiResponseLocalVar, int spoolId, Option<string?> xAPIKey)
         {
             bool suppressDefaultLog = false;
-            AfterResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost(ref suppressDefaultLog, apiResponseLocalVar, spoolId, xAPIKey);
+            AfterResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost(ref suppressDefaultLog, apiResponseLocalVar, spoolId, xAPIKey);
             if (!suppressDefaultLog)
                 Logger.LogInformation("{0,-9} | {1} | {2}", (apiResponseLocalVar.DownloadedAt - apiResponseLocalVar.RequestedAt).TotalSeconds, apiResponseLocalVar.StatusCode, apiResponseLocalVar.Path);
         }
@@ -12644,7 +13032,7 @@ namespace Bambuddy.Api.Api
         /// <param name="apiResponseLocalVar"></param>
         /// <param name="spoolId"></param>
         /// <param name="xAPIKey"></param>
-        partial void AfterResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost(ref bool suppressDefaultLog, IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse apiResponseLocalVar, int spoolId, Option<string?> xAPIKey);
+        partial void AfterResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost(ref bool suppressDefaultLog, IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse apiResponseLocalVar, int spoolId, Option<string?> xAPIKey);
 
         /// <summary>
         /// Logs exceptions that occur while retrieving the server response
@@ -12654,10 +13042,10 @@ namespace Bambuddy.Api.Api
         /// <param name="pathLocalVar"></param>
         /// <param name="spoolId"></param>
         /// <param name="xAPIKey"></param>
-        private void OnErrorResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostDefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, int spoolId, Option<string?> xAPIKey)
+        private void OnErrorResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostDefaultImplementation(Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, int spoolId, Option<string?> xAPIKey)
         {
             bool suppressDefaultLogLocalVar = false;
-            OnErrorResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, spoolId, xAPIKey);
+            OnErrorResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost(ref suppressDefaultLogLocalVar, exceptionLocalVar, pathFormatLocalVar, pathLocalVar, spoolId, xAPIKey);
             if (!suppressDefaultLogLocalVar)
                 Logger.LogError(exceptionLocalVar, "An error occurred while sending the request to the server.");
         }
@@ -12671,20 +13059,20 @@ namespace Bambuddy.Api.Api
         /// <param name="pathLocalVar"></param>
         /// <param name="spoolId"></param>
         /// <param name="xAPIKey"></param>
-        partial void OnErrorResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, int spoolId, Option<string?> xAPIKey);
+        partial void OnErrorResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost(ref bool suppressDefaultLogLocalVar, Exception exceptionLocalVar, string pathFormatLocalVar, string pathLocalVar, int spoolId, Option<string?> xAPIKey);
 
         /// <summary>
-        /// Reset Spool Usage Zero the displayed \&quot;Total Consumed\&quot; counter without touching remaining.  Stamps &#x60;weight_used_baseline &#x3D; weight_used&#x60; so the Inventory page&#39;s &#x60;weight_used - baseline&#x60; display reads 0, while &#x60;label_weight - weight_used&#x60; (remaining) is unchanged. weight_locked is also left alone — the spool keeps receiving AMS auto-sync updates. Matches Spoolman&#39;s split between used_weight and remaining_weight (#1390).
+        /// Reset Spool Consumed Counter Zero the displayed \&quot;Total Consumed\&quot; counter without touching remaining.  Stamps &#x60;weight_used_baseline &#x3D; weight_used&#x60; so the Inventory page&#39;s &#x60;weight_used - baseline&#x60; display reads 0, while &#x60;label_weight - weight_used&#x60; (remaining) is unchanged. weight_locked is also left alone — the spool keeps receiving AMS auto-sync updates. Matches Spoolman&#39;s split between used_weight and remaining_weight (#1390).  The earlier name &#x60;/reset-usage&#x60; was misleading: callers reasonably expected &#x60;weight_used&#x60; itself to drop to 0 and were surprised when the response showed it unchanged. The current name describes what the endpoint actually does — reset the \&quot;Total Consumed\&quot; counter widget, not the lifetime weight_used field.
         /// </summary>
         /// <param name="spoolId"></param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
-        /// <returns><see cref="Task"/>&lt;<see cref="IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse"/>&gt;</returns>
-        public async Task<IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse?> ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostOrDefaultAsync(int spoolId, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
+        /// <returns><see cref="Task"/>&lt;<see cref="IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse"/>&gt;</returns>
+        public async Task<IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse?> ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostOrDefaultAsync(int spoolId, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
         {
             try
             {
-                return await ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostAsync(spoolId, xAPIKey, cancellationToken).ConfigureAwait(false);
+                return await ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostAsync(spoolId, xAPIKey, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -12693,20 +13081,20 @@ namespace Bambuddy.Api.Api
         }
 
         /// <summary>
-        /// Reset Spool Usage Zero the displayed \&quot;Total Consumed\&quot; counter without touching remaining.  Stamps &#x60;weight_used_baseline &#x3D; weight_used&#x60; so the Inventory page&#39;s &#x60;weight_used - baseline&#x60; display reads 0, while &#x60;label_weight - weight_used&#x60; (remaining) is unchanged. weight_locked is also left alone — the spool keeps receiving AMS auto-sync updates. Matches Spoolman&#39;s split between used_weight and remaining_weight (#1390).
+        /// Reset Spool Consumed Counter Zero the displayed \&quot;Total Consumed\&quot; counter without touching remaining.  Stamps &#x60;weight_used_baseline &#x3D; weight_used&#x60; so the Inventory page&#39;s &#x60;weight_used - baseline&#x60; display reads 0, while &#x60;label_weight - weight_used&#x60; (remaining) is unchanged. weight_locked is also left alone — the spool keeps receiving AMS auto-sync updates. Matches Spoolman&#39;s split between used_weight and remaining_weight (#1390).  The earlier name &#x60;/reset-usage&#x60; was misleading: callers reasonably expected &#x60;weight_used&#x60; itself to drop to 0 and were surprised when the response showed it unchanged. The current name describes what the endpoint actually does — reset the \&quot;Total Consumed\&quot; counter widget, not the lifetime weight_used field.
         /// </summary>
         /// <exception cref="ApiException">Thrown when fails to make API call</exception>
         /// <param name="spoolId"></param>
         /// <param name="xAPIKey"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
-        /// <returns><see cref="Task"/>&lt;<see cref="IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse"/>&gt;</returns>
-        public async Task<IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse> ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostAsync(int spoolId, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
+        /// <returns><see cref="Task"/>&lt;<see cref="IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse"/>&gt;</returns>
+        public async Task<IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse> ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostAsync(int spoolId, Option<string?> xAPIKey = default, System.Threading.CancellationToken cancellationToken = default)
         {
             UriBuilder uriBuilderLocalVar = new UriBuilder();
 
             try
             {
-                FormatResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost(ref spoolId, ref xAPIKey);
+                FormatResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost(ref spoolId, ref xAPIKey);
 
                 using (HttpRequestMessage httpRequestMessageLocalVar = new HttpRequestMessage())
                 {
@@ -12714,8 +13102,8 @@ namespace Bambuddy.Api.Api
                     uriBuilderLocalVar.Port = HttpClient.BaseAddress.Port;
                     uriBuilderLocalVar.Scheme = HttpClient.BaseAddress.Scheme;
                     uriBuilderLocalVar.Path = HttpClient.BaseAddress.AbsolutePath == "/"
-                        ? "/api/v1/inventory/spools/{spool_id}/reset-usage"
-                        : string.Concat(HttpClient.BaseAddress.AbsolutePath.TrimEnd('/'), "/api/v1/inventory/spools/{spool_id}/reset-usage");
+                        ? "/api/v1/inventory/spools/{spool_id}/reset-consumed-counter"
+                        : string.Concat(HttpClient.BaseAddress.AbsolutePath.TrimEnd('/'), "/api/v1/inventory/spools/{spool_id}/reset-consumed-counter");
                     uriBuilderLocalVar.Path = uriBuilderLocalVar.Path.Replace("%7Bspool_id%7D", Uri.EscapeDataString(spoolId.ToString()));
 
                     if (xAPIKey.IsSet)
@@ -12755,21 +13143,21 @@ namespace Bambuddy.Api.Api
 
                     using (HttpResponseMessage httpResponseMessageLocalVar = await HttpClient.SendAsync(httpRequestMessageLocalVar, cancellationToken).ConfigureAwait(false))
                     {
-                        ILogger<ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse> apiResponseLoggerLocalVar = LoggerFactory.CreateLogger<ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse>();
-                        ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse apiResponseLocalVar;
+                        ILogger<ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse> apiResponseLoggerLocalVar = LoggerFactory.CreateLogger<ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse>();
+                        ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse apiResponseLocalVar;
 
                         switch ((int)httpResponseMessageLocalVar.StatusCode) {
                             default: {
                                 string responseContentLocalVar = await httpResponseMessageLocalVar.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                                apiResponseLocalVar = new(apiResponseLoggerLocalVar, httpRequestMessageLocalVar, httpResponseMessageLocalVar, responseContentLocalVar, "/api/v1/inventory/spools/{spool_id}/reset-usage", requestedAtLocalVar, _jsonSerializerOptions);
+                                apiResponseLocalVar = new(apiResponseLoggerLocalVar, httpRequestMessageLocalVar, httpResponseMessageLocalVar, responseContentLocalVar, "/api/v1/inventory/spools/{spool_id}/reset-consumed-counter", requestedAtLocalVar, _jsonSerializerOptions);
 
                                 break;
                             }
                         }
 
-                        AfterResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostDefaultImplementation(apiResponseLocalVar, spoolId, xAPIKey);
+                        AfterResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostDefaultImplementation(apiResponseLocalVar, spoolId, xAPIKey);
 
-                        Events.ExecuteOnResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost(apiResponseLocalVar);
+                        Events.ExecuteOnResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost(apiResponseLocalVar);
 
                         if (apiResponseLocalVar.StatusCode == (HttpStatusCode) 429)
                             foreach(TokenBase tokenBaseLocalVar in tokenBaseLocalVars)
@@ -12781,24 +13169,24 @@ namespace Bambuddy.Api.Api
             }
             catch(Exception e)
             {
-                OnErrorResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostDefaultImplementation(e, "/api/v1/inventory/spools/{spool_id}/reset-usage", uriBuilderLocalVar.Path, spoolId, xAPIKey);
-                Events.ExecuteOnErrorResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePost(e);
+                OnErrorResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostDefaultImplementation(e, "/api/v1/inventory/spools/{spool_id}/reset-consumed-counter", uriBuilderLocalVar.Path, spoolId, xAPIKey);
+                Events.ExecuteOnErrorResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPost(e);
                 throw;
             }
         }
 
         /// <summary>
-        /// The <see cref="ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse"/>
+        /// The <see cref="ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse"/>
         /// </summary>
-        public partial class ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse : Bambuddy.Api.Client.ApiResponse, IResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse
+        public partial class ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse : Bambuddy.Api.Client.ApiResponse, IResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse
         {
             /// <summary>
             /// The logger
             /// </summary>
-            public ILogger<ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse> Logger { get; }
+            public ILogger<ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse> Logger { get; }
 
             /// <summary>
-            /// The <see cref="ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse"/>
+            /// The <see cref="ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse"/>
             /// </summary>
             /// <param name="logger"></param>
             /// <param name="httpRequestMessage"></param>
@@ -12807,14 +13195,14 @@ namespace Bambuddy.Api.Api
             /// <param name="path"></param>
             /// <param name="requestedAt"></param>
             /// <param name="jsonSerializerOptions"></param>
-            public ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse(ILogger<ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, string rawContent, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, rawContent, path, requestedAt, jsonSerializerOptions)
+            public ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse(ILogger<ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, string rawContent, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, rawContent, path, requestedAt, jsonSerializerOptions)
             {
                 Logger = logger;
                 OnCreated(httpRequestMessage, httpResponseMessage);
             }
 
             /// <summary>
-            /// The <see cref="ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse"/>
+            /// The <see cref="ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse"/>
             /// </summary>
             /// <param name="logger"></param>
             /// <param name="httpRequestMessage"></param>
@@ -12823,7 +13211,7 @@ namespace Bambuddy.Api.Api
             /// <param name="path"></param>
             /// <param name="requestedAt"></param>
             /// <param name="jsonSerializerOptions"></param>
-            public ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse(ILogger<ResetSpoolUsageApiV1InventorySpoolsSpoolIdResetUsagePostApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, System.IO.Stream contentStream, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, contentStream, path, requestedAt, jsonSerializerOptions)
+            public ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse(ILogger<ResetSpoolConsumedCounterApiV1InventorySpoolsSpoolIdResetConsumedCounterPostApiResponse> logger, System.Net.Http.HttpRequestMessage httpRequestMessage, System.Net.Http.HttpResponseMessage httpResponseMessage, System.IO.Stream contentStream, string path, DateTime requestedAt, System.Text.Json.JsonSerializerOptions jsonSerializerOptions) : base(httpRequestMessage, httpResponseMessage, contentStream, path, requestedAt, jsonSerializerOptions)
             {
                 Logger = logger;
                 OnCreated(httpRequestMessage, httpResponseMessage);

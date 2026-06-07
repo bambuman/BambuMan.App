@@ -59,19 +59,24 @@ namespace Bambuddy.Api.Model
         public enum SourceEnum
         {
             /// <summary>
+            /// Enum OrcaCloud for value: orca_cloud
+            /// </summary>
+            OrcaCloud = 1,
+
+            /// <summary>
             /// Enum Cloud for value: cloud
             /// </summary>
-            Cloud = 1,
+            Cloud = 2,
 
             /// <summary>
             /// Enum Local for value: local
             /// </summary>
-            Local = 2,
+            Local = 3,
 
             /// <summary>
             /// Enum Standard for value: standard
             /// </summary>
-            Standard = 3
+            Standard = 4
         }
 
         /// <summary>
@@ -82,6 +87,9 @@ namespace Bambuddy.Api.Model
         /// <exception cref="NotImplementedException"></exception>
         public static SourceEnum SourceEnumFromString(string value)
         {
+            if (value.Equals("orca_cloud"))
+                return SourceEnum.OrcaCloud;
+
             if (value.Equals("cloud"))
                 return SourceEnum.Cloud;
 
@@ -101,6 +109,9 @@ namespace Bambuddy.Api.Model
         /// <returns></returns>
         public static SourceEnum? SourceEnumFromStringOrDefault(string value)
         {
+            if (value.Equals("orca_cloud"))
+                return SourceEnum.OrcaCloud;
+
             if (value.Equals("cloud"))
                 return SourceEnum.Cloud;
 
@@ -121,6 +132,9 @@ namespace Bambuddy.Api.Model
         /// <exception cref="NotImplementedException"></exception>
         public static string SourceEnumToJsonValue(SourceEnum value)
         {
+            if (value == SourceEnum.OrcaCloud)
+                return "orca_cloud";
+
             if (value == SourceEnum.Cloud)
                 return "cloud";
 

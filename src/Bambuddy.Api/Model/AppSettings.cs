@@ -35,7 +35,7 @@ namespace Bambuddy.Api.Model
         /// </summary>
         /// <param name="autoArchive">Automatically archive prints when completed (default to true)</param>
         /// <param name="saveThumbnails">Extract and save preview images from 3MF files (default to true)</param>
-        /// <param name="captureFinishPhoto">Capture photo from printer camera when print completes (default to true)</param>
+        /// <param name="captureFinishPhoto">Capture photo from printer camera when print completes. Bambuddy records a brief timelapse during the print so the photo can be sourced from the moment before the bed drops; the timelapse file is kept if you enabled timelapse for this print, otherwise it is deleted automatically after the photo is captured. (default to true)</param>
         /// <param name="defaultFilamentCost">Default filament cost per kg (default to 25.0M)</param>
         /// <param name="currency">Currency for cost tracking (default to &quot;USD&quot;)</param>
         /// <param name="energyCostPerKwh">Electricity cost per kWh for energy tracking (default to 0.15M)</param>
@@ -287,9 +287,9 @@ namespace Bambuddy.Api.Model
         public Option<bool?> CaptureFinishPhotoOption { get; private set; }
 
         /// <summary>
-        /// Capture photo from printer camera when print completes
+        /// Capture photo from printer camera when print completes. Bambuddy records a brief timelapse during the print so the photo can be sourced from the moment before the bed drops; the timelapse file is kept if you enabled timelapse for this print, otherwise it is deleted automatically after the photo is captured.
         /// </summary>
-        /// <value>Capture photo from printer camera when print completes</value>
+        /// <value>Capture photo from printer camera when print completes. Bambuddy records a brief timelapse during the print so the photo can be sourced from the moment before the bed drops; the timelapse file is kept if you enabled timelapse for this print, otherwise it is deleted automatically after the photo is captured.</value>
         [JsonPropertyName("capture_finish_photo")]
         public bool? CaptureFinishPhoto { get { return this.CaptureFinishPhotoOption.Value; } set { this.CaptureFinishPhotoOption = new(value); } }
 
