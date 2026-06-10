@@ -19,6 +19,9 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
+		<!-- Enable Material 3 (Material You) styling for native Android controls. -->
+		<UseMaterial3>true</UseMaterial3>
+
 		<!-- Display name -->
 		<ApplicationTitle>BambuMan</ApplicationTitle>
 
@@ -74,7 +77,7 @@
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#EADFDF" />
 
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#EADFDF" BaseSize="128,128" />
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FFF8F3" BaseSize="128,128" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
@@ -110,9 +113,6 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.70" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8" />
-		<PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.16.0" />
-		<PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.16.0" />
-		<PackageReference Include="UraniumUI.Material" Version="2.16.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -134,9 +134,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Resources\Styles\Override.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="UI\Logs\LogsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

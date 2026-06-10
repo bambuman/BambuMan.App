@@ -1,130 +1,109 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
-             xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
+             xmlns:m="clr-namespace:BambuMan.Resources.Icons"
              xmlns:main="clr-namespace:BambuMan.UI.Settings"
-             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-             xmlns:constants="clr-namespace:BambuMan.Shared;assembly=BambuMan.Shared"
-             xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
-             xmlns:validation1="clr-namespace:BambuMan.Validation"
              xmlns:controls="clr-namespace:BambuMan.UI.Controls"
-             xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
              xmlns:md="clr-namespace:HorusStudio.Maui.MaterialDesignControls;assembly=HorusStudio.Maui.MaterialDesignControls"
              x:Class="BambuMan.UI.Settings.SettingsPage"
              x:DataType="main:SettingsPageViewModel"
              Title="BambuMan Settings">
 
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Home" Clicked="BackToMain_OnClicked" Order="Primary">
-            <ToolbarItem.IconImageSource>
-                <FontImageSource FontFamily="FASolid"
-                                 Glyph="{x:Static fa:Solid.House}"
-                                 Color="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource White}}" />
-            </ToolbarItem.IconImageSource>
-        </ToolbarItem>
-    </ContentPage.ToolbarItems>
-
     <ScrollView>
-    <VerticalStackLayout Padding="10">
+        <VerticalStackLayout Padding="16" Spacing="8">
 
-        <input:FormView Spacing="10">
-            <md:MaterialSegmentedButton ItemsSource="{Binding BackendItems}" SelectedItem="{Binding SelectedBackendItem}" Type="Filled" HorizontalOptions="Fill" Margin="0,0,0,5" />
+            <md:MaterialSegmentedButton ItemsSource="{Binding BackendItems}" SelectedItem="{Binding SelectedBackendItem}" Type="Filled" HorizontalOptions="Fill" Margin="0,0,0,8" />
 
-            <Grid ColumnDefinitions="*,Auto">
-                <material:TextField x:Name="TfServerUrl" Grid.Column="0" Title="Server url:"
-                                    Text="{Binding ServerUrl,Mode=TwoWay}"
-                                    Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}}">
-                    <validation:RequiredValidation />
-                    <validation:RegexValidation Message="Invalid url, must start with http:// or https://" Pattern="{x:Static constants:Constants.UrlValidation }" />
-                </material:TextField>
-                <Button Grid.Column="1" Text="Scan QR" Clicked="ScanQr_OnClicked" CommandParameter="server_url"
-                        VerticalOptions="Start" Margin="6,6,0,0" Padding="10,4"
-                        HeightRequest="48" FontSize="14"
-                        BackgroundColor="Transparent" TextColor="Crimson"
-                        BorderColor="Crimson" BorderWidth="1" CornerRadius="6"
-                        ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Qr_code_scanner}, Color=Crimson, Size=18}" />
+            <!-- Connection -->
+            <Label Text="CONNECTION" Style="{StaticResource SectionHeader}" />
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <md:MaterialTextField x:Name="TfServerUrl" Grid.Column="0" Label="Server URL" Type="Outlined"
+                                      Keyboard="Url"
+                                      Text="{Binding ServerUrl, Mode=TwoWay}"
+                                      LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}}" />
+                <md:MaterialIconButton Grid.Column="1" VerticalOptions="Center" Type="Outlined"
+                                       Clicked="ScanQr_OnClicked" CommandParameter="server_url"
+                                       ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Qr_code_scanner}}" />
             </Grid>
 
-            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsBambuddy}">
-                <material:TextField x:Name="TfBambuddyApiKey" Grid.Column="0" Title="Bambuddy API key:" AllowClear="True"
-                                    Text="{Binding BambuddyApiKey,Mode=TwoWay}"
-                                    Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Key}}">
-                    <validation:RequiredValidation />
-                </material:TextField>
-                <Button Grid.Column="1" Text="Scan QR" Clicked="ScanQr_OnClicked" CommandParameter="bambuddy_key"
-                        VerticalOptions="Start" Margin="6,6,0,0" Padding="10,4"
-                        HeightRequest="48" FontSize="14"
-                        BackgroundColor="Transparent" TextColor="Crimson"
-                        BorderColor="Crimson" BorderWidth="1" CornerRadius="6"
-                        ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Qr_code_scanner}, Color=Crimson, Size=18}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding IsBambuddy}">
+                <md:MaterialTextField x:Name="TfBambuddyApiKey" Grid.Column="0" Label="Bambuddy API key" Type="Outlined"
+                                      Placeholder="bb_…"
+                                      Text="{Binding BambuddyApiKey, Mode=TwoWay}"
+                                      LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Key}}" />
+                <md:MaterialIconButton Grid.Column="1" VerticalOptions="Center" Type="Outlined"
+                                       Clicked="ScanQr_OnClicked" CommandParameter="bambuddy_key"
+                                       ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Qr_code_scanner}}" />
             </Grid>
 
-            <Grid ColumnDefinitions="*,40">
-                <material:CheckBox x:Name="TfFullTagScanAndUpload" Grid.Column="0" Text="Participate in NFC data upload [beta]" IsChecked="{Binding FullTagScanAndUpload, Mode=TwoWay}" Margin="10,5,0,0" />
-                <ImageButton Grid.Column="1" HeightRequest="24" WidthRequest="24" Margin="0,8,10,0" Padding="2" Clicked="InfoButton_OnClicked" VerticalOptions="Start">
-                    <ImageButton.Source>
-                        <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Info}" Color="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
-                    </ImageButton.Source>
-                </ImageButton>
+            <md:MaterialButton Text="Test Spoolman URL" Type="Outlined" HorizontalOptions="Start" Margin="0,4,0,0"
+                               IsVisible="{Binding IsSpoolman}" Clicked="TestSpoolmanUrl_OnClicked"
+                               ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}}" />
+            <md:MaterialButton Text="Test Bambuddy URL" Type="Outlined" HorizontalOptions="Start" Margin="0,4,0,0"
+                               IsVisible="{Binding IsBambuddy}" Clicked="TestBambuddyUrl_OnClicked"
+                               ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}}" />
+
+            <!-- Data sharing -->
+            <Label Text="DATA SHARING" Style="{StaticResource SectionHeader}" />
+
+            <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,4">
+                <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                    <Label Text="Participate in NFC data upload [beta]" Style="{StaticResource BodyLarge}" />
+                    <Label Text="Help build the public Bambu RFID library." Style="{StaticResource BodyMedium}" Opacity="0.7" />
+                </VerticalStackLayout>
+                <md:MaterialIconButton Grid.Column="1" VerticalOptions="Center" Type="Standard" Clicked="InfoButton_OnClicked"
+                                       IconTintColor="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}"
+                                       ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Info}}" />
+                <Switch Grid.Column="2" VerticalOptions="Center" IsToggled="{Binding FullTagScanAndUpload, Mode=TwoWay}" />
             </Grid>
 
-            <material:CheckBox x:Name="TfUnknownFilamentEnabled" Text="Import unknown filament" IsChecked="{Binding UnknownFilamentEnabled, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
+            <!-- Behavior -->
+            <Label Text="BEHAVIOR" Style="{StaticResource SectionHeader}" />
 
-            <material:CheckBox x:Name="TfShowLogsOnMainPage" Text="Show logs on main page" IsChecked="{Binding ShowLogsOnMainPage, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
-
-            <material:CheckBox x:Name="TfShowKeyboardOnSpoolRead" Text="Show keyboard on spool read" IsChecked="{Binding ShowKeyboardOnSpoolRead, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
-
-            <material:CheckBox x:Name="TfOverrideLocationOnRead" Text="Override location on read" IsChecked="{Binding OverrideLocationOnRead, Mode=TwoWay}" Margin="10,0,10,5"></material:CheckBox>
-
-            <controls:NullableDatePickerField x:Name="TfBuyDate" IsVisible="{Binding IsSpoolman}" Title="Buy date:" Date="{Binding BuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}">
-
-            </controls:NullableDatePickerField>
-
-            <material:TextField x:Name="TfPrice" Title="Price:" Keyboard="Numeric" Text="{Binding DefaultPrice,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}">
-                <validation1:NumericNullableValidation  />
-                <validation:MinValueValidation MinValue="0" />
-            </material:TextField>
-
-            <material:TextField x:Name="TfLotNr" IsVisible="{Binding IsSpoolman}" Title="Lot nr:" Text="{Binding DefaultLotNr,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
-
-            <!--<material:TextField x:Name="TfLocation" Title="Location:" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />-->
-
-            <Grid ColumnDefinitions="*,Auto">
-                <material:AutoCompleteTextField x:Name="TfLocation" Grid.Column="0" Title="Location:" Threshold="1" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" ItemsSource="{Binding ExistingLocations}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
-                <Button Grid.Column="1" Clicked="RefreshLocations_OnClicked"
-                        VerticalOptions="Start" Margin="6,6,0,0" Padding="10,4"
-                        HeightRequest="48"
-                        BackgroundColor="Transparent"
-                        BorderColor="Crimson" BorderWidth="1"
-                        CornerRadius="6"
-                        ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Refresh}, Color=Crimson, Size=18}" />
+            <Grid ColumnDefinitions="*,Auto" Padding="0,4">
+                <Label Grid.Column="0" Text="Import unknown filament" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
+                <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding UnknownFilamentEnabled, Mode=TwoWay}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" Padding="0,4">
+                <Label Grid.Column="0" Text="Show logs on main page" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
+                <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding ShowLogsOnMainPage, Mode=TwoWay}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" Padding="0,4">
+                <Label Grid.Column="0" Text="Show keyboard on spool read" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
+                <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding ShowKeyboardOnSpoolRead, Mode=TwoWay}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" Padding="0,4">
+                <Label Grid.Column="0" Text="Override location on read" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
+                <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding OverrideLocationOnRead, Mode=TwoWay}" />
             </Grid>
 
-            <!--<Button StyleClass="FilledButton" Text="Save changes" input:FormView.IsSubmitButton="True"/>-->
+            <!-- Defaults applied on read -->
+            <Label Text="DEFAULTS APPLIED ON READ" Style="{StaticResource SectionHeader}" />
 
-        </input:FormView>
+            <md:MaterialDatePicker x:Name="TfBuyDate" IsVisible="{Binding IsSpoolman}" Label="Buy date" Type="Outlined"
+                                   Date="{Binding BuyDate, Mode=TwoWay}" Placeholder="yyyy-MM-dd" Format="yyyy-MM-dd"
+                                   LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
 
-        <Button Text="Test Spoolman Url" Clicked="TestSpoolmanUrl_OnClicked"
-                IsVisible="{Binding IsSpoolman}"
-                Margin="0,20,0,0"
-                StyleClass="OutlinedButton"
-                ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}, Color={AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}, Size=18}"
-                />
+            <md:MaterialTextField x:Name="TfPrice" Label="Price" Type="Outlined" Keyboard="Numeric"
+                                  Placeholder="0.00"
+                                  Text="{Binding DefaultPrice, Mode=TwoWay}"
+                                  LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}" />
 
-        <Button Text="Test Bambuddy Url" Clicked="TestBambuddyUrl_OnClicked"
-                IsVisible="{Binding IsBambuddy}"
-                Margin="0,20,0,0"
-                StyleClass="OutlinedButton"
-                ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}, Color={AppThemeBinding Light={StaticResource OnSurface}, Dark={StaticResource OnSurfaceDark}}, Size=18}"
-                />
+            <md:MaterialTextField x:Name="TfLotNr" IsVisible="{Binding IsSpoolman}" Label="Lot nr" Type="Outlined"
+                                  Text="{Binding DefaultLotNr, Mode=TwoWay}"
+                                  LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
 
-        <Button Text="Back to Main" Clicked="BackToMain_OnClicked"
-                Margin="0,20,0,10"
-                StyleClass="FilledButton"
-                ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Arrow_back}, Color={AppThemeBinding Light={StaticResource OnSurfaceDark}, Dark={StaticResource OnSurfaceDark}}, Size=18}"
-                />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <controls:MaterialAutoCompleteField x:Name="TfLocation" Grid.Column="0" Label="Location"
+                                                    Text="{Binding DefaultLocation, Mode=TwoWay}"
+                                                    ItemsSource="{Binding ExistingLocations}"
+                                                    LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
+                <md:MaterialIconButton Grid.Column="1" VerticalOptions="Start" Margin="0,8,0,0" Type="Outlined"
+                                       Clicked="RefreshLocations_OnClicked"
+                                       ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Refresh}}" />
+            </Grid>
 
-    </VerticalStackLayout>
+        </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

@@ -4,54 +4,35 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+    xmlns:m="clr-namespace:BambuMan.Resources.Icons"
     xmlns:main="clr-namespace:BambuMan.UI.Main"
     xmlns:settings="clr-namespace:BambuMan.UI.Settings"
     xmlns:logs="clr-namespace:BambuMan.UI.Logs"
-    FlyoutBehavior="Flyout"
     Title="BambuMan">
 
     <Shell.Behaviors>
         <toolkit:StatusBarBehavior StatusBarColor="{AppThemeBinding Light={StaticResource StatusBar}, Dark={StaticResource StatusBarDark}}" StatusBarStyle="{AppThemeBinding Light=DarkContent, Dark=LightContent}" />
     </Shell.Behaviors>
 
-    <Shell.ItemTemplate>
-        <DataTemplate>
-            <Grid ColumnDefinitions="0.2*,0.8*">
-                <Image Source="{Binding FlyoutIcon}" Margin="5" HeightRequest="35" />
-                <Label Grid.Column="1" Text="{Binding Title}" VerticalTextAlignment="Center" />
-            </Grid>
-        </DataTemplate>
-    </Shell.ItemTemplate>
-
-    <ShellContent Title="Main" ContentTemplate="{DataTemplate main:MainPage}" Route="MainPage">
-        <ShellContent.Icon>
-            <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.House}" Color="{AppThemeBinding Light={StaticResource ShellIcon}, Dark={StaticResource ShellIconDark}}" />
-        </ShellContent.Icon>
-    </ShellContent>
-    <ShellContent Title="Settings" ContentTemplate="{DataTemplate settings:SettingsPage}" Route="SettingsPage">
-        <ShellContent.Icon>
-            <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Settings}" Color="{AppThemeBinding Light={StaticResource ShellIcon}, Dark={StaticResource ShellIconDark}}" />
-        </ShellContent.Icon>
-    </ShellContent>
-    <ShellContent Title="Logs" ContentTemplate="{DataTemplate logs:LogsPage}" Route="LogsPage">
-        <ShellContent.Icon>
-            <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Bug_report}" Color="{AppThemeBinding Light={StaticResource ShellIcon}, Dark={StaticResource ShellIconDark}}" />
-        </ShellContent.Icon>
-    </ShellContent>
-
-    <!--<TabBar>
+    <!-- Material 3 bottom navigation (BottomNavigationView via UseMaterial3 on Android). -->
+    <TabBar>
         <Tab Title="Main">
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.House}" />
             </Tab.Icon>
-            <ShellContent Title="Main" ContentTemplate="{DataTemplate main:MainPage}" Route="MainPage" />
+            <ShellContent ContentTemplate="{DataTemplate main:MainPage}" Route="MainPage" />
         </Tab>
         <Tab Title="Settings">
             <Tab.Icon>
                 <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Settings}" />
             </Tab.Icon>
-            <ShellContent Title="Settings" ContentTemplate="{DataTemplate settings:SettingsPage}" Route="SettingsPage" />
+            <ShellContent ContentTemplate="{DataTemplate settings:SettingsPage}" Route="SettingsPage" />
         </Tab>
-    </TabBar>-->
+        <Tab Title="Logs">
+            <Tab.Icon>
+                <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Bug_report}" />
+            </Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate logs:LogsPage}" Route="LogsPage" />
+        </Tab>
+    </TabBar>
 </Shell>

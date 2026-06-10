@@ -12,7 +12,6 @@ using HorusStudio.Maui.MaterialDesignControls;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
-using UraniumUI;
 using MainPageViewModel = BambuMan.UI.Main.MainPageViewModel;
 
 namespace BambuMan
@@ -36,17 +35,72 @@ namespace BambuMan
                 })
                 .UseMauiCommunityToolkitMarkup()
                 .UseBarcodeScanning()
-                .UseUraniumUI()
-                .UseUraniumUIMaterial()
                 .UseMaterialDesignControls(options =>
                 {
-                    // Brand the segmented button (partial merge — other colors keep library defaults):
-                    //   selected segment  -> M3 SecondaryContainer (default is lavender)
-                    //   unselected segment + track -> M3 Surface
-                    // Selected/unselected text stays OnSurface, which reads on these tones.
+                    // Brand every HorusStudio control with the Material Theme Builder palette
+                    // (plans/material-theme, seed #7E570E), kept in sync with
+                    // Resources/Styles/Colors.xaml and Platforms/Android values/colors.xml.
                     options.ConfigureThemes(
-                        lightTheme: new MaterialTheme { SecondaryContainer = Color.FromArgb("#FFE5B9"), Surface = Color.FromArgb("#F4F4F4") },
-                        darkTheme: new MaterialTheme { SecondaryContainer = Color.FromArgb("#AC99EA"), Surface = Color.FromArgb("#302F35") });
+                        lightTheme: new MaterialTheme
+                        {
+                            Primary = Color.FromArgb("#7E570E"),
+                            OnPrimary = Color.FromArgb("#FFFFFF"),
+                            PrimaryContainer = Color.FromArgb("#FFDDAF"),
+                            OnPrimaryContainer = Color.FromArgb("#614000"),
+                            Secondary = Color.FromArgb("#6E5B40"),
+                            OnSecondary = Color.FromArgb("#FFFFFF"),
+                            SecondaryContainer = Color.FromArgb("#F9DFBB"),
+                            OnSecondaryContainer = Color.FromArgb("#55442A"),
+                            Error = Color.FromArgb("#BA1A1A"),
+                            OnError = Color.FromArgb("#FFFFFF"),
+                            ErrorContainer = Color.FromArgb("#FFDAD6"),
+                            OnErrorContainer = Color.FromArgb("#93000A"),
+                            Surface = Color.FromArgb("#FFF8F3"),
+                            SurfaceVariant = Color.FromArgb("#EFE0CF"),
+                            SurfaceContainer = Color.FromArgb("#F8ECDF"),
+                            SurfaceContainerLow = Color.FromArgb("#FEF2E5"),
+                            SurfaceContainerHigh = Color.FromArgb("#F2E6DA"),
+                            SurfaceContainerHighest = Color.FromArgb("#EDE1D4"),
+                            SurfaceContainerLowest = Color.FromArgb("#FFFFFF"),
+                            OnSurface = Color.FromArgb("#201B13"),
+                            OnSurfaceVariant = Color.FromArgb("#4F4539"),
+                            Outline = Color.FromArgb("#817567"),
+                            OutlineVariant = Color.FromArgb("#D2C4B4"),
+                            SurfaceTint = Color.FromArgb("#7E570E"),
+                            InverseSurface = Color.FromArgb("#362F27"),
+                            InverseOnSurface = Color.FromArgb("#FBEFE2"),
+                            InversePrimary = Color.FromArgb("#F2BE6E"),
+                        },
+                        darkTheme: new MaterialTheme
+                        {
+                            Primary = Color.FromArgb("#F2BE6E"),
+                            OnPrimary = Color.FromArgb("#442C00"),
+                            PrimaryContainer = Color.FromArgb("#614000"),
+                            OnPrimaryContainer = Color.FromArgb("#FFDDAF"),
+                            Secondary = Color.FromArgb("#DCC3A1"),
+                            OnSecondary = Color.FromArgb("#3D2E16"),
+                            SecondaryContainer = Color.FromArgb("#55442A"),
+                            OnSecondaryContainer = Color.FromArgb("#F9DFBB"),
+                            Error = Color.FromArgb("#FFB4AB"),
+                            OnError = Color.FromArgb("#690005"),
+                            ErrorContainer = Color.FromArgb("#93000A"),
+                            OnErrorContainer = Color.FromArgb("#FFDAD6"),
+                            Surface = Color.FromArgb("#18130B"),
+                            SurfaceVariant = Color.FromArgb("#4F4539"),
+                            SurfaceContainer = Color.FromArgb("#241F17"),
+                            SurfaceContainerLow = Color.FromArgb("#201B13"),
+                            SurfaceContainerHigh = Color.FromArgb("#2F2921"),
+                            SurfaceContainerHighest = Color.FromArgb("#3A342B"),
+                            SurfaceContainerLowest = Color.FromArgb("#120D07"),
+                            OnSurface = Color.FromArgb("#EDE1D4"),
+                            OnSurfaceVariant = Color.FromArgb("#D2C4B4"),
+                            Outline = Color.FromArgb("#9B8F80"),
+                            OutlineVariant = Color.FromArgb("#4F4539"),
+                            SurfaceTint = Color.FromArgb("#F2BE6E"),
+                            InverseSurface = Color.FromArgb("#EDE1D4"),
+                            InverseOnSurface = Color.FromArgb("#362F27"),
+                            InversePrimary = Color.FromArgb("#7E570E"),
+                        });
                 })
                 .UseSentry(options =>
                 {
@@ -99,8 +153,8 @@ namespace BambuMan
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                    fonts.AddFontAwesomeIconFonts();
-                    fonts.AddMaterialSymbolsFonts();
+                    // Self-hosted Material Symbols (Sharp) — replaces UraniumUI's icon fonts.
+                    fonts.AddFont("MaterialSymbolsSharp.ttf", "MaterialSharp");
                 });
 
 #if ANDROID

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Theme Builder export (dark scheme, default contrast) — plans/material-theme. -->
+<resources>
+    <!-- Legacy theme trio (M2 Maui.MainTheme chain, pre-M3 widgets) -->
+    <color name="colorPrimary">#F2BE6E</color>
+    <color name="colorPrimaryDark">#18130B</color>
+    <color name="colorAccent">#F2BE6E</color>
+
+    <color name="md_theme_primary">#F2BE6E</color>
+    <color name="md_theme_onPrimary">#442C00</color>
+    <color name="md_theme_primaryContainer">#614000</color>
+    <color name="md_theme_onPrimaryContainer">#FFDDAF</color>
+    <color name="md_theme_secondary">#DCC3A1</color>
+    <color name="md_theme_onSecondary">#3D2E16</color>
+    <color name="md_theme_secondaryContainer">#55442A</color>
+    <color name="md_theme_onSecondaryContainer">#F9DFBB</color>
+    <color name="md_theme_tertiary">#B6CEA3</color>
+    <color name="md_theme_onTertiary">#233517</color>
+    <color name="md_theme_tertiaryContainer">#384C2B</color>
+    <color name="md_theme_onTertiaryContainer">#D2EABD</color>
+    <color name="md_theme_error">#FFB4AB</color>
+    <color name="md_theme_onError">#690005</color>
+    <color name="md_theme_errorContainer">#93000A</color>
+    <color name="md_theme_onErrorContainer">#FFDAD6</color>
+    <color name="md_theme_background">#18130B</color>
+    <color name="md_theme_onBackground">#EDE1D4</color>
+    <color name="md_theme_surface">#18130B</color>
+    <color name="md_theme_onSurface">#EDE1D4</color>
+    <color name="md_theme_surfaceVariant">#4F4539</color>
+    <color name="md_theme_onSurfaceVariant">#D2C4B4</color>
+    <color name="md_theme_outline">#9B8F80</color>
+    <color name="md_theme_outlineVariant">#4F4539</color>
+    <color name="md_theme_scrim">#000000</color>
+    <color name="md_theme_inverseSurface">#EDE1D4</color>
+    <color name="md_theme_inverseOnSurface">#362F27</color>
+    <color name="md_theme_inversePrimary">#7E570E</color>
+    <color name="md_theme_primaryFixed">#FFDDAF</color>
+    <color name="md_theme_onPrimaryFixed">#281800</color>
+    <color name="md_theme_primaryFixedDim">#F2BE6E</color>
+    <color name="md_theme_onPrimaryFixedVariant">#614000</color>
+    <color name="md_theme_secondaryFixed">#F9DFBB</color>
+    <color name="md_theme_onSecondaryFixed">#261904</color>
+    <color name="md_theme_secondaryFixedDim">#DCC3A1</color>
+    <color name="md_theme_onSecondaryFixedVariant">#55442A</color>
+    <color name="md_theme_tertiaryFixed">#D2EABD</color>
+    <color name="md_theme_onTertiaryFixed">#0E2005</color>
+    <color name="md_theme_tertiaryFixedDim">#B6CEA3</color>
+    <color name="md_theme_onTertiaryFixedVariant">#384C2B</color>
+    <color name="md_theme_surfaceDim">#18130B</color>
+    <color name="md_theme_surfaceBright">#3F382F</color>
+    <color name="md_theme_surfaceContainerLowest">#120D07</color>
+    <color name="md_theme_surfaceContainerLow">#201B13</color>
+    <color name="md_theme_surfaceContainer">#241F17</color>
+    <color name="md_theme_surfaceContainerHigh">#2F2921</color>
+    <color name="md_theme_surfaceContainerHighest">#3A342B</color>
+</resources>

@@ -16,10 +16,12 @@ namespace BambuMan
                 ? Preferences.Default.Get(SettingsPage.KeyBambuddyUrl, string.Empty)
                 : Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
 
-            if (string.IsNullOrWhiteSpace(activeUrl))
+            if (string.IsNullOrWhiteSpace(activeUrl) && Items.FirstOrDefault() is { } tabBar)
             {
-                CurrentItem = Items.First(x => x.Title == "Settings");
-                //Dispatcher.DispatchAsync(async () => await GoToAsync("//SettingsPage"));
+                // Fresh install / no URL configured: open the Settings tab so the user can set the
+                // backend URL. With the M3 bottom TabBar the tabs live one level below the TabBar.
+                var settingsTab = tabBar.Items.FirstOrDefault(t => t.Title == "Settings");
+                if (settingsTab != null) tabBar.CurrentItem = settingsTab;
             }
         }
         protected override bool OnBackButtonPressed()

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:md="clr-namespace:HorusStudio.Maui.MaterialDesignControls;assembly=HorusStudio.Maui.MaterialDesignControls"
+             x:Class="BambuMan.UI.Controls.MaterialAutoCompleteField">
+    <VerticalStackLayout Spacing="0">
+        <md:MaterialTextField x:Name="Field" Type="Outlined" />
+        <Border x:Name="SuggestionsBorder" IsVisible="False"
+                StrokeThickness="1" StrokeShape="RoundRectangle 8" Margin="0,2,0,0" Padding="0"
+                Stroke="{AppThemeBinding Light={StaticResource OutlineVariant}, Dark={StaticResource OutlineVariantDark}}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceContainer}, Dark={StaticResource SurfaceContainerDark}}">
+            <CollectionView x:Name="SuggestionsView" SelectionMode="Single" SelectionChanged="OnSuggestionSelected">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Label Text="{Binding .}" Padding="12,10" FontSize="14" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+    </VerticalStackLayout>
+</ContentView>

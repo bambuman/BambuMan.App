@@ -2,7 +2,8 @@
 <toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-               xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
+               xmlns:m="clr-namespace:BambuMan.Resources.Icons"
+               xmlns:md="clr-namespace:HorusStudio.Maui.MaterialDesignControls;assembly=HorusStudio.Maui.MaterialDesignControls"
                x:Class="BambuMan.UI.Consent.TagUploadConsentPopup"
                x:TypeArguments="x:Boolean"
                BackgroundColor="{AppThemeBinding Light={StaticResource PopupBackground}, Dark={StaticResource PopupBackgroundDark}}">
@@ -63,7 +64,7 @@
         <!-- What is uploaded section -->
         <Border Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                 StrokeThickness="1"
-                StrokeShape="RoundRectangle 5"
+                StrokeShape="RoundRectangle 12"
                 Padding="10"
                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}">
             <VerticalStackLayout Spacing="4">
@@ -82,7 +83,7 @@
         <!-- Warning - public data -->
         <Border Stroke="{AppThemeBinding Light={StaticResource WarningBannerStroke}, Dark={StaticResource WarningBannerStrokeDark}}"
                 StrokeThickness="1"
-                StrokeShape="RoundRectangle 5"
+                StrokeShape="RoundRectangle 12"
                 Padding="10"
                 BackgroundColor="{AppThemeBinding Light={StaticResource WarningBannerBackground}, Dark={StaticResource WarningBannerBackgroundDark}}">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
@@ -105,7 +106,7 @@
         <!-- Info section -->
         <Border Stroke="{AppThemeBinding Light={StaticResource CautionBannerStroke}, Dark={StaticResource CautionBannerStrokeDark}}"
                 StrokeThickness="1"
-                StrokeShape="RoundRectangle 5"
+                StrokeShape="RoundRectangle 12"
                 Padding="10"
                 BackgroundColor="{AppThemeBinding Light={StaticResource CautionBannerBackground}, Dark={StaticResource CautionBannerBackgroundDark}}">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
@@ -150,18 +151,10 @@
                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
         </HorizontalStackLayout>
 
-        <!-- Buttons -->
-        <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,8,0,0">
-            <Button Grid.Column="0"
-                    Text="No Thanks"
-                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray200}}"
-                    Clicked="OnDeclineClicked" />
-            <Button Grid.Column="1"
-                    Text="Participate"
-                    BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                    TextColor="{AppThemeBinding Light=White, Dark={StaticResource PrimaryDarkText}}"
-                    Clicked="OnAcceptClicked" />
+        <!-- Buttons: M3 dialog pattern — text button to decline, filled to confirm -->
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,8,0,0">
+            <md:MaterialButton Grid.Column="1" Type="Text" Text="No thanks" Clicked="OnDeclineClicked" />
+            <md:MaterialButton Grid.Column="2" Type="Filled" Text="Participate" Clicked="OnAcceptClicked" />
         </Grid>
 
     </VerticalStackLayout>

@@ -1,18 +1,28 @@
 ﻿<?xml version = "1.0" encoding = "UTF-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:m="clr-namespace:UraniumUI.Material.Resources;assembly=UraniumUI.Material"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:converters="clr-namespace:BambuMan.Converters"
              xmlns:local="clr-namespace:BambuMan"
              x:Class="BambuMan.App">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary x:Name="AppColors" Source="Resources/Styles/Colors.xaml" />
-                <ResourceDictionary x:Name="AppStyles" Source="Resources/Styles/Styles.xaml" />
-                <m:StyleResource BasedOn="{x:Reference AppStyles}" ColorsOverride="{x:Reference AppColors}" />
-                <ResourceDictionary x:Name="OverrideStyles" Source="Resources/Styles/Override.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Shared converters (used by MainPage and LogsPage) -->
+            <converters:NoNullToBoolConverter x:Key="NoNullToBoolConverter" />
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />
+            <toolkit:BoolToObjectConverter x:Key="BoolToColorConverter">
+                <toolkit:BoolToObjectConverter.TrueObject>
+                    <Color>#43A047</Color>
+                </toolkit:BoolToObjectConverter.TrueObject>
+                <toolkit:BoolToObjectConverter.FalseObject>
+                    <Color>#E53935</Color>
+                </toolkit:BoolToObjectConverter.FalseObject>
+            </toolkit:BoolToObjectConverter>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

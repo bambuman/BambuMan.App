@@ -71,7 +71,7 @@ namespace BambuMan.UI.Main
             }
         }
 
-        private async void ManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
+        private void ManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
         {
             try
             {
@@ -80,12 +80,7 @@ namespace BambuMan.UI.Main
                 viewModel.ShowSpool(found);
 
                 if (viewModel.ShowKeyboardOnSpoolRead)
-                {
                     TfSpoolWeight.Focus();
-                    TfSpoolWeight.SelectAllText();
-
-                    await TfSpoolWeight.EntryView.ShowKeyboardAsync(CancellationToken.None);
-                }
             }
             catch (Exception e)
             {
@@ -655,12 +650,11 @@ namespace BambuMan.UI.Main
             }
         }
 
-        private async void CloseButton_OnClicked(object? sender, EventArgs e)
+        private void CloseButton_OnClicked(object? sender, EventArgs e)
         {
             try
             {
-                await TfSpoolWeight.EntryView.HideKeyboardAsync(CancellationToken.None);
-
+                // Hiding the edit panel unfocuses the field, which dismisses the keyboard.
                 viewModel.ShowSpoolEdit = false;
             }
             catch (Exception ex)
@@ -712,11 +706,14 @@ namespace BambuMan.UI.Main
             {
                 await viewModel.ClearMessages();
 
-                FormView.Submit();
-
-                if (!FormView.IsValidated) return;
-
-                await TfSpoolWeight.EntryView.HideKeyboardAsync(CancellationToken.None);
+                // Weight and empty weight are required and non-negative; price (if entered) non-negative.
+                if (viewModel.SpoolWeight is not { } weight || weight < 0 ||
+                    viewModel.SpoolEmptyWeight is not { } emptyWeight || emptyWeight < 0 ||
+                    (viewModel.SpoolPrice is { } price && price < 0))
+                {
+                    await viewModel.ShowErrorMessage("Enter a valid weight, empty weight and price.");
+                    return;
+                }
 
                 var input = new SpoolEditInput(
                     viewModel.SpoolWeight,

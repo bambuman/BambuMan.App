@@ -1,118 +1,121 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <?xaml-comp compile="true" ?>
-<ResourceDictionary 
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
+    <!-- Material 3 palette from the Material Theme Builder export (plans/material-theme,
+         seed #7E570E). Light + dark (default contrast). Keep in sync with
+         Platforms/Android/Resources/values[-night]/colors.xml and MauiProgram ConfigureThemes. -->
 
+    <!-- Primary -->
     <Color x:Key="Primary">#7E570E</Color>
-    <Color x:Key="PrimaryDark">#ac99ea</Color>
-    <Color x:Key="PrimaryDarkText">#242424</Color>
-    <Color x:Key="SecondaryDarkText">#9880e5</Color>
-
-    <Color x:Key="LighterPurple">#AB95D6</Color>
-    <Color x:Key="DarkGold">#916925</Color>
-
-    <Color x:Key="PrimaryContainer">#EADDFF</Color>
-    <Color x:Key="PrimaryContainerDark">#6443B7</Color>
-
-    <Color x:Key="Secondary">#6E5B40</Color>
-    <Color x:Key="SecondaryDark">#CCC2DC</Color>
-    <Color x:Key="SecondaryContainer">#E8DEF8</Color>
-    <Color x:Key="SecondaryContainerDark">#4A4458</Color>
-
-    <Color x:Key="Tertiary">#506441</Color>
-    <Color x:Key="TertiaryDark">#EFB8C8</Color>
-    <Color x:Key="TertiaryContainer">#FFD8E4</Color>
-    <Color x:Key="TertiaryContainerDark">#633B48</Color>
-
-    <Color x:Key="Surface">#FFFBFE</Color>
-    <Color x:Key="SurfaceDark">#1C1B1F</Color>
-
-    <Color x:Key="SurfaceVariant">#E7E0EC</Color>
-    <Color x:Key="SurfaceVariantDark">#49454F</Color>
-
-    <Color x:Key="Background">#FFFBFE</Color>
-    <Color x:Key="BackgroundDark">#1C1B1F</Color>
-
-    <Color x:Key="Error">#B3261E</Color>
-    <Color x:Key="ErrorDark">#F2B8B5</Color>
-    <Color x:Key="ErrorContainer">#F9DEDC</Color>
-    <Color x:Key="ErrorContainerDark">#8C1D18</Color>
-
+    <Color x:Key="PrimaryDark">#F2BE6E</Color>
     <Color x:Key="OnPrimary">#FFFFFF</Color>
-    <Color x:Key="OnPrimaryDark">#371E73</Color>
-    <Color x:Key="OnPrimaryContainer">#21005E</Color>
-    <Color x:Key="OnPrimaryContainerDark">#EADDFF</Color>
+    <Color x:Key="OnPrimaryDark">#442C00</Color>
+    <Color x:Key="PrimaryContainer">#FFDDAF</Color>
+    <Color x:Key="PrimaryContainerDark">#614000</Color>
+    <Color x:Key="OnPrimaryContainer">#614000</Color>
+    <Color x:Key="OnPrimaryContainerDark">#FFDDAF</Color>
 
+    <!-- Secondary -->
+    <Color x:Key="Secondary">#6E5B40</Color>
+    <Color x:Key="SecondaryDark">#DCC3A1</Color>
     <Color x:Key="OnSecondary">#FFFFFF</Color>
-    <Color x:Key="OnSecondaryDark">#332D41</Color>
-    <Color x:Key="OnSecondaryContainer">#1E192B</Color>
-    <Color x:Key="OnSecondaryContainerDark">#E8DEF8</Color>
+    <Color x:Key="OnSecondaryDark">#3D2E16</Color>
+    <Color x:Key="SecondaryContainer">#F9DFBB</Color>
+    <Color x:Key="SecondaryContainerDark">#55442A</Color>
+    <Color x:Key="OnSecondaryContainer">#55442A</Color>
+    <Color x:Key="OnSecondaryContainerDark">#F9DFBB</Color>
 
+    <!-- Tertiary (green — usable for success states) -->
+    <Color x:Key="Tertiary">#506441</Color>
+    <Color x:Key="TertiaryDark">#B6CEA3</Color>
     <Color x:Key="OnTertiary">#FFFFFF</Color>
-    <Color x:Key="OnTertiaryDark">#492532</Color>
-    <Color x:Key="OnTertiaryContainer">#370B1E</Color>
-    <Color x:Key="OnTertiaryContainerDark">#FFD8E4</Color>
+    <Color x:Key="OnTertiaryDark">#233517</Color>
+    <Color x:Key="TertiaryContainer">#D2EABD</Color>
+    <Color x:Key="TertiaryContainerDark">#384C2B</Color>
+    <Color x:Key="OnTertiaryContainer">#384C2B</Color>
+    <Color x:Key="OnTertiaryContainerDark">#D2EABD</Color>
 
-    <Color x:Key="OnSurface">#1C1B1F</Color>
-    <Color x:Key="OnSurfaceDark">#E6E1E5</Color>
-
-    <Color x:Key="OnSurfaceVariant">#49454E</Color>
-    <Color x:Key="OnSurfaceVariantDark">#CAC4D0</Color>
-
+    <!-- Error -->
+    <Color x:Key="Error">#BA1A1A</Color>
+    <Color x:Key="ErrorDark">#FFB4AB</Color>
     <Color x:Key="OnError">#FFFFFF</Color>
-    <Color x:Key="OnErrorDark">#601410</Color>
-    <Color x:Key="OnErrorContainer">#370B1E</Color>
-    <Color x:Key="OnErrorContainerDark">#F9DEDC</Color>
+    <Color x:Key="OnErrorDark">#690005</Color>
+    <Color x:Key="ErrorContainer">#FFDAD6</Color>
+    <Color x:Key="ErrorContainerDark">#93000A</Color>
+    <Color x:Key="OnErrorContainer">#93000A</Color>
+    <Color x:Key="OnErrorContainerDark">#FFDAD6</Color>
 
-    <Color x:Key="OnBackground">#1C1B1F</Color>
-    <Color x:Key="OnBackgroundDark">#E6E1E5</Color>
+    <!-- Background / Surface -->
+    <Color x:Key="Background">#FFF8F3</Color>
+    <Color x:Key="BackgroundDark">#18130B</Color>
+    <Color x:Key="OnBackground">#201B13</Color>
+    <Color x:Key="OnBackgroundDark">#EDE1D4</Color>
 
-    <Color x:Key="Outline">#646168</Color>
-    <Color x:Key="OutlineText">#49474C</Color>
-    <Color x:Key="OutlineDark">#B6B1BC</Color>
+    <Color x:Key="Surface">#FFF8F3</Color>
+    <Color x:Key="SurfaceDark">#18130B</Color>
+    <Color x:Key="OnSurface">#201B13</Color>
+    <Color x:Key="OnSurfaceDark">#EDE1D4</Color>
 
-    <Color x:Key="OutlineVariant">#C4C7C5</Color>
-    <Color x:Key="OutlineVariantDark">#444746</Color>
+    <Color x:Key="SurfaceVariant">#EFE0CF</Color>
+    <Color x:Key="SurfaceVariantDark">#4F4539</Color>
+    <Color x:Key="OnSurfaceVariant">#4F4539</Color>
+    <Color x:Key="OnSurfaceVariantDark">#D2C4B4</Color>
 
+    <!-- Surface container tiers (M3 elevation) -->
+    <Color x:Key="SurfaceDim">#E4D8CC</Color>
+    <Color x:Key="SurfaceDimDark">#18130B</Color>
+    <Color x:Key="SurfaceBright">#FFF8F3</Color>
+    <Color x:Key="SurfaceBrightDark">#3F382F</Color>
+    <Color x:Key="SurfaceContainerLowest">#FFFFFF</Color>
+    <Color x:Key="SurfaceContainerLowestDark">#120D07</Color>
+    <Color x:Key="SurfaceContainerLow">#FEF2E5</Color>
+    <Color x:Key="SurfaceContainerLowDark">#201B13</Color>
+    <Color x:Key="SurfaceContainer">#F8ECDF</Color>
+    <Color x:Key="SurfaceContainerDark">#241F17</Color>
+    <Color x:Key="SurfaceContainerHigh">#F2E6DA</Color>
+    <Color x:Key="SurfaceContainerHighDark">#2F2921</Color>
+    <Color x:Key="SurfaceContainerHighest">#EDE1D4</Color>
+    <Color x:Key="SurfaceContainerHighestDark">#3A342B</Color>
+
+    <!-- Outline -->
+    <Color x:Key="Outline">#817567</Color>
+    <Color x:Key="OutlineDark">#9B8F80</Color>
+    <Color x:Key="OutlineText">#4F4539</Color>
+    <Color x:Key="OutlineVariant">#D2C4B4</Color>
+    <Color x:Key="OutlineVariantDark">#4F4539</Color>
+
+    <!-- Misc M3 roles -->
     <Color x:Key="Shadow">#000000</Color>
     <Color x:Key="ShadowDark">#000000</Color>
-
-    <Color x:Key="SurfaceTint">#6750A4</Color>
-    <Color x:Key="SurfaceTintDark">#D0BCFF</Color>
-
-    <Color x:Key="InverseSurface">#313033</Color>
-    <Color x:Key="InverseSurfaceDark">#E6E1E5</Color>
-    <Color x:Key="InverseOnSurface">#F4EFF4</Color>
-    <Color x:Key="InverseOnSurfaceDark">#313033</Color>
-
-    <Color x:Key="InversePrimary">#D0BCFF</Color>
-    <Color x:Key="InversePrimaryDark">#6750A4</Color>
-
     <Color x:Key="Scrim">#000000</Color>
     <Color x:Key="ScrimDark">#000000</Color>
+    <Color x:Key="SurfaceTint">#7E570E</Color>
+    <Color x:Key="SurfaceTintDark">#F2BE6E</Color>
+    <Color x:Key="InverseSurface">#362F27</Color>
+    <Color x:Key="InverseSurfaceDark">#EDE1D4</Color>
+    <Color x:Key="InverseOnSurface">#FBEFE2</Color>
+    <Color x:Key="InverseOnSurfaceDark">#362F27</Color>
+    <Color x:Key="InversePrimary">#F2BE6E</Color>
+    <Color x:Key="InversePrimaryDark">#7E570E</Color>
 
     <!--APP SEMANTIC COLORS-->
 
-    <!-- Status bar -->
-    <Color x:Key="StatusBar">#EADFDF</Color>
-    <Color x:Key="StatusBarDark">#1C1B1F</Color>
-
-    <!-- Shell icons -->
-    <Color x:Key="ShellIcon">#1C1B1F</Color>
-    <Color x:Key="ShellIconDark">#E6E1E5</Color>
+    <!-- Status bar — same tone as the Surface app bar so the top reads as one piece -->
+    <Color x:Key="StatusBar">#FFF8F3</Color>
+    <Color x:Key="StatusBarDark">#18130B</Color>
 
     <!-- Separators -->
-    <Color x:Key="Separator">#C8C8C8</Color>
-    <Color x:Key="SeparatorDark">#49454F</Color>
+    <Color x:Key="Separator">#D2C4B4</Color>
+    <Color x:Key="SeparatorDark">#4F4539</Color>
 
-    <!-- Spool info card -->
-    <Color x:Key="SpoolCardBackground">#F5EDE0</Color>
-    <Color x:Key="SpoolCardBackgroundDark">#2C2520</Color>
+    <!-- Spool info card (secondary container + primary stroke) -->
+    <Color x:Key="SpoolCardBackground">#F9DFBB</Color>
+    <Color x:Key="SpoolCardBackgroundDark">#55442A</Color>
     <Color x:Key="SpoolCardStroke">#7E570E</Color>
-    <Color x:Key="SpoolCardStrokeDark">#D4A96A</Color>
+    <Color x:Key="SpoolCardStrokeDark">#F2BE6E</Color>
 
     <!-- Error banner -->
     <Color x:Key="ErrorBannerStroke">#D32F2F</Color>
@@ -146,21 +149,9 @@
     <Color x:Key="VersionBannerText">#1B5E20</Color>
     <Color x:Key="VersionBannerTextDark">#A5D6A7</Color>
 
-    <!-- Secondary buttons (blue-tinted: Email logs, Clear inventory) -->
-    <Color x:Key="SecondaryButtonBackground">#D6E4F0</Color>
-    <Color x:Key="SecondaryButtonBackgroundDark">#2A3545</Color>
-    <Color x:Key="SecondaryButtonText">#1C1B1F</Color>
-    <Color x:Key="SecondaryButtonTextDark">#E6E1E5</Color>
-
-    <!-- Tertiary buttons (gray: Cancel, Clear logs) -->
-    <Color x:Key="TertiaryButtonBackground">#E0E0E0</Color>
-    <Color x:Key="TertiaryButtonBackgroundDark">#3A3A3A</Color>
-    <Color x:Key="TertiaryButtonText">#1C1B1F</Color>
-    <Color x:Key="TertiaryButtonTextDark">#E6E1E5</Color>
-
     <!-- Popup -->
-    <Color x:Key="PopupBackground">#FFFFFF</Color>
-    <Color x:Key="PopupBackgroundDark">#2C2C2C</Color>
+    <Color x:Key="PopupBackground">#FFF8F3</Color>
+    <Color x:Key="PopupBackgroundDark">#241F17</Color>
 
     <!-- Warning banner (consent popup) -->
     <Color x:Key="WarningBannerStroke">#F44336</Color>
@@ -186,11 +177,11 @@
     <Color x:Key="LinkText">DodgerBlue</Color>
     <Color x:Key="LinkTextDark">#64B5F6</Color>
 
-    <!--DARK COLORS-->
+    <!--DISABLED-->
 
     <Color x:Key="DisabledText">#ba919191</Color>
     <Color x:Key="DisabledBackground">#80919191</Color>
-    
+
     <!--MAUI COLORS-->
 
     <Color x:Key="White">White</Color>
@@ -269,7 +260,5 @@
     <SolidColorBrush x:Key="InversePrimaryBrush" Color="{StaticResource InversePrimary}" />
 
     <SolidColorBrush x:Key="ScrimBrush" Color="{StaticResource Scrim}" />
-
-
 
 </ResourceDictionary>

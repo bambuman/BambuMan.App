@@ -3,6 +3,7 @@ using BambuMan.Shared.Enums;
 using BambuMan.UI.Consent;
 using BambuMan.UI.Scan;
 using CommunityToolkit.Maui;
+using HorusStudio.Maui.MaterialDesignControls;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -11,6 +12,7 @@ using SpoolMan.Api.Extensions;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BambuMan.UI.Settings;
 
@@ -155,7 +157,7 @@ public partial class SettingsPage
     {
         try
         {
-            var target = (sender as Button)?.CommandParameter as string ?? "spoolman_url";
+            var target = (sender as MaterialIconButton)?.CommandParameter as string ?? "spoolman_url";
             await Shell.Current.GoToAsync(nameof(ScanPage), new Dictionary<string, object> { { "target", target } });
         }
         catch (Exception ex)
@@ -346,40 +348,30 @@ public partial class SettingsPage
         Preferences.Default.Set(KeyInventoryBackend, viewModel.InventoryBackend.ToString());
 
         // One visible URL field proxies to the active backend; persist both so the inactive one isn't lost.
-        if (TfServerUrl.IsValid)
+        // Only persist URLs when the visible one is empty or a valid http(s) URL.
+        var url = viewModel.ServerUrl ?? string.Empty;
+        if (string.IsNullOrEmpty(url) || Regex.IsMatch(url, Constants.UrlValidation))
         {
             Preferences.Default.Set(KeySpoolmanUrl, viewModel.SpoolmanUrl ?? string.Empty);
             Preferences.Default.Set(KeyBambuddyUrl, viewModel.BambuddyUrl ?? string.Empty);
         }
 
-        if (TfBambuddyApiKey.IsValid) Preferences.Default.Set(KeyBambuddyApiKey, viewModel.BambuddyApiKey);
+        Preferences.Default.Set(KeyBambuddyApiKey, viewModel.BambuddyApiKey ?? string.Empty);
 
-        if (TfBuyDate.IsValid)
-        {
-            if (viewModel.BuyDate == null) Preferences.Default.Remove(KeyDefaultBuyDate);
-            else Preferences.Default.Set(KeyDefaultBuyDate, $"{viewModel.BuyDate:yyyy-MM-dd}");
-        }
+        if (viewModel.BuyDate == null) Preferences.Default.Remove(KeyDefaultBuyDate);
+        else Preferences.Default.Set(KeyDefaultBuyDate, $"{viewModel.BuyDate:yyyy-MM-dd}");
 
-        if (TfPrice.IsValid)
-        {
-            if (TfPrice.Text == string.Empty || viewModel.DefaultPrice == null) Preferences.Default.Remove(KeyDefaultPrice);
-            else Preferences.Default.Set(KeyDefaultPrice, $"{viewModel.DefaultPrice:0.00}");
-        }
+        if (viewModel.DefaultPrice == null) Preferences.Default.Remove(KeyDefaultPrice);
+        else Preferences.Default.Set(KeyDefaultPrice, $"{viewModel.DefaultPrice:0.00}");
 
-        if (TfLotNr.IsValid) Preferences.Default.Set(KeyDefaultLotNr, viewModel.DefaultLotNr);
+        Preferences.Default.Set(KeyDefaultLotNr, viewModel.DefaultLotNr ?? string.Empty);
+        Preferences.Default.Set(KeyDefaultLocation, viewModel.DefaultLocation ?? string.Empty);
+        Preferences.Default.Set(UnknownFilamentEnabled, viewModel.UnknownFilamentEnabled);
+        Preferences.Default.Set(ShowLogsOnMainPage, viewModel.ShowLogsOnMainPage);
+        Preferences.Default.Set(ShowKeyboardOnSpoolRead, viewModel.ShowKeyboardOnSpoolRead);
+        Preferences.Default.Set(FullTagScanAndUpload, viewModel.FullTagScanAndUpload);
 
-        if (TfLocation.IsValid) Preferences.Default.Set(KeyDefaultLocation, viewModel.DefaultLocation);
-
-        if (TfUnknownFilamentEnabled.IsValid) Preferences.Default.Set(UnknownFilamentEnabled, viewModel.UnknownFilamentEnabled);
-
-        if (TfShowLogsOnMainPage.IsValid) Preferences.Default.Set(ShowLogsOnMainPage, viewModel.ShowLogsOnMainPage);
-
-        if (TfShowKeyboardOnSpoolRead.IsValid) Preferences.Default.Set(ShowKeyboardOnSpoolRead, viewModel.ShowKeyboardOnSpoolRead);
-
-        if (TfFullTagScanAndUpload.IsValid) Preferences.Default.Set(FullTagScanAndUpload, viewModel.FullTagScanAndUpload);
-
-        if (TfOverrideLocationOnRead.IsValid)
-            foreach (var manager in backends.All) manager.OverrideLocationOnRead = viewModel.OverrideLocationOnRead;
+        foreach (var manager in backends.All) manager.OverrideLocationOnRead = viewModel.OverrideLocationOnRead;
 
         base.OnNavigatingFrom(args);
     }

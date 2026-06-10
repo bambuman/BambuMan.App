@@ -14,9 +14,9 @@
 
             Preferences.Default.Set("default_buy_date", $"{DateTime.Today:yyyy-MM-dd}");
 
-            // UraniumUI controls cache theme colors at construction time (issue #660).
-            // Recreating the AppShell forces all pages and controls to reconstruct
-            // with the correct theme colors.
+            // Some controls cache theme colors at construction time. Recreating the AppShell
+            // on theme change forces all pages and controls to reconstruct with the correct
+            // theme colors. (Debounced; see ScheduleShellRecreation.)
             RequestedThemeChanged += OnRequestedThemeChanged;
         }
 

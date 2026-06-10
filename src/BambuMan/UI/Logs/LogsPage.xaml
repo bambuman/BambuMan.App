@@ -3,30 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:main="clr-namespace:BambuMan.UI.Logs"
              xmlns:models="clr-namespace:BambuMan.Shared.Models;assembly=BambuMan.Shared"
-             xmlns:converters="clr-namespace:BambuMan.Converters"
-             xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+             xmlns:md="clr-namespace:HorusStudio.Maui.MaterialDesignControls;assembly=HorusStudio.Maui.MaterialDesignControls"
              x:Class="BambuMan.UI.Logs.LogsPage"
              x:DataType="main:LogsPageViewModel"
-             Title="BambuMan Settings">
-
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Home" Clicked="BackToMain_OnClicked" Order="Primary">
-            <ToolbarItem.IconImageSource>
-                <FontImageSource FontFamily="FASolid"
-                                 Glyph="{x:Static fa:Solid.House}"
-                                 Color="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource White}}" />
-            </ToolbarItem.IconImageSource>
-        </ToolbarItem>
-    </ContentPage.ToolbarItems>
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
+             Title="BambuMan Logs">
 
     <VerticalStackLayout Padding="10">
-        
+
         <StackLayout>
             <Grid Margin="0,0,0,5">
                 <Grid.ColumnDefinitions>
@@ -35,11 +18,11 @@
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
 
-                <Label Text="Logs:" FontAttributes="Bold" Grid.Column="0" Padding="0,15,0,0"></Label>
-                <Button Grid.Column="1" Padding="18,0" Margin="0,0,4,0" Text="Clear logs" BackgroundColor="{AppThemeBinding Light={StaticResource TertiaryButtonBackground}, Dark={StaticResource TertiaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource TertiaryButtonText}, Dark={StaticResource TertiaryButtonTextDark}}" FontSize="14" HeightRequest="30"  Clicked="ClearLogs_OnClicked"></Button>
-                <Button Grid.Column="2" Padding="18,0" Text="Email logs" BackgroundColor="{AppThemeBinding Light={StaticResource SecondaryButtonBackground}, Dark={StaticResource SecondaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource SecondaryButtonText}, Dark={StaticResource SecondaryButtonTextDark}}" FontSize="14"  HeightRequest="30" Clicked="EmailLogs_OnClicked"></Button>
+                <Label Text="Logs:" FontAttributes="Bold" Grid.Column="0" VerticalOptions="Center"></Label>
+                <md:MaterialButton Grid.Column="1" Type="Text" Text="Clear logs" Clicked="ClearLogs_OnClicked" />
+                <md:MaterialButton Grid.Column="2" Type="Text" Text="Email logs" Clicked="EmailLogs_OnClicked" />
             </Grid>
-            
+
             <Border HeightRequest="2" BackgroundColor="{AppThemeBinding Light={StaticResource Separator}, Dark={StaticResource SeparatorDark}}" Margin="0,5,0,5"></Border>
 
             <StackLayout BindableLayout.ItemsSource="{Binding Logs, Mode=OneWay}">

@@ -2,14 +2,10 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:BambuMan.Shared.Models;assembly=BambuMan.Shared"
-             xmlns:m="clr-namespace:UraniumUI.Icons.MaterialSymbols;assembly=UraniumUI.Icons.MaterialSymbols"
-             xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
+             xmlns:m="clr-namespace:BambuMan.Resources.Icons"
              xmlns:main="clr-namespace:BambuMan.UI.Main"
              
-             xmlns:validation="clr-namespace:InputKit.Shared.Validations;assembly=InputKit.Maui"
-             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-             xmlns:input="clr-namespace:InputKit.Shared.Controls;assembly=InputKit.Maui"
-             xmlns:validation1="clr-namespace:BambuMan.Validation"
+             xmlns:md="clr-namespace:HorusStudio.Maui.MaterialDesignControls;assembly=HorusStudio.Maui.MaterialDesignControls"
              xmlns:converters="clr-namespace:BambuMan.Converters"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:shared="clr-namespace:BambuMan"
@@ -19,64 +15,46 @@
              Title="BambuMan Reader"
              x:DataType="main:MainPageViewModel">
 
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Settings" Clicked="Settings_OnClicked" Order="Primary">
-            <ToolbarItem.IconImageSource>
-                <FontImageSource FontFamily="FASolid"
-                                 Glyph="{x:Static fa:Solid.Gear}"
-                                 Color="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource White}}" />
-            </ToolbarItem.IconImageSource>
-        </ToolbarItem>
-    </ContentPage.ToolbarItems>
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <toolkit:BoolToObjectConverter x:Key="BoolToColorConverter" TrueObject="{x:Static Colors.Green}" FalseObject="{x:Static Colors.Red}"/>
-            <converters:NoNullToBoolConverter x:Key="NoNullToBoolConverter" />
-            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
-
     <ScrollView>
         <VerticalStackLayout Padding="10">
 
-            <Border Stroke="{AppThemeBinding Light={StaticResource VersionBannerStroke}, Dark={StaticResource VersionBannerStrokeDark}}" BackgroundColor="{AppThemeBinding Light={StaticResource VersionBannerBackground}, Dark={StaticResource VersionBannerBackgroundDark}}" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Margin="0,0,0,5" Padding="5" IsVisible="{Binding NewVersionAvailable}">
+            <Border Stroke="{AppThemeBinding Light={StaticResource VersionBannerStroke}, Dark={StaticResource VersionBannerStrokeDark}}" BackgroundColor="{AppThemeBinding Light={StaticResource VersionBannerBackground}, Dark={StaticResource VersionBannerBackgroundDark}}" StrokeThickness="1" StrokeShape="RoundRectangle 12" Margin="0,0,0,5" Padding="5" IsVisible="{Binding NewVersionAvailable}">
                 <VerticalStackLayout>
                     <Label Text="{Binding NewVersionText}" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource VersionBannerText}, Dark={StaticResource VersionBannerTextDark}}" FontSize="14"></Label>
                 </VerticalStackLayout>
             </Border>
 
             <Grid ColumnDefinitions="*,*,*" RowDefinitions="*" Margin="0,0,0,5">
-                <Border Grid.Column="0" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
+                <Border Grid.Column="0" StrokeThickness="1" StrokeShape="RoundRectangle 12" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
                     <HorizontalStackLayout>
                         <!-- BackgroundColor="{Binding SettingsOk, Converter={StaticResource BoolToColorConverter}}" -->
                         <Image HeightRequest="10" Margin="10,0,0,0">
                             <Image.Source>
-                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Circle}" Color="{Binding SettingsOk, Converter={StaticResource BoolToColorConverter}}" />
+                                <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Circle}" Color="{Binding SettingsOk, Converter={StaticResource BoolToColorConverter}}" />
                             </Image.Source>
                         </Image>
 
                         <Label Margin="0" Padding="8,4,8,4" FontSize="13" HeightRequest="26" HorizontalTextAlignment="Center" Text="SETTINGS"></Label>
                     </HorizontalStackLayout>
                 </Border>
-                <Border Grid.Column="1" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
+                <Border Grid.Column="1" StrokeThickness="1" StrokeShape="RoundRectangle 12" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
                     <HorizontalStackLayout>
                         <!-- BackgroundColor="{Binding SpoolmanOk, Converter={StaticResource BoolToColorConverter}}" -->
                         <Image HeightRequest="10" Margin="10,0,0,0">
                             <Image.Source>
-                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Circle}" Color="{Binding SpoolmanOk, Converter={StaticResource BoolToColorConverter}}" />
+                                <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Circle}" Color="{Binding SpoolmanOk, Converter={StaticResource BoolToColorConverter}}" />
                             </Image.Source>
                         </Image>
 
                         <Label Margin="0" Padding="8,4,8,4" FontSize="13" HeightRequest="26" HorizontalTextAlignment="Center" Text="{Binding BackendLabel}"></Label>
                     </HorizontalStackLayout>
                 </Border>
-                <Border Grid.Column="2" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
+                <Border Grid.Column="2" StrokeThickness="1" StrokeShape="RoundRectangle 12" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
                     <HorizontalStackLayout>
                         <!-- BackgroundColor="{Binding NfcIsEnabled, Converter={StaticResource BoolToColorConverter}}" -->
                         <Image HeightRequest="10" Margin="10,0,0,0">
                             <Image.Source>
-                                <FontImageSource FontFamily="FASolid" Glyph="{x:Static fa:Solid.Circle}" Color="{Binding NfcIsEnabled, Converter={StaticResource BoolToColorConverter}}" />
+                                <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Circle}" Color="{Binding NfcIsEnabled, Converter={StaticResource BoolToColorConverter}}" />
                             </Image.Source>
                         </Image>
                         <Label Margin="0" Padding="8,4,8,4" FontSize="13" HeightRequest="26" HorizontalTextAlignment="Center" Text="{Binding NfcText}"></Label>
@@ -85,7 +63,7 @@
             </Grid>
 
             <VerticalStackLayout x:Name="ErrorMessages" Margin="0,0,0,5" IsVisible="{Binding ErrorMessage, Converter={StaticResource NoNullToBoolConverter}}">
-                <Border StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Stroke="{AppThemeBinding Light={StaticResource ErrorBannerStroke}, Dark={StaticResource ErrorBannerStrokeDark}}" BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBannerBackground}, Dark={StaticResource ErrorBannerBackgroundDark}}">
+                <Border StrokeThickness="1" StrokeShape="RoundRectangle 12" Stroke="{AppThemeBinding Light={StaticResource ErrorBannerStroke}, Dark={StaticResource ErrorBannerStrokeDark}}" BackgroundColor="{AppThemeBinding Light={StaticResource ErrorBannerBackground}, Dark={StaticResource ErrorBannerBackgroundDark}}">
                     <Label Margin="0" Padding="8,4,8,4" TextColor="{AppThemeBinding Light={StaticResource ErrorBannerText}, Dark={StaticResource ErrorBannerTextDark}}" FontSize="12">
                         <Label.FormattedText>
                             <FormattedString>
@@ -98,7 +76,7 @@
             </VerticalStackLayout>
 
             <VerticalStackLayout x:Name="SuccessMessages" Margin="0,0,0,5" IsVisible="{Binding SuccessMessage, Converter={StaticResource NoNullToBoolConverter}}">
-                <Border StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Stroke="{AppThemeBinding Light={StaticResource SuccessBannerStroke}, Dark={StaticResource SuccessBannerStrokeDark}}" BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBannerBackground}, Dark={StaticResource SuccessBannerBackgroundDark}}" >
+                <Border StrokeThickness="1" StrokeShape="RoundRectangle 12" Stroke="{AppThemeBinding Light={StaticResource SuccessBannerStroke}, Dark={StaticResource SuccessBannerStrokeDark}}" BackgroundColor="{AppThemeBinding Light={StaticResource SuccessBannerBackground}, Dark={StaticResource SuccessBannerBackgroundDark}}" >
                     <Label Margin="0" Padding="8,4,8,4" TextColor="{AppThemeBinding Light={StaticResource SuccessBannerText}, Dark={StaticResource SuccessBannerTextDark}}" FontSize="14">
                         <Label.FormattedText>
                             <FormattedString>
@@ -111,7 +89,7 @@
             </VerticalStackLayout>
 
             <VerticalStackLayout x:Name="InfoMessages" Margin="0,0,0,5" IsVisible="{Binding InfoMessage, Converter={StaticResource NoNullToBoolConverter}}">
-                <Border StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Stroke="{AppThemeBinding Light={StaticResource InfoBannerStroke}, Dark={StaticResource InfoBannerStrokeDark}}" BackgroundColor="{AppThemeBinding Light={StaticResource InfoBannerBackground}, Dark={StaticResource InfoBannerBackgroundDark}}" >
+                <Border StrokeThickness="1" StrokeShape="RoundRectangle 12" Stroke="{AppThemeBinding Light={StaticResource InfoBannerStroke}, Dark={StaticResource InfoBannerStrokeDark}}" BackgroundColor="{AppThemeBinding Light={StaticResource InfoBannerBackground}, Dark={StaticResource InfoBannerBackgroundDark}}" >
                     <Label Margin="0" Padding="8,4,8,4" TextColor="{AppThemeBinding Light={StaticResource InfoBannerText}, Dark={StaticResource InfoBannerTextDark}}" FontSize="14">
                         <Label.FormattedText>
                             <FormattedString>
@@ -129,22 +107,29 @@
                         <ColumnDefinition Width="*"></ColumnDefinition>
                         <ColumnDefinition Width="Auto"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <Label Text="Inventory:" FontAttributes="Bold" Grid.Column="0"></Label>
-                    <Button Grid.Column="1" Padding="8,0" Margin="0,0,4,0" Text="Clear inventory" BackgroundColor="{AppThemeBinding Light={StaticResource SecondaryButtonBackground}, Dark={StaticResource SecondaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource SecondaryButtonText}, Dark={StaticResource SecondaryButtonTextDark}}" FontSize="12" HeightRequest="20" Clicked="ClearInventory_OnClicked"></Button>
+                    <Label Text="Inventory:" FontAttributes="Bold" Grid.Column="0" VerticalOptions="Center"></Label>
+                    <md:MaterialButton Grid.Column="1" Type="Text" Text="Clear inventory" Clicked="ClearInventory_OnClicked" />
                 </Grid>
                 <StackLayout BindableLayout.ItemsSource="{Binding Inventory, Mode=OneWay}" Orientation="Horizontal">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="shared:InventoryModel">
-                            <Border Stroke="{Binding Color}" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Margin="2" Padding="2,0,2,0" BackgroundColor="{Binding Color}">
-                                <Label Margin="2" BackgroundColor="{Binding Color}" TextColor="White">
-                                    <Label.FormattedText>
-                                        <FormattedString>
-                                            <Span Text="{Binding Material}"></Span>
-                                            <Span Text=" x "></Span>
-                                            <Span Text="{Binding Quantity}"></Span>
-                                        </FormattedString>
-                                    </Label.FormattedText>
-                                </Label>
+                            <!-- M3 outlined chip: filament color shown as a dot so the label stays readable on any color -->
+                            <Border StrokeThickness="1" StrokeShape="RoundRectangle 8" Margin="2" Padding="8,4"
+                                    Stroke="{AppThemeBinding Light={StaticResource OutlineVariant}, Dark={StaticResource OutlineVariantDark}}"
+                                    BackgroundColor="Transparent">
+                                <HorizontalStackLayout Spacing="6">
+                                    <Ellipse Fill="{Binding Color}" HeightRequest="12" WidthRequest="12" VerticalOptions="Center"
+                                             Stroke="{AppThemeBinding Light={StaticResource OutlineVariant}, Dark={StaticResource OutlineVariantDark}}" StrokeThickness="1" />
+                                    <Label VerticalOptions="Center" FontSize="13">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding Material}" />
+                                                <Span Text=" × " />
+                                                <Span Text="{Binding Quantity}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                </HorizontalStackLayout>
                             </Border>
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
@@ -158,59 +143,48 @@
                 <Label Text="Connecting, please wait ..." Margin="0,10,0,0" FontAttributes="Bold"></Label>
             </VerticalStackLayout>
 
-            <Border Stroke="{AppThemeBinding Light={StaticResource SpoolCardStroke}, Dark={StaticResource SpoolCardStrokeDark}}" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Background="{AppThemeBinding Light={StaticResource SpoolCardBackground}, Dark={StaticResource SpoolCardBackgroundDark}}" Margin="0,0,0,5" Padding="5" IsVisible="{Binding ShowSpoolEdit}">
+            <Border Stroke="{AppThemeBinding Light={StaticResource SpoolCardStroke}, Dark={StaticResource SpoolCardStrokeDark}}" StrokeThickness="1" StrokeShape="RoundRectangle 12" Background="{AppThemeBinding Light={StaticResource SpoolCardBackground}, Dark={StaticResource SpoolCardBackgroundDark}}" Margin="0,0,0,5" Padding="5" IsVisible="{Binding ShowSpoolEdit}">
                 <VerticalStackLayout>
                     <Label Text="Spool info:" FontAttributes="Bold"></Label>
 
-                    <input:FormView x:Name="FormView" Padding="0" Margin="0">
-                        <!-- FlexLayout so hidden fields (Bambuddy: Buy date / Lot nr) reflow without leaving gaps -->
-                        <FlexLayout Wrap="Wrap" JustifyContent="SpaceBetween" AlignItems="Start" Margin="5">
+                    <!-- FlexLayout so hidden fields (Bambuddy: Buy date / Lot nr) reflow without leaving gaps -->
+                    <FlexLayout Wrap="Wrap" JustifyContent="SpaceBetween" AlignItems="Start" Margin="5">
 
-                            <material:TextField x:Name="TfSpoolWeight" FlexLayout.Basis="49%" Margin="0" Title="Weight (g):" Keyboard="Numeric" Text="{Binding SpoolWeight,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Weight}}">
-                                <validation:NumericValidation />
-                                <validation:MinValueValidation MinValue="0" />
-                            </material:TextField>
+                        <md:MaterialTextField x:Name="TfSpoolWeight" FlexLayout.Basis="49%" Label="Weight (g)" Type="Outlined" Keyboard="Numeric" Text="{Binding SpoolWeight, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Weight}}" />
 
-                            <material:TextField x:Name="TfSpoolEmptyWeight" FlexLayout.Basis="49%" Margin="0" Title="Empty weight (g):" Keyboard="Numeric" Text="{Binding SpoolEmptyWeight,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Settings_backup_restore}}">
-                                <validation:NumericValidation />
-                                <validation:MinValueValidation MinValue="0" />
-                            </material:TextField>
+                        <md:MaterialTextField x:Name="TfSpoolEmptyWeight" FlexLayout.Basis="49%" Label="Empty weight (g)" Type="Outlined" Keyboard="Numeric" Text="{Binding SpoolEmptyWeight, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Settings_backup_restore}}" />
 
-                            <material:TextField x:Name="TfSpoolPrice" FlexLayout.Basis="49%" Margin="0" Title="Price:" Keyboard="Numeric" AllowClear="True" Text="{Binding SpoolPrice,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}">
-                                <validation1:NumericNullableValidation  />
-                                <validation:MinValueValidation MinValue="0" />
-                            </material:TextField>
+                        <md:MaterialTextField x:Name="TfSpoolPrice" FlexLayout.Basis="49%" Label="Price" Type="Outlined" Keyboard="Numeric" Text="{Binding SpoolPrice, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}" />
 
-                            <controls:NullableDatePickerField x:Name="TfSpoolBuyDate" FlexLayout.Basis="49%" Margin="0" IsVisible="{Binding ShowBuyDate}" Title="Buy date:" Date="{Binding SpoolBuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
+                        <md:MaterialDatePicker x:Name="TfSpoolBuyDate" FlexLayout.Basis="49%" IsVisible="{Binding ShowBuyDate}" Label="Buy date" Type="Outlined" Date="{Binding SpoolBuyDate, Mode=TwoWay}" Placeholder="yyyy-MM-dd" Format="yyyy-MM-dd" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
 
-                            <material:TextField x:Name="TfSpoolLotNr" FlexLayout.Basis="49%" Margin="0" IsVisible="{Binding ShowLotNr}" Title="Lot nr:" AllowClear="True" Text="{Binding SpoolLotNr,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
+                        <md:MaterialTextField x:Name="TfSpoolLotNr" FlexLayout.Basis="49%" IsVisible="{Binding ShowLotNr}" Label="Lot nr" Type="Outlined" Text="{Binding SpoolLotNr, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
 
-                            <material:AutoCompleteTextField x:Name="TfSpoolLocation" FlexLayout.Basis="49%" Margin="0" Title="Location:" Threshold="1" Text="{Binding SpoolLocation,Mode=TwoWay}" AllowClear="True" ItemsSource="{Binding ExistingLocations}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
+                        <controls:MaterialAutoCompleteField x:Name="TfSpoolLocation" FlexLayout.Basis="49%" Label="Location" Text="{Binding SpoolLocation, Mode=TwoWay}" ItemsSource="{Binding ExistingLocations}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
 
-                            <Button FlexLayout.Basis="49%" Margin="0,5,0,0" BackgroundColor="{AppThemeBinding Light={StaticResource TertiaryButtonBackground}, Dark={StaticResource TertiaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource TertiaryButtonText}, Dark={StaticResource TertiaryButtonTextDark}}" Text="Cancel" Clicked="CloseButton_OnClicked"/>
+                        <md:MaterialButton FlexLayout.Basis="49%" Margin="0,8,0,0" Type="Outlined" Text="Cancel" Clicked="CloseButton_OnClicked" />
 
-                            <Button FlexLayout.Basis="49%" Margin="0,5,0,0" StyleClass="FilledButton" Text="Save changes" Clicked="SaveChanges_OnClicked"/>
+                        <md:MaterialButton FlexLayout.Basis="49%" Margin="0,8,0,0" Type="Filled" Text="Save changes" Clicked="SaveChanges_OnClicked" />
 
-                        </FlexLayout>
-                    </input:FormView>
+                    </FlexLayout>
                 </VerticalStackLayout>
             </Border>
 
             <VerticalStackLayout Margin="0,0,0,5" IsVisible="{Binding IsTest}">
-                <Button Clicked="Button_OnClicked" Text="Test Tag" StyleClass="FilledButton" />
+                <md:MaterialButton Clicked="Button_OnClicked" Text="Test Tag" Type="Filled" />
             </VerticalStackLayout>
 
             <Border
                 StrokeThickness="1"
-                StrokeShape="RoundRectangle 5,5,5,5"
-                Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}"
-                BackgroundColor="{AppThemeBinding Light=#F7F4F6, Dark=#2C2A30}"
-                Padding="8,4"
+                StrokeShape="RoundRectangle 12"
+                Stroke="{AppThemeBinding Light={StaticResource OutlineVariant}, Dark={StaticResource OutlineVariantDark}}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceContainer}, Dark={StaticResource SurfaceContainerDark}}"
+                Padding="12,4"
                 Margin="0,5,0,5">
 
                 <Grid ColumnDefinitions="*,Auto">
                     <Label Grid.Column="0" Text="Override location on read" VerticalTextAlignment="Center" FontSize="14" />
-                    <Switch Grid.Column="1" IsToggled="{Binding OverrideLocationOnRead, Mode=TwoWay}" VerticalOptions="Center" HeightRequest="20" OffColor="{AppThemeBinding Light=LightGray, Dark=DimGray}" />
+                    <Switch Grid.Column="1" IsToggled="{Binding OverrideLocationOnRead, Mode=TwoWay}" VerticalOptions="Center" />
                 </Grid>
             </Border>
 
@@ -224,9 +198,9 @@
                         <ColumnDefinition Width="Auto"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
 
-                    <Label Text="Logs:" FontAttributes="Bold" Grid.Column="0"></Label>
-                    <Button Grid.Column="1" Padding="8,0" Margin="0,0,4,0" Text="Clear logs" BackgroundColor="{AppThemeBinding Light={StaticResource TertiaryButtonBackground}, Dark={StaticResource TertiaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource TertiaryButtonText}, Dark={StaticResource TertiaryButtonTextDark}}" FontSize="12" HeightRequest="20" Clicked="ClearLogs_OnClicked"></Button>
-                    <Button Grid.Column="2" Padding="8,0" Text="Email logs" BackgroundColor="{AppThemeBinding Light={StaticResource SecondaryButtonBackground}, Dark={StaticResource SecondaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource SecondaryButtonText}, Dark={StaticResource SecondaryButtonTextDark}}" FontSize="12" HeightRequest="20" Clicked="EmailLogs_OnClicked"></Button>
+                    <Label Text="Logs:" FontAttributes="Bold" Grid.Column="0" VerticalOptions="Center"></Label>
+                    <md:MaterialButton Grid.Column="1" Type="Text" Text="Clear logs" Clicked="ClearLogs_OnClicked" />
+                    <md:MaterialButton Grid.Column="2" Type="Text" Text="Email logs" Clicked="EmailLogs_OnClicked" />
                 </Grid>
 
                 <StackLayout BindableLayout.ItemsSource="{Binding Logs, Mode=OneWay}">
