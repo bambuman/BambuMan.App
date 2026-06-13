@@ -40,13 +40,13 @@ namespace BambuMan.UI.Main
 
         [ObservableProperty] private bool spoolmanConnecting = true;
 
-        [ObservableProperty] private string backendLabel = "SPOOLMAN";
+        [ObservableProperty] private string backendLabel = "Spoolman";
 
         // Edit-panel field visibility, driven by the active backend's BaseManager.EditFields.
         [ObservableProperty] private bool showBuyDate = true;
         [ObservableProperty] private bool showLotNr = true;
 
-        [ObservableProperty] private string nfcText = "NFC ENABLED";
+        [ObservableProperty] private string nfcText = "NFC enabled";
 
         [ObservableProperty] private string? errorMessage;
         [ObservableProperty] private string? successMessage;

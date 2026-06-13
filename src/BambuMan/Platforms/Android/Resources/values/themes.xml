@@ -12,10 +12,11 @@
 <resources>
 
     <style name="Maui.Material3.Theme.Base" parent="Theme.Material3.DayNight">
-        <!-- Items MAUI's original Base defines — do not remove -->
+        <!-- Items MAUI's original Base defines — do not remove
+             (bottomNavigationViewStyle swapped for a compact variant) -->
         <item name="maui_edgetoedge_optout">true</item>
         <item name="maui_splash">false</item>
-        <item name="bottomNavigationViewStyle">@style/Widget.Material3.BottomNavigationView</item>
+        <item name="bottomNavigationViewStyle">@style/BambuMan.BottomNav</item>
         <item name="materialButtonStyle">@style/MauiMaterialButton</item>
 
         <!-- Brand colors (Material Theme Builder export, day/night via values-night) -->
@@ -53,6 +54,19 @@
         <item name="colorSurfaceInverse">@color/md_theme_inverseSurface</item>
         <item name="colorOnSurfaceInverse">@color/md_theme_inverseOnSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_inversePrimary</item>
+    </style>
+
+    <!-- Compact M3 bottom nav: 64dp bar (spec default is 80dp) with a slimmer
+         active-indicator pill and tighter item paddings. -->
+    <style name="BambuMan.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:minHeight">64dp</item>
+        <item name="itemPaddingTop">6dp</item>
+        <item name="itemPaddingBottom">10dp</item>
+        <item name="itemActiveIndicatorStyle">@style/BambuMan.BottomNav.Indicator</item>
+    </style>
+
+    <style name="BambuMan.BottomNav.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:height">28dp</item>
     </style>
 
 </resources>

@@ -14,7 +14,9 @@
         <toolkit:StatusBarBehavior StatusBarColor="{AppThemeBinding Light={StaticResource StatusBar}, Dark={StaticResource StatusBarDark}}" StatusBarStyle="{AppThemeBinding Light=DarkContent, Dark=LightContent}" />
     </Shell.Behaviors>
 
-    <!-- Material 3 bottom navigation (BottomNavigationView via UseMaterial3 on Android). -->
+    <!-- Material 3 bottom navigation (BottomNavigationView via UseMaterial3 on Android).
+         Bar height/paddings are compacted natively via BambuMan.BottomNav in
+         Platforms/Android/Resources/values/themes.xml. -->
     <TabBar>
         <Tab Title="Main">
             <Tab.Icon>

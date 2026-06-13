@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:BambuMan.Shared.Models;assembly=BambuMan.Shared"
@@ -34,7 +34,7 @@
                             </Image.Source>
                         </Image>
 
-                        <Label Margin="0" Padding="8,4,8,4" FontSize="13" HeightRequest="26" HorizontalTextAlignment="Center" Text="SETTINGS"></Label>
+                        <Label Margin="0" Padding="8,4,8,4" FontSize="13" HeightRequest="26" HorizontalTextAlignment="Center" Text="Settings"></Label>
                     </HorizontalStackLayout>
                 </Border>
                 <Border Grid.Column="1" StrokeThickness="1" StrokeShape="RoundRectangle 12" Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" HeightRequest="26" >
@@ -150,15 +150,15 @@
                     <!-- FlexLayout so hidden fields (Bambuddy: Buy date / Lot nr) reflow without leaving gaps -->
                     <FlexLayout Wrap="Wrap" JustifyContent="SpaceBetween" AlignItems="Start" Margin="5">
 
-                        <md:MaterialTextField x:Name="TfSpoolWeight" FlexLayout.Basis="49%" Label="Weight (g)" Type="Outlined" Keyboard="Numeric" Text="{Binding SpoolWeight, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Weight}}" />
+                        <md:MaterialTextField x:Name="TfSpoolWeight" FlexLayout.Basis="49%" Label="Weight (g)" Type="Outlined" AlwaysShowLabel="True" Keyboard="Numeric" Text="{Binding SpoolWeight, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Weight}}" />
 
-                        <md:MaterialTextField x:Name="TfSpoolEmptyWeight" FlexLayout.Basis="49%" Label="Empty weight (g)" Type="Outlined" Keyboard="Numeric" Text="{Binding SpoolEmptyWeight, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Settings_backup_restore}}" />
+                        <md:MaterialTextField x:Name="TfSpoolEmptyWeight" FlexLayout.Basis="49%" Label="Empty weight (g)" Type="Outlined" AlwaysShowLabel="True" Keyboard="Numeric" Text="{Binding SpoolEmptyWeight, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Settings_backup_restore}}" />
 
-                        <md:MaterialTextField x:Name="TfSpoolPrice" FlexLayout.Basis="49%" Label="Price" Type="Outlined" Keyboard="Numeric" Text="{Binding SpoolPrice, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}" />
+                        <md:MaterialTextField x:Name="TfSpoolPrice" FlexLayout.Basis="49%" Label="Price" Type="Outlined" AlwaysShowLabel="True" Keyboard="Numeric" Text="{Binding SpoolPrice, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}" />
 
-                        <md:MaterialDatePicker x:Name="TfSpoolBuyDate" FlexLayout.Basis="49%" IsVisible="{Binding ShowBuyDate}" Label="Buy date" Type="Outlined" Date="{Binding SpoolBuyDate, Mode=TwoWay}" Placeholder="yyyy-MM-dd" Format="yyyy-MM-dd" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
+                        <md:MaterialDatePicker x:Name="TfSpoolBuyDate" FlexLayout.Basis="49%" IsVisible="{Binding ShowBuyDate}" Label="Buy date" Type="Outlined" AlwaysShowLabel="True" Date="{Binding SpoolBuyDate, Mode=TwoWay}" Placeholder="yyyy-MM-dd" Format="yyyy-MM-dd" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
 
-                        <md:MaterialTextField x:Name="TfSpoolLotNr" FlexLayout.Basis="49%" IsVisible="{Binding ShowLotNr}" Label="Lot nr" Type="Outlined" Text="{Binding SpoolLotNr, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
+                        <md:MaterialTextField x:Name="TfSpoolLotNr" FlexLayout.Basis="49%" IsVisible="{Binding ShowLotNr}" Label="Lot nr" Type="Outlined" AlwaysShowLabel="True" Text="{Binding SpoolLotNr, Mode=TwoWay}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
 
                         <controls:MaterialAutoCompleteField x:Name="TfSpoolLocation" FlexLayout.Basis="49%" Label="Location" Text="{Binding SpoolLocation, Mode=TwoWay}" ItemsSource="{Binding ExistingLocations}" LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
 

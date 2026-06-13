@@ -194,7 +194,7 @@ namespace BambuMan.UI.Main
 
                 viewModel.OverrideLocationOnRead = active.OverrideLocationOnRead;
                 viewModel.ExistingLocations = active.ExistingLocations;
-                viewModel.BackendLabel = active.Backend.ToString().ToUpperInvariant();
+                viewModel.BackendLabel = active.Backend.ToString();
                 viewModel.ShowBuyDate = active.EditFields.BuyDate;
                 viewModel.ShowLotNr = active.EditFields.LotNr;
 
@@ -282,7 +282,7 @@ namespace BambuMan.UI.Main
                 if (CrossNfc.IsSupported)
                 {
                     viewModel.NfcIsEnabled = CrossNfc.Current.IsEnabled;
-                    viewModel.NfcText = CrossNfc.Current.IsEnabled ? "NFC ENABLED" : "NFC DISABLED";
+                    viewModel.NfcText = CrossNfc.Current.IsEnabled ? "NFC enabled" : "NFC disabled";
 
                     await viewModel.Validate(ActiveManager);
 
@@ -461,7 +461,7 @@ namespace BambuMan.UI.Main
             try
             {
                 viewModel.NfcIsEnabled = isEnabled;
-                viewModel.NfcText = isEnabled ? "NFC ENABLED" : "NFC DISABLED";
+                viewModel.NfcText = isEnabled ? "NFC enabled" : "NFC disabled";
 
                 await viewModel.Validate(ActiveManager);
             }

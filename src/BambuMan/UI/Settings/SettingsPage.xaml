@@ -15,11 +15,11 @@
             <md:MaterialSegmentedButton ItemsSource="{Binding BackendItems}" SelectedItem="{Binding SelectedBackendItem}" Type="Filled" HorizontalOptions="Fill" Margin="0,0,0,8" />
 
             <!-- Connection -->
-            <Label Text="CONNECTION" Style="{StaticResource SectionHeader}" />
+            <Label Text="Connection" Style="{StaticResource SectionHeader}" />
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                <md:MaterialTextField x:Name="TfServerUrl" Grid.Column="0" Label="Server URL" Type="Outlined"
-                                      Keyboard="Url"
+                <md:MaterialTextField x:Name="TfServerUrl" Grid.Column="0" Label="Server URL" Type="Outlined" AlwaysShowLabel="True"
+                                      Keyboard="Url" Placeholder="https://server:port"
                                       Text="{Binding ServerUrl, Mode=TwoWay}"
                                       LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}}" />
                 <md:MaterialIconButton Grid.Column="1" VerticalOptions="Center" Type="Outlined"
@@ -28,7 +28,7 @@
             </Grid>
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding IsBambuddy}">
-                <md:MaterialTextField x:Name="TfBambuddyApiKey" Grid.Column="0" Label="Bambuddy API key" Type="Outlined"
+                <md:MaterialTextField x:Name="TfBambuddyApiKey" Grid.Column="0" Label="Bambuddy API key" Type="Outlined" AlwaysShowLabel="True"
                                       Placeholder="bb_…"
                                       Text="{Binding BambuddyApiKey, Mode=TwoWay}"
                                       LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Key}}" />
@@ -45,9 +45,9 @@
                                ImageSource="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Link}}" />
 
             <!-- Data sharing -->
-            <Label Text="DATA SHARING" Style="{StaticResource SectionHeader}" />
+            <Label Text="Data sharing" Style="{StaticResource SectionHeader}" />
 
-            <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,4">
+            <Grid ColumnDefinitions="*,Auto,Auto" MinimumHeightRequest="56">
                 <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
                     <Label Text="Participate in NFC data upload [beta]" Style="{StaticResource BodyLarge}" />
                     <Label Text="Help build the public Bambu RFID library." Style="{StaticResource BodyMedium}" Opacity="0.7" />
@@ -58,39 +58,41 @@
                 <Switch Grid.Column="2" VerticalOptions="Center" IsToggled="{Binding FullTagScanAndUpload, Mode=TwoWay}" />
             </Grid>
 
-            <!-- Behavior -->
-            <Label Text="BEHAVIOR" Style="{StaticResource SectionHeader}" />
+            <!-- Behavior: tight M3 list rows (48dp), no extra spacing between rows -->
+            <Label Text="Behavior" Style="{StaticResource SectionHeader}" />
 
-            <Grid ColumnDefinitions="*,Auto" Padding="0,4">
-                <Label Grid.Column="0" Text="Import unknown filament" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
-                <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding UnknownFilamentEnabled, Mode=TwoWay}" />
-            </Grid>
-            <Grid ColumnDefinitions="*,Auto" Padding="0,4">
-                <Label Grid.Column="0" Text="Show logs on main page" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
-                <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding ShowLogsOnMainPage, Mode=TwoWay}" />
-            </Grid>
-            <Grid ColumnDefinitions="*,Auto" Padding="0,4">
-                <Label Grid.Column="0" Text="Show keyboard on spool read" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
-                <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding ShowKeyboardOnSpoolRead, Mode=TwoWay}" />
-            </Grid>
-            <Grid ColumnDefinitions="*,Auto" Padding="0,4">
-                <Label Grid.Column="0" Text="Override location on read" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
-                <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding OverrideLocationOnRead, Mode=TwoWay}" />
-            </Grid>
+            <VerticalStackLayout Spacing="0">
+                <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="48">
+                    <Label Grid.Column="0" Text="Import unknown filament" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding UnknownFilamentEnabled, Mode=TwoWay}" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="48">
+                    <Label Grid.Column="0" Text="Show logs on main page" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding ShowLogsOnMainPage, Mode=TwoWay}" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="48">
+                    <Label Grid.Column="0" Text="Show keyboard on spool read" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding ShowKeyboardOnSpoolRead, Mode=TwoWay}" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="48">
+                    <Label Grid.Column="0" Text="Override location on read" Style="{StaticResource BodyLarge}" VerticalOptions="Center" />
+                    <Switch Grid.Column="1" VerticalOptions="Center" IsToggled="{Binding OverrideLocationOnRead, Mode=TwoWay}" />
+                </Grid>
+            </VerticalStackLayout>
 
             <!-- Defaults applied on read -->
-            <Label Text="DEFAULTS APPLIED ON READ" Style="{StaticResource SectionHeader}" />
+            <Label Text="Defaults applied on read" Style="{StaticResource SectionHeader}" />
 
-            <md:MaterialDatePicker x:Name="TfBuyDate" IsVisible="{Binding IsSpoolman}" Label="Buy date" Type="Outlined"
+            <md:MaterialDatePicker x:Name="TfBuyDate" IsVisible="{Binding IsSpoolman}" Label="Buy date" Type="Outlined" AlwaysShowLabel="True"
                                    Date="{Binding BuyDate, Mode=TwoWay}" Placeholder="yyyy-MM-dd" Format="yyyy-MM-dd"
                                    LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
 
-            <md:MaterialTextField x:Name="TfPrice" Label="Price" Type="Outlined" Keyboard="Numeric"
+            <md:MaterialTextField x:Name="TfPrice" Label="Price" Type="Outlined" AlwaysShowLabel="True" Keyboard="Numeric"
                                   Placeholder="0.00"
                                   Text="{Binding DefaultPrice, Mode=TwoWay}"
                                   LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}" />
 
-            <md:MaterialTextField x:Name="TfLotNr" IsVisible="{Binding IsSpoolman}" Label="Lot nr" Type="Outlined"
+            <md:MaterialTextField x:Name="TfLotNr" IsVisible="{Binding IsSpoolman}" Label="Lot nr" Type="Outlined" AlwaysShowLabel="True"
                                   Text="{Binding DefaultLotNr, Mode=TwoWay}"
                                   LeadingIcon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
 

@@ -4,7 +4,7 @@
              xmlns:md="clr-namespace:HorusStudio.Maui.MaterialDesignControls;assembly=HorusStudio.Maui.MaterialDesignControls"
              x:Class="BambuMan.UI.Controls.MaterialAutoCompleteField">
     <VerticalStackLayout Spacing="0">
-        <md:MaterialTextField x:Name="Field" Type="Outlined" />
+        <md:MaterialTextField x:Name="Field" Type="Outlined" AlwaysShowLabel="True" />
         <Border x:Name="SuggestionsBorder" IsVisible="False"
                 StrokeThickness="1" StrokeShape="RoundRectangle 8" Margin="0,2,0,0" Padding="0"
                 Stroke="{AppThemeBinding Light={StaticResource OutlineVariant}, Dark={StaticResource OutlineVariantDark}}"
