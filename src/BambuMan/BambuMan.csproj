@@ -50,7 +50,7 @@
 		<PackageReference Include="CommunityToolkit.Maui.Markup" Version="7.0.1" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="HorusStudio.Maui.MaterialDesignControls" Version="10.0.1" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.70" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.71" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Sentry.Maui" Version="6.6.0" />
 		<PackageReference Include="Sentry.Serilog" Version="6.6.0" />
@@ -108,8 +108,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.70" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.71" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
 		<PackageReference Include="UraniumUI.Icons.FontAwesome" Version="2.16.0" />
 		<PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="2.16.0" />
 		<PackageReference Include="UraniumUI.Material" Version="2.16.0" />
