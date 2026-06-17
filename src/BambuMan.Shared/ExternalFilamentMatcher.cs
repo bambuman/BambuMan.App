@@ -177,10 +177,11 @@ namespace BambuMan.Shared
                 var type when type.EqualsCI("PETG HF") => query.Where(x => x.Name.StartsWithCI("HF ")),
                 var type when type.EqualsCI("PC FR") => query.Where(x => x.Name.StartsWithCI("FR ")),
 
-                var type when type.ContainsCI("Basic") => query.Where(x => x.Finish == null && x.Pattern == null && !x.Name.ContainsCI("Aero") && !x.Name.ContainsCI("Tough") && !x.Name.ContainsCI("Lite")),
+                var type when type.ContainsCI("Basic") => query.Where(x => x.Finish == null && x.Pattern == null && !x.Name.ContainsCI("Aero") && !x.Name.ContainsCI("Tough") && !x.Name.ContainsCI("Lite") && !x.Name.ContainsCI("Pure")),
                 var type when type.ContainsCI("Matte") => query.Where(x => x.Finish == Finish.Matte),
                 var type when type.ContainsCI("Glow") => query.Where(x => x.Glow == true),
                 var type when type.ContainsCI("Silk+") => query.Where(x => x.Name.ContainsCI("Silk+")),
+                var type when type.ContainsCI("Pure") => query.Where(x => x.Name.ContainsCI("Pure")),
                 var type when type.ContainsCI("Tough+") => query.Where(x => x.Name.ContainsCI("Tough+")),
                 var type when type.ContainsCI("Aero") => query.Where(x => x.Name.ContainsCI("Aero")),
                 var type when type.ContainsCI("Sparkle") => query.Where(x => x.Name.ContainsCI("Sparkle")),
@@ -210,6 +211,8 @@ namespace BambuMan.Shared
             if (info.MaterialVariantIdentifier.EqualsCI("G00-B0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_petg_blue_1000_175_n")).AsQueryable();
             if (info.MaterialVariantIdentifier.EqualsCI("A07-R5")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_redgranite_1000_175_n")).AsQueryable();
             if (info.MaterialVariantIdentifier.EqualsCI("G01-N0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_petg_translucentbrown_1000_175_n")).AsQueryable();
+            if (info.MaterialVariantIdentifier.EqualsCI("A00-P0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_beige_1000_175_n")).AsQueryable();
+            if (info.MaterialVariantIdentifier.EqualsCI("A01-B4")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_matteiceblue_1000_175_n")).AsQueryable();
 
             if (info.DetailedFilamentType.EqualsCI("PLA Basic") && color.EqualsCI("84754E")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_bronze_1000_175_n")).AsQueryable();
 
