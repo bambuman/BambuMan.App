@@ -136,7 +136,10 @@ namespace BambuMan.Shared
             if (ApiHost == null) return;
 
             var inventoryApi = ApiHost.Services.GetRequiredService<IInventoryApi>();
-            var result = await inventoryApi.ListSpoolsApiV1InventorySpoolsGetAsync(includeArchived: new Option<bool>(false));
+
+            // Include archived spools: scanning an archived tag must match its existing spool instead of creating a
+            // duplicate. Mirrors the by-tag lookup, which also includes archived by default.
+            var result = await inventoryApi.ListSpoolsApiV1InventorySpoolsGetAsync(includeArchived: new Option<bool>(true));
 
             if (result.TryOk(out var spools) && spools != null)
             {
