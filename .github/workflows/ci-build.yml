@@ -35,6 +35,9 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          # UraniumUI is referenced as a submodule until the theme fixes ship upstream
+          submodules: recursive
 
       - name: Inject Production Secrets
         shell: pwsh
@@ -99,6 +102,9 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          # UraniumUI is referenced as a submodule until the theme fixes ship upstream
+          submodules: recursive
 
       - name: Inject Production Secrets
         shell: pwsh
