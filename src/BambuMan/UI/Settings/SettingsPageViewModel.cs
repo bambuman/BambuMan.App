@@ -14,6 +14,7 @@ namespace BambuMan.UI.Settings
         [NotifyPropertyChangedFor(nameof(IsBambuddy))]
         [NotifyPropertyChangedFor(nameof(IsNoBackend))]
         [NotifyPropertyChangedFor(nameof(ShowServerUrl))]
+        [NotifyPropertyChangedFor(nameof(ShowInventoryOptions))]
         [NotifyPropertyChangedFor(nameof(ServerUrl))]
         private InventoryBackend inventoryBackend = InventoryBackend.Bambuddy;
 
@@ -63,6 +64,13 @@ namespace BambuMan.UI.Settings
 
         /// <summary>There is no server to point at without a backend, so the url field is hidden entirely.</summary>
         public bool ShowServerUrl => !IsNoBackend;
+
+        /// <summary>
+        /// Defaults and toggles that only mean anything when a spool is being written somewhere — price,
+        /// location, the unknown-filament import and the two edit-panel conveniences. All meaningless with
+        /// no backend, where the tag is only ever displayed.
+        /// </summary>
+        public bool ShowInventoryOptions => !IsNoBackend;
 
         partial void OnSelectedBackendItemChanged(MaterialSegmentedButtonItem? value)
         {

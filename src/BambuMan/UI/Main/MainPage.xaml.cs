@@ -231,6 +231,7 @@ namespace BambuMan.UI.Main
                 viewModel.OverrideLocationOnRead = active.OverrideLocationOnRead;
                 viewModel.ExistingLocations = active.ExistingLocations;
                 viewModel.BackendLabel = active.Backend.DisplayName().ToUpperInvariant();
+                viewModel.ShowInventoryOptions = !active.IsReadOnly;
                 viewModel.ShowBuyDate = active.EditFields.BuyDate;
                 viewModel.ShowLotNr = active.EditFields.LotNr;
 
@@ -677,34 +678,44 @@ namespace BambuMan.UI.Main
         {
             try
             {
+                var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
+                var defaultPrice = decimal.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? (decimal?)result : null;
+                var defaultLotNr = Preferences.Default.Get(SettingsPage.KeyDefaultLotNr, string.Empty);
+                var defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
+
                 //var json = "{\"SerialNumber\":\"C3DB40A2\",\"TagManufacturerData\":\"+ggEAARS8na7x5uQ\",\"MaterialVariantIdentifier\":\"A00-D0\",\"UniqueMaterialIdentifier\":\"FA00\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Basic\",\"Color\":\"8E9089FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":55,\"DryingTime\":8,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"0AfQB+gD6AOamRk/\",\"NozzleDiameter\":0.2,\"TrayUid\":\"F1FACEE5124249F6AEB7DCEC0AAE0C4F\",\"SpoolWidth\":2875,\"ProductionDateTime\":\"2025-01-20T19:14:00\",\"ProductionDateTimeShort\":\"20250120\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A00-D0-1.75-1000\"}";
                 //var json = "{\"SerialNumber\":\"83EC9A1C\",\"TagManufacturerData\":\"6QgEAAR8EZ2x4zmQ\",\"MaterialVariantIdentifier\":\"A17-R1\",\"UniqueMaterialIdentifier\":\"FA17\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Translucent\",\"Color\":\"F5B6CD80\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":55,\"DryingTime\":8,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":240,\"MinTemperatureForHotend\":200,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"2DC9E553D1924FA89FBB893C9E921DBA\",\"SpoolWidth\":666,\"ProductionDateTime\":\"2024-12-20T09:40:00\",\"ProductionDateTimeShort\":\"20241220\",\"FilamentLength\":345,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A17-R1-1.75-1000\"}";
                 //var json = "{\"SerialNumber\":\"5B1449F6\",\"TagManufacturerData\":\"8AgEAATrOVf5DLaQ\",\"MaterialVariantIdentifier\":\"A16-G0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"918669FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"4663E9ADF9CC454380EB58CE627BFE72\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-11T00:38:00\",\"ProductionDateTimeShort\":\"25_03_11_00\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-G0-1.75-1000\"}";
 
-                var jsons = new[]
-                {
-                    "{\"SerialNumber\":\"5B1449F6\",\"TagManufacturerData\":\"8AgEAATrOVf5DLaQ\",\"MaterialVariantIdentifier\":\"A16-G0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"918669FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"4663E9ADF9CC454380EB58CE627BFE72\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-11T00:38:00\",\"ProductionDateTimeShort\":\"25_03_11_00\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-G0-1.75-1000\"}",
-                    "{\"SerialNumber\":\"0509F50D\",\"TagManufacturerData\":\"9AgEAASm165pzJOQ\",\"MaterialVariantIdentifier\":\"A16-R0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"3F231CFF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"26E72842404F41F2A227FC7276299DFA\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-24T14:32:00\",\"ProductionDateTimeShort\":\"25_03_24_14\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-R0-1.75-1000\"}"
-                };
+                //var dataCoaxial = "Eg8ZJiIIBAAFf1s9okAUkEEwNS1UNwAAR0ZBMDUAAABQTEEAAAAAAAAAAAAAAAAAfLSMtuHBh4eHadUPEqhTzVBMQSBTaWxrAAAAAAAAAAByAGL/6AMAAAAA4D8AAAAANwAIAAAAAADmANIAAAAAANSW2qpwXYeHh2nxWNbDCIU0IawN6APoAzMzMz/NzEw+BU7RvaYNT5mXeCiF6XTQnQAAAACaAgAAAAAAAAAAAADoZOxRYt6Hh4dp9M34cqBjMjAyNV8xMl8zMV8wMl8zNDIwMjUxMjMwAAAAAAAAAAAAAAAAOwEAAAAAAAAAAAAAIdLI7Y07h4eHaYZu1SZMYQIAAgD/P5E6AAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJwAj/Il1YeHh2l7553RMgQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHiuKJHOWHh4dpC15Jifk5AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWpvK+1m9h4eHaaQZ+QFvfAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMTWZmZMV4eHh2l2ZiuhybEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBGXFGED6Hh4dpsb08yxGpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8xtYkDrSh4eHaVhTuC/28QEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeSHcGTHDu+e91diqPG9yuAtOzfoyY4eHh2mMCvh/IH14uFwv1FfqWKRnkk6qKerL3TMwdWKyeiyowADfJYpmYwyaUsj4Pl0tPK1uMe2wMKf6FNip7FaHh4dpBRKaKwk0l05y3Sp6EB5Gbdd+Nu99LhNxGGyKyMvtS1uhfnZuLCYZkV8CdvgzDE7qAFmSRgOelZEEe8Ymh4eHaRA5VXmGgvpjk4KBZsci01HIgmcA6XURhJEESX69bwoFvOfCE3ers3DRdDJg7T733R9bNdqDtIArNI9ZtYeHh2k2cwcK9vh9N4HTdDD2Au5cYfK8zBcQ6YIXqvq8Xi4XzHITuP5W+O4+wIsFoqcEWE8mx0L97WiFl5dbIgGHh4dpMwSKSTNrYWbRJ3qJznJnLWqluMdAq8rjANhwxi7uYVJVe3MP9qdd8R1CvKFRmNlky6gFBmInkjQZYMSuh4eHaXzVAwEylQ==";
+                var dataLongitudinal = "2gTK38sIBAAE7+LThEa8kEEwMC1NMgAAR0ZBMDAAAABQTEEAAAAAAAAAAAAAAAAAj6I0TjpCh4eHaUzx56HVOFBMQSBCYXNpYwAAAAAAAAAwf+L/6AMAAAAA4D8AAAAANwAIAAAAAADmAL4AAAAAAGO3Tm5QLYeHh2lFGA4vcBmsDYgT6APoAwAAQD/NzEw+QtwFeFsbQSeIqVoWefuLPwAAAADhGQAAAAAAAAAAAAAchlMhA/KHh4dp5M9qkeR4MjAyNF8wNl8yNl8wOF8xNzI0XzA2XzI2XzA4AAAAAAAAAAAASgEAAAAAAAAAAAAAZykp5/PQh4eHaaS4zo243AIAAgD/m/9UAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAF+u9l44qoeHh2np51tuCSMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAev+pvMiaHh4dp0FCv+tkSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAjmBJcuM/h4eHaVDa8TNsrQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO1IFbR3oYeHh2lFtqszHLkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOyuVYGkOHh4dp8F4DumLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9Xu6vCQ4h4eHaQWtYR9eEAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATrA8lD3R5t0jd6l9tYpY9AN14fVR1YeHh2kXqMRrgkfi4KYOllLMnFzvTEsVv2DVwhBPYzFqob4v9uijC1sYsONVFLpPkoyTQtKu5eKg4j/0i/iVXBmHh4dpiCQmh8D8g6NlNRrsnW2c5em5/4IX0jYy2URgH5mMlblvGrIEyw5/Cy5G6bdXsqi2uLya80TrtaGVFt1Zh4eHaZNsNxt9+YvngMmocr4e46/FWgBLtOIlLyqmHe/n+KESZaoZc2Hf4vUxXG9wVIwZduYMrop9KUKFr9cno4eHh2mpYUno1c00VJYxBPuSw99xZZGxy11f/qaOLVREyiciL+aia5vM9FBMdYgqsQryW13mfBqeQgR9Ji9/K2eHh4dpuOhd3XqRxHCRSMsncC4gVoJCTKkOq5xS28st7HD/+twihntY+XSzpCV3hGQPD7TfeMvBnFWYG7DP1SWhh4eHad6EsAwkoQ==";
 
-                foreach (var json in jsons)
-                {
-                    var bambuFilamentInfo = JsonConvert.DeserializeObject<BambuFilamentInfo>(json);
+                var obj = new BambuFilamentInfo();
+                obj.ParseData(Convert.FromBase64String(dataLongitudinal));
 
-                    var jsonEnc = JsonConvert.SerializeObject(bambuFilamentInfo, Formatting.Indented);
-                    await viewModel.AddLog(LogLevel.Information, jsonEnc);
+                var objJsonEnc = JsonConvert.SerializeObject(obj, Formatting.Indented);
+                await viewModel.AddLog(LogLevel.Information, objJsonEnc);
 
-                    var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
-                    var defaultPrice = decimal.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? (decimal?)result : null;
-                    var defaultLotNr = Preferences.Default.Get(SettingsPage.KeyDefaultLotNr, string.Empty);
-                    var defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
+                await viewModel.ClearMessages();
+                await ActiveManager.InventorySpool(obj, buyDate, defaultPrice, defaultLotNr, defaultLocation);
 
-                    await viewModel.ClearMessages();
+                //var jsons = new[]
+                //{
+                //    "{\"SerialNumber\":\"5B1449F6\",\"TagManufacturerData\":\"8AgEAATrOVf5DLaQ\",\"MaterialVariantIdentifier\":\"A16-G0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"918669FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"4663E9ADF9CC454380EB58CE627BFE72\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-11T00:38:00\",\"ProductionDateTimeShort\":\"25_03_11_00\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-G0-1.75-1000\"}",
+                //    "{\"SerialNumber\":\"0509F50D\",\"TagManufacturerData\":\"9AgEAASm165pzJOQ\",\"MaterialVariantIdentifier\":\"A16-R0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"3F231CFF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"26E72842404F41F2A227FC7276299DFA\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-24T14:32:00\",\"ProductionDateTimeShort\":\"25_03_24_14\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-R0-1.75-1000\"}"
+                //};
 
-                    await ActiveManager.InventorySpool(bambuFilamentInfo!, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+                //foreach (var json in jsons)
+                //{
+                //    var bambuFilamentInfo = JsonConvert.DeserializeObject<BambuFilamentInfo>(json);
 
-                    await Task.Delay(2000);
-                }
+                //    var jsonEnc = JsonConvert.SerializeObject(bambuFilamentInfo, Formatting.Indented);
+                //    await viewModel.AddLog(LogLevel.Information, jsonEnc);
+
+                //    await viewModel.ClearMessages();
+                //    await ActiveManager.InventorySpool(bambuFilamentInfo!, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+                //    await Task.Delay(2000);
+                //}
             }
             catch (Exception ex)
             {

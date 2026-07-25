@@ -33,7 +33,7 @@
             <toolkit:BoolToObjectConverter x:Key="BoolToColorConverter" TrueObject="{x:Static Colors.Green}" FalseObject="{x:Static Colors.Red}"/>
             <converters:NoNullToBoolConverter x:Key="NoNullToBoolConverter" />
             <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-            <converters:HexToColorConverter x:Key="HexToColorConverter" />
+            <converters:SpoolColorBrushConverter x:Key="SpoolColorBrushConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -200,23 +200,32 @@
             <Border Stroke="{AppThemeBinding Light={StaticResource SpoolCardStroke}, Dark={StaticResource SpoolCardStrokeDark}}" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Background="{AppThemeBinding Light={StaticResource SpoolCardBackground}, Dark={StaticResource SpoolCardBackgroundDark}}" Margin="0,0,0,5" Padding="5" IsVisible="{Binding ShowSpoolInfo}">
                 <VerticalStackLayout Spacing="5">
 
-                    <Grid ColumnDefinitions="*,Auto,Auto">
-                        <Label Grid.Column="0" Text="Spool info:" FontAttributes="Bold" VerticalOptions="Center" />
-                        <Border Grid.Column="1" WidthRequest="26" HeightRequest="18" Margin="0,0,4,0" StrokeThickness="1" StrokeShape="RoundRectangle 3,3,3,3" Stroke="{AppThemeBinding Light={StaticResource SpoolCardStroke}, Dark={StaticResource SpoolCardStrokeDark}}" BackgroundColor="{Binding SpoolInfo.ColorHex, Converter={StaticResource HexToColorConverter}}" IsVisible="{Binding SpoolInfo.ColorHex, Converter={StaticResource NoNullToBoolConverter}}" />
-                        <Border Grid.Column="2" WidthRequest="26" HeightRequest="18" StrokeThickness="1" StrokeShape="RoundRectangle 3,3,3,3" Stroke="{AppThemeBinding Light={StaticResource SpoolCardStroke}, Dark={StaticResource SpoolCardStrokeDark}}" BackgroundColor="{Binding SpoolInfo.SecondColorHex, Converter={StaticResource HexToColorConverter}}" IsVisible="{Binding SpoolInfo.SecondColorHex, Converter={StaticResource NoNullToBoolConverter}}" />
-                    </Grid>
+                    <!-- Swatch sits top right and the rows start level with the title, rather than the swatch
+                         pushing everything down. Auto column so it only claims the width it needs. -->
+                    <Grid ColumnDefinitions="*,Auto">
 
-                    <!-- Rows are built in SpoolDisplayInfo.From, which omits anything the tag didn't carry. -->
-                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding SpoolInfo.Rows, Mode=OneWay}" Margin="5,0,5,0">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="models:SpoolInfoRow">
-                                <Grid ColumnDefinitions="140,*" Margin="0,1,0,1">
-                                    <Label Grid.Column="0" Text="{Binding Label}" FontSize="12" FontAttributes="Bold" />
-                                    <Label Grid.Column="1" Text="{Binding Value}" FontSize="12" />
-                                </Grid>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="0" Spacing="5">
+
+                            <Label Text="Spool info:" FontAttributes="Bold" />
+
+                            <!-- Rows are built in SpoolDisplayInfo.From, which omits anything the tag didn't carry. -->
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding SpoolInfo.Rows, Mode=OneWay}" Margin="5,0,5,0">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="models:SpoolInfoRow">
+                                        <Grid ColumnDefinitions="140,*" Margin="0,1,0,1">
+                                            <Label Grid.Column="0" Text="{Binding Label}" FontSize="12" FontAttributes="Bold" />
+                                            <Label Grid.Column="1" Text="{Binding Value}" FontSize="12" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+
+                        <!-- One swatch, whose fill encodes the multi-colour direction exactly as the web frontend does. -->
+                        <Border Grid.Column="1" WidthRequest="52" HeightRequest="52" Margin="8,0,0,0" VerticalOptions="Start" StrokeThickness="1" StrokeShape="RoundRectangle 6,6,6,6" Stroke="{AppThemeBinding Light={StaticResource SpoolCardStroke}, Dark={StaticResource SpoolCardStrokeDark}}" Background="{Binding SpoolInfo, Converter={StaticResource SpoolColorBrushConverter}}" IsVisible="{Binding SpoolInfo.HasColor}" />
+
+                    </Grid>
 
                     <Label Margin="5,0,5,0" FontSize="11" Text="Not found in the filament catalog — showing tag data only." IsVisible="{Binding SpoolInfo.Matched, Converter={StaticResource InvertedBoolConverter}}" />
 
@@ -235,7 +244,8 @@
                 Stroke="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}"
                 BackgroundColor="{AppThemeBinding Light=#F7F4F6, Dark=#2C2A30}"
                 Padding="8,4"
-                Margin="0,5,0,5">
+                Margin="0,5,0,5"
+                IsVisible="{Binding ShowInventoryOptions}">
 
                 <Grid ColumnDefinitions="*,Auto">
                     <Label Grid.Column="0" Text="Override location on read" VerticalTextAlignment="Center" FontSize="14" />

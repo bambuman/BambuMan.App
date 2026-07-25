@@ -31,6 +31,9 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private bool showSpoolInfo;
         [ObservableProperty] private SpoolDisplayInfo? spoolInfo;
 
+        // False for a read-only backend, which hides the controls that only make sense when writing to a server.
+        [ObservableProperty] private bool showInventoryOptions = true;
+
         [ObservableProperty] private decimal? spoolWeight;
         [ObservableProperty] private decimal? spoolEmptyWeight = 250;
         [ObservableProperty] private decimal? spoolInitialWeight;

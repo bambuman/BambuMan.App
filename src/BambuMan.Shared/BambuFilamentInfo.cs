@@ -230,7 +230,10 @@ public class BambuFilamentInfo : ITagInfo
 
         FormatIdentifier = BitConverter.ToUInt16(blockData[16], 0);
         ColorCount = BitConverter.ToUInt16(blockData[16], 2);
-        SecondColor = string.Join("", BitConverter.ToString(blockData[16][4..8]).Replace("-", "").Reverse());
+        // Stored little-endian as AABBGGRR, so the BYTES are reversed to reach the RRGGBBAA that Color uses.
+        // Reversing the hex string instead swaps the nibbles within each byte too, which only happens to be
+        // harmless when every byte has two identical digits.
+        SecondColor = BitConverter.ToString(blockData[16][4..8].Reverse().ToArray()).Replace("-", "");
 
         SkuStart = $"{MaterialVariantIdentifier}-{$"{FilamentDiameter:0.00}".Replace(",", ".")}-{SpoolWeight:####}";
     }

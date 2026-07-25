@@ -1,6 +1,7 @@
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
 using Newtonsoft.Json;
+using SpoolMan.Api.Model;
 
 namespace BambuMan.Shared.Test.Bambuddy
 {
@@ -44,7 +45,7 @@ namespace BambuMan.Shared.Test.Bambuddy
             var display = SpoolDisplayInfo.From(new BambuFilamentInfo([0x01, 0x02, 0x03, 0x04]) { MaterialVariantIdentifier = "A00-A1" }, null);
 
             Assert.False(display.Matched);
-            Assert.Null(display.ColorHex);
+            Assert.False(display.HasColor);
             Assert.DoesNotContain(display.Rows, x => x.Label == "Manufacturer");
             Assert.DoesNotContain(display.Rows, x => x.Label == "Drying time");
             Assert.DoesNotContain(display.Rows, x => string.IsNullOrWhiteSpace(x.Value));
@@ -65,30 +66,80 @@ namespace BambuMan.Shared.Test.Bambuddy
         [Theory(DisplayName = "Tag colours are re-ordered from RRGGBBAA to the #AARRGGBB the ui binds")]
         [InlineData("918669FF", "#FF918669")]
         [InlineData("68686580", "#80686865")]
-        [InlineData("FFFFFF", "#FFFFFF")]
-        [InlineData("", null)]
-        public void From_ConvertsColorToArgb(string tagColor, string? expected)
+        [InlineData("FFFFFF", "#FFFFFFFF")]
+        public void From_ConvertsColorToArgb(string tagColor, string expected)
         {
             var display = SpoolDisplayInfo.From(new BambuFilamentInfo([0x01, 0x02, 0x03, 0x04]) { Color = tagColor }, null);
 
-            Assert.Equal(expected, display.ColorHex);
+            Assert.Equal(expected, Assert.Single(display.ColorHexes));
         }
 
-        [Fact(DisplayName = "The second swatch only appears for a genuinely multi-colour spool")]
+        [Fact(DisplayName = "A colourless tag yields no swatch at all")]
+        public void From_NoColorMeansNoSwatch()
+        {
+            var display = SpoolDisplayInfo.From(new BambuFilamentInfo([0x01, 0x02, 0x03, 0x04]), null);
+
+            Assert.False(display.HasColor);
+            Assert.Empty(display.ColorHexes);
+            Assert.Null(display.ColorText);
+        }
+
+        [Fact(DisplayName = "A second colour only counts for a genuinely multi-colour spool")]
         public void From_SecondColorGatedOnColorCount()
         {
             // Single-colour tags still carry a SecondColor field, so the count is what decides.
             var single = SpoolDisplayInfo.From(Tag(SampleTags.AbsBlack), null);
-            Assert.Null(single.SecondColorHex);
+            Assert.Equal("#000000", single.ColorText);
+            Assert.Single(single.ColorHexes);
 
             var dual = SpoolDisplayInfo.From(new BambuFilamentInfo([0x01, 0x02, 0x03, 0x04])
             {
                 Color = "FF9425FF",
                 ColorCount = 2,
-                SecondColor = "FCA2BFFF"
+                SecondColor = "C16784FF"
             }, null);
 
-            Assert.Equal("#FFFCA2BF", dual.SecondColorHex);
+            Assert.Equal(["#FFFF9425", "#FFC16784"], dual.ColorHexes);
+            Assert.Equal("#FF9425, #C16784", dual.ColorText);
+            Assert.Equal("#FF9425, #C16784", dual.Rows.Single(x => x.Label == "Colour").Value);
+            // Nothing matched, so the catalog never told us how the colours sit on the filament.
+            Assert.Null(dual.MultiColorDirection);
+        }
+
+        [Theory(DisplayName = "A matched multi-colour spool takes its colours and direction from the catalog")]
+        // Same shape the web frontend's ColorSwatch renders: coaxial draws bands, longitudinal blends.
+        [InlineData("Mystic Magenta (Green-Purple)", SpoolmanExternaldbMultiColorDirection.Coaxial, "#720062, #3A913F")]
+        [InlineData("Ocean to Meadow", SpoolmanExternaldbMultiColorDirection.Longitudinal, "#307FE2, #54FF9B")]
+        public void From_UsesCatalogColorsAndDirection(string name, SpoolmanExternaldbMultiColorDirection direction, string expectedText)
+        {
+            var matched = ExternalFilamentMatcher.LoadEmbeddedFilaments().Single(x => x.Name == name);
+
+            // Deliberately give the tag a colour nothing else uses: the catalog list must win, since it is the
+            // only source that can describe more than two stops.
+            var display = SpoolDisplayInfo.From(new BambuFilamentInfo([0x01, 0x02, 0x03, 0x04]) { Color = "ABCDEFFF" }, matched);
+
+            Assert.Equal(direction, display.MultiColorDirection);
+            Assert.Equal(expectedText, display.ColorText);
+            Assert.Equal(2, display.ColorHexes.Count);
+            Assert.All(display.ColorHexes, x => Assert.StartsWith("#FF", x));
+            Assert.Equal(direction.ToString(), display.Rows.Single(x => x.Label == "Colour type").Value);
+        }
+
+        [Fact(DisplayName = "The tag's second colour is byte-reversed, not hex-string-reversed")]
+        public void ParseData_ReadsSecondColorInTheRightByteOrder()
+        {
+            // Block 16 of a real PLA Silk Multi-Color "Gilded Rose" tag: format 2, colour count 2, then the
+            // second colour little-endian as AABBGGRR. Reversing the hex string instead would yield 1C7648
+            // (a dark green) for a pink-gold spool.
+            var blocks = Enumerable.Range(0, 64).Select(_ => new byte[16]).ToArray();
+            blocks[16] = [0x02, 0x00, 0x02, 0x00, 0xFF, 0x84, 0x67, 0xC1, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            var info = new BambuFilamentInfo([0x01, 0x02, 0x03, 0x04]);
+            info.ParseData(blocks, [], fullRead: false);
+
+            Assert.Equal((ushort?)2, info.ColorCount);
+            Assert.Equal("C16784FF", info.SecondColor);
+            Assert.Equal("#000000, #C16784", SpoolDisplayInfo.From(info, null).ColorText);
         }
 
         #endregion

@@ -63,7 +63,7 @@
             </Grid>
 
             <Grid ColumnDefinitions="*,40">
-                <material:CheckBox x:Name="TfFullTagScanAndUpload" Grid.Column="0" Text="Participate in NFC data upload [beta]" IsChecked="{Binding FullTagScanAndUpload, Mode=TwoWay}" Margin="10,5,0,0" />
+                <material:CheckBox x:Name="TfFullTagScanAndUpload" Grid.Column="0" Text="Participate in NFC data upload" IsChecked="{Binding FullTagScanAndUpload, Mode=TwoWay}" Margin="10,5,0,0" />
                 <ImageButton Grid.Column="1" HeightRequest="24" WidthRequest="24" Margin="0,8,10,0" Padding="2" Clicked="InfoButton_OnClicked" VerticalOptions="Start">
                     <ImageButton.Source>
                         <FontImageSource FontFamily="MaterialSharp" Glyph="{x:Static m:MaterialSharp.Info}" Color="{AppThemeBinding Light={StaticResource Outline}, Dark={StaticResource OutlineDark}}" />
@@ -71,17 +71,17 @@
                 </ImageButton>
             </Grid>
 
-            <material:CheckBox x:Name="TfUnknownFilamentEnabled" Text="Import unknown filament" IsChecked="{Binding UnknownFilamentEnabled, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
+            <material:CheckBox x:Name="TfUnknownFilamentEnabled" IsVisible="{Binding ShowInventoryOptions}" Text="Import unknown filament" IsChecked="{Binding UnknownFilamentEnabled, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
 
             <material:CheckBox x:Name="TfShowLogsOnMainPage" Text="Show logs on main page" IsChecked="{Binding ShowLogsOnMainPage, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
 
-            <material:CheckBox x:Name="TfShowKeyboardOnSpoolRead" Text="Show keyboard on spool read" IsChecked="{Binding ShowKeyboardOnSpoolRead, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
+            <material:CheckBox x:Name="TfShowKeyboardOnSpoolRead" IsVisible="{Binding ShowInventoryOptions}" Text="Show keyboard on spool read" IsChecked="{Binding ShowKeyboardOnSpoolRead, Mode=TwoWay}" Margin="10,0,10,0"></material:CheckBox>
 
-            <material:CheckBox x:Name="TfOverrideLocationOnRead" Text="Override location on read" IsChecked="{Binding OverrideLocationOnRead, Mode=TwoWay}" Margin="10,0,10,5"></material:CheckBox>
+            <material:CheckBox x:Name="TfOverrideLocationOnRead" IsVisible="{Binding ShowInventoryOptions}" Text="Override location on read" IsChecked="{Binding OverrideLocationOnRead, Mode=TwoWay}" Margin="10,0,10,5"></material:CheckBox>
 
             <material:DatePickerField x:Name="TfBuyDate" IsVisible="{Binding IsSpoolman}" Title="Buy date:" Date="{Binding BuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
 
-            <material:TextField x:Name="TfPrice" Title="Price:" Keyboard="Numeric" Text="{Binding DefaultPrice,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}">
+            <material:TextField x:Name="TfPrice" IsVisible="{Binding ShowInventoryOptions}" Title="Price:" Keyboard="Numeric" Text="{Binding DefaultPrice,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}">
                 <validation1:NumericNullableValidation  />
                 <validation:MinValueValidation MinValue="0" />
             </material:TextField>
@@ -90,7 +90,7 @@
 
             <!--<material:TextField x:Name="TfLocation" Title="Location:" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />-->
 
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowInventoryOptions}">
                 <material:AutoCompleteTextField x:Name="TfLocation" Grid.Column="0" Title="Location:" Threshold="1" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" ItemsSource="{Binding ExistingLocations}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
                 <Button Grid.Column="1" Clicked="RefreshLocations_OnClicked"
                         VerticalOptions="Start" Margin="6,6,0,0" Padding="10,4"
