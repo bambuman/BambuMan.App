@@ -25,8 +25,9 @@ namespace BambuMan.UI.Main
         private readonly IToneGenerator? toneGenerator;
         private readonly IInvokeIndent invokeIndent;
         private readonly TagApiService tagApiService;
+        private readonly IFilamentOverrideService filamentOverrides;
 
-        public MainPage(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService)
+        public MainPage(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IFilamentOverrideService filamentOverrides)
         {
             InitializeComponent();
 
@@ -36,6 +37,18 @@ namespace BambuMan.UI.Main
             this.toneGenerator = toneGenerator;
             this.invokeIndent = invokeIndent;
             this.tagApiService = tagApiService;
+            this.filamentOverrides = filamentOverrides;
+            this.filamentOverrides.LogAction = async void (level, message) =>
+            {
+                try
+                {
+                    await viewModel.AddLog(level, message);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error in FilamentOverrideService");
+                }
+            };
             this.tagApiService.LogAction = async void (level, message) =>
             {
                 try
@@ -163,6 +176,7 @@ namespace BambuMan.UI.Main
                 await SetupEventSubscriptionsAsync();
                 await InitializeBackendsAsync();
                 await SetupNfcAsync();
+                await RefreshFilamentOverridesAsync().ConfigureAwait(false);
 #if !GOOGLE_PLAY
                 await CheckVersion().ConfigureAwait(false);
 #endif
@@ -233,6 +247,7 @@ namespace BambuMan.UI.Main
                 manager.ShowLogs = true;
                 manager.UnknownFilamentEnabled = unknownFilamentEnabled;
                 manager.HasNetworkAccess = HasNetwork;
+                manager.FilamentOverrides = filamentOverrides;
 
                 var changed = false;
 
@@ -580,6 +595,26 @@ namespace BambuMan.UI.Main
             message += $"MimeType: {record.MimeType}";
 
             return message;
+        }
+
+        #endregion
+
+        #region Filament match overrides
+
+        /// <summary>
+        /// Ask the api whether it has newer per-SKU match corrections than this build. Best-effort: a failure
+        /// leaves the compiled-in (or previously cached) set in place, so scanning is never blocked on it.
+        /// </summary>
+        private async Task RefreshFilamentOverridesAsync()
+        {
+            try
+            {
+                await filamentOverrides.RefreshAsync();
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(e, "Error refreshing filament overrides");
+            }
         }
 
         #endregion

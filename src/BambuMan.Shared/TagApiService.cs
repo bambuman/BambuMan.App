@@ -1,4 +1,5 @@
 ﻿using BambuMan.Shared.Enums;
+using BambuMan.Shared.Models;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text;
@@ -51,6 +52,38 @@ namespace BambuMan.Shared
             }
 
             return (false, false);
+        }
+
+        /// <summary>
+        /// Ask the api for a newer filament match override set. Sends nothing but <paramref name="currentVersion"/> —
+        /// no tag, device or user data. Returns null both when the api has nothing newer (204) and on any failure;
+        /// callers treat those the same and keep the set they already have.
+        /// </summary>
+        public async Task<FilamentOverrideSet?> GetFilamentOverridesAsync(int currentVersion)
+        {
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+                var response = await httpClient.GetAsync($"filament-overrides?version={currentVersion}", cts.Token);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return null;
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    LogAction?.Invoke(LogLevel.Information, $"Filament override check failed: {(int)response.StatusCode}");
+                    return null;
+                }
+
+                return await response.Content.ReadFromJsonAsync<FilamentOverrideSet>(cts.Token);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                LogAction?.Invoke(LogLevel.Information, "Error checking filament overrides");
+            }
+
+            return null;
         }
 
         private string ComputeSignature(long timestamp, BambuFilamentInfo bambuFilamentInfo)

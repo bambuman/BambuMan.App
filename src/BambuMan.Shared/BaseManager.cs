@@ -62,6 +62,15 @@ namespace BambuMan.Shared
 
         public Func<bool>? HasNetworkAccess { get; set; }
 
+        /// <summary>
+        /// Per-SKU filament match overrides, supplied by the host. Held as the service rather than a copied
+        /// set so a refresh that lands after startup is picked up on the next scan.
+        /// </summary>
+        public IFilamentOverrideService? FilamentOverrides { get; set; }
+
+        /// <summary>The override set to match against right now — the compiled-in set when the host supplied nothing.</summary>
+        protected FilamentOverrideSet Overrides => FilamentOverrides?.Current ?? FilamentMatchOverrides.Internal;
+
         public bool IsHealth { get; set; }
 
         public bool IsInitialized => isInitialized;

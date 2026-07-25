@@ -337,7 +337,7 @@ namespace BambuMan.Shared
 
         private async Task<(bool ok, ExternalFilament? matched)> ResolveFilament(BambuFilamentInfo info)
         {
-            var result = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, info);
+            var result = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, info, Overrides);
 
             if (result.Count == 1) return (true, result.First());
 

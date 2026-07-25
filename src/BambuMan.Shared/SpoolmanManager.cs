@@ -532,7 +532,7 @@ namespace BambuMan.Shared
 
         public async Task<ExternalFilament?> FindExternalFilament(BambuFilamentInfo info)
         {
-            var result = await ExternalFilamentMatcher.FindExternalFilament(BambuLabExternalFilaments, info);
+            var result = await ExternalFilamentMatcher.FindExternalFilament(BambuLabExternalFilaments, info, Overrides);
 
             var spoolmanErrorLevel = UnknownFilamentEnabled ? ManagerStatusType.Ready : ManagerStatusType.Error;
             var logLevel = UnknownFilamentEnabled ? LogLevel.Warning : LogLevel.Error;

@@ -84,15 +84,36 @@ namespace BambuMan.Shared
         }
 
         /// <summary>
+        /// Does a scanned tag satisfy an override's criteria? Every supplied field must match; null fields are
+        /// ignored. <paramref name="color"/> is the 6-character hex prefix — the criteria may also target the
+        /// full 8-character <see cref="BambuFilamentInfo.Color"/> (hex + opacity).
+        /// </summary>
+        private static bool Matches(FilamentMatchCriteria? criteria, BambuFilamentInfo info, string color, bool transparent)
+        {
+            if (criteria == null) return false;
+
+            if (criteria.MaterialVariantIdentifier != null && !info.MaterialVariantIdentifier.EqualsCI(criteria.MaterialVariantIdentifier)) return false;
+            if (criteria.UniqueMaterialIdentifier != null && !info.UniqueMaterialIdentifier.EqualsCI(criteria.UniqueMaterialIdentifier)) return false;
+            if (criteria.FilamentType != null && !info.FilamentType.EqualsCI(criteria.FilamentType)) return false;
+            if (criteria.DetailedFilamentType != null && !info.DetailedFilamentType.EqualsCI(criteria.DetailedFilamentType)) return false;
+            if (criteria.Color != null && !color.EqualsCI(criteria.Color) && !info.Color.EqualsCI(criteria.Color)) return false;
+            if (criteria.Transparent != null && criteria.Transparent != transparent) return false;
+
+            return true;
+        }
+
+        /// <summary>
         /// Match a scanned tag against the supplied catalog. Returns all candidates — callers decide what 0 / 1 / &gt;1 means.
         /// </summary>
-        public static Task<List<ExternalFilament>> FindExternalFilament(List<ExternalFilament> externalFilaments, BambuFilamentInfo info)
+        /// <param name="overrides">
+        /// Per-SKU exceptions to apply. Defaults to <see cref="FilamentMatchOverrides.Internal"/>; callers that
+        /// can reach the BambuMan API pass the possibly-newer set they fetched instead.
+        /// </param>
+        public static Task<List<ExternalFilament>> FindExternalFilament(List<ExternalFilament> externalFilaments, BambuFilamentInfo info, FilamentOverrideSet? overrides = null)
         {
-            var transparentFilaments = new[]
-            {
-                "bambulab_pc_clearblack_1000_175_n",
-                "bambulab_pva_clear_500_175_n"
-            };
+            overrides ??= FilamentMatchOverrides.Internal;
+
+            var transparentFilaments = overrides.TransparentFilamentIds;
 
             var hexColor = info.Color?.Substring(0, 6) ?? string.Empty;
             var opacity = info.Color?.Substring(6).StringToByteArray().FirstOrDefault() ?? 255;
@@ -110,60 +131,33 @@ namespace BambuMan.Shared
                                      info.DetailedFilamentType.EqualsCI("PLA Wood") && x.Material.EqualsCI("PLA+WOOD") ||
                                      info.DetailedFilamentType.EqualsCI("TPU for AMS") && x.Material.EqualsCI("TPU") && x.Name.StartsWithCI("For AMS"));
 
-            query = query.Where(x => (x.ColorHex.EqualsCI(color)) ||
-                                     (x.ColorHexes != null && color != null && x.ColorHexes.Contains(color, StringComparer.OrdinalIgnoreCase)) ||
-                                     (info.DetailedFilamentType.EqualsCI("PLA Matte") && color.EqualsCI("E4BDD0") && x.ColorHex.EqualsCI("E8AFCF")) || //ASA filament hex color is different on spoolman db vs tag
-                                     (info.FilamentType.EqualsCI("ASA") && color.EqualsCI("FFFFFF") && x.ColorHex.EqualsCI("FFFAF2")) || //ASA filament hex color is different on spoolman db vs tag
-                                     (info.FilamentType.EqualsCI("ABS") && color.EqualsCI("ffb81c") && x.ColorHex.EqualsCI("FCE900")) || //ABS filament hex color is different on spoolman db vs tag
-                                     (info.FilamentType.EqualsCI("ASA Aero") && color.EqualsCI("E9E4D9") && x.ColorHex.EqualsCI("F5F1DD")) || //ASA filament hex color is different on spoolman db vs tag
-                                     (info.FilamentType.EqualsCI("PC") && color.EqualsCI("000000") && transparent && x.ColorHex.EqualsCI("5A5161")) || //PC Clear Black filament hex color is different on spoolman db vs tag
-                                     (info.DetailedFilamentType.EqualsCI("PLA Wood") && color.EqualsCI("3F231C") && x.ColorHex.EqualsCI("4C241C")) || //PETG HF red filament hex color is different on spoolman db vs tag
-                                     (info.DetailedFilamentType.EqualsCI("PETG HF") && color.EqualsCI("BC0900") && x.ColorHex.EqualsCI("EB3A3A")) || //PETG HF red filament hex color is different on spoolman db vs tag
-                                     (info.DetailedFilamentType.EqualsCI("PETG Translucent") && color.EqualsCI("000000") && x.ColorHex.EqualsCI("FFFFFF")));  //PETG Translucent clear filament hex color is different on spoolman db vs tag
+            // Catalog colours accepted for this tag on top of its own colour, for the SKUs where the
+            // spoolman external db and the Bambu tag disagree.
+            var acceptedColorHexes = overrides.ColorHexes.Where(x => Matches(x.Criteria, info, color, transparent)).Select(x => x.CatalogColorHex).ToArray();
 
-            query = query.Where(x => (transparentFilaments.AsEnumerable().Contains(x.Id) && transparent) || x.Translucent == transparent || x.Translucent == null && !transparent);
+            query = query.Where(x => x.ColorHex.EqualsCI(color) ||
+                                     (x.ColorHexes != null && x.ColorHexes.Contains(color, StringComparer.OrdinalIgnoreCase)) ||
+                                     acceptedColorHexes.Any(c => x.ColorHex.EqualsCI(c)));
+
+            //ids in TransparentFilamentIds are translucent even though the catalog says otherwise, so they
+            //replace the catalog flag instead of adding to it — they must not also match an opaque tag.
+            query = query.Where(x => transparentFilaments.AsEnumerable().Contains(x.Id) ?
+                transparent :
+                x.Translucent == transparent || x.Translucent == null && !transparent);
 
             if (info.DetailedFilamentType.ContainsCI("Support"))
             {
-                var idToSearch = string.Empty;
+                var idToSearch = overrides.SupportForcedIds.FirstOrDefault(x => Matches(x.Criteria, info, color, transparent))?.FilamentId;
                 var nameToSearch = info.DetailedFilamentType;
 
-                //white translucent Support for PLA is identified as black. Don't know if black is same
-                if (info.DetailedFilamentType.EqualsCI("Support for PLA") && info.MaterialVariantIdentifier.EqualsCI("S05-C0"))
-                {
-                    idToSearch = "bambulab_pla_supportforpla/petgnature_500_175_n";
-                }
-
-                //white translucent Support for PLA is identified as black. Don't know if black is same
-                if ((info.DetailedFilamentType.EqualsCI("Support W") && info.MaterialVariantIdentifier.EqualsCI("S00-W0")) ||
-                    (info.DetailedFilamentType.EqualsCI("Support for PLA") && info.MaterialVariantIdentifier.EqualsCI("S02-W1")) ||
-                    (info.DetailedFilamentType.EqualsCI("Support for PLA") && info.MaterialVariantIdentifier.EqualsCI("S02-W0")))
-                {
-                    idToSearch = "bambulab_pla_supportforplawhite_500_175_n";
-                }
-
-                //white translucent Support for PLA is identified as black. Don't know if black is same
-                if (info.DetailedFilamentType.EqualsCI("Support For PA") && info.MaterialVariantIdentifier.EqualsCI("S03-G1"))
-                {
-                    idToSearch = "bambulab_pa_supportforpa/pet_500_175_n";
-                }
-
-                query = idToSearch.IsNotNullOrEmpty() ?
+                query = idToSearch != null ?
                     externalFilaments.Where(x => x.Id.EqualsCI(idToSearch)).AsQueryable() :
                     externalFilaments.Where(x => x.Name.StartsWithCI(nameToSearch)).Where(x => x.ColorHex.EqualsCI(hexColor)).AsQueryable();
             }
             else if (info.ColorCount.GetValueOrDefault() > 1 && query.Count() != 1) //multi color spool
             {
                 var hexSecondColor = info.SecondColor?.Substring(0, 6) ?? string.Empty;
-                var colors = new[] { color, hexSecondColor };
-
-                if (info.MaterialVariantIdentifier.EqualsCI("A05-T1")) colors = ["FF9425", "FCA2BF"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A05-T2")) colors = ["0047BB", "7D1B49"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A05-T3")) colors = ["0047BB", "BB22A3"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A05-T4")) colors = ["60A4E8", "4CE4A0"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A05-T5")) colors = ["000000", "A34342"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A00-M5")) colors = ["6FCAEF", "8573DD"];
-                if (info.MaterialVariantIdentifier.EqualsCI("A00-M6")) colors = ["ED9558", "CE4406"];
+                var colors = overrides.MultiColors.FirstOrDefault(x => Matches(x.Criteria, info, color, transparent))?.Colors ?? [color, hexSecondColor];
 
                 query = externalFilaments
                     .Where(x => x.Material == info.FilamentType)
@@ -193,32 +187,15 @@ namespace BambuMan.Shared
                 _ => query
             };
 
-            if (info.DetailedFilamentType.EqualsCI("PC"))
-            {
-                query = query.Where(x => !x.Name.StartsWithCI("FR "));
+            if (info.DetailedFilamentType.EqualsCI("PC")) query = query.Where(x => !x.Name.StartsWithCI("FR "));
 
-                if (color == "FFFFFF" && info.UniqueMaterialIdentifier.EqualsCI("FC00")) query = query.Where(x => x.Name.EqualsCI("White") || x.Name.EqualsCI("Weiß"));
-                if (color == "FFFFFF" && !info.UniqueMaterialIdentifier.EqualsCI("FC00")) query = query.Where(x => x.Name.EqualsCI("Transparent"));
-                if (info.Color == "68686580") query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pc_clearblack_1000_175_n")).AsQueryable();
-            }
+            //e.g. PC white vs transparent, which the catalog only distinguishes by name. First match wins.
+            var nameFilter = overrides.NameFilters.FirstOrDefault(x => Matches(x.Criteria, info, color, transparent));
+            if (nameFilter != null) query = query.Where(x => nameFilter.Names.Any(n => x.Name.EqualsCI(n)));
 
-            if (info.MaterialVariantIdentifier.EqualsCI("A00-W1") || info.MaterialVariantIdentifier.EqualsCI("A00-W01")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_jadewhite_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("S01-G1")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pa_supportforpa/pet_500_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("S04-Y0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pva_clear_500_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A00-Y00")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_yellow_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A00-B1")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_bluegray_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("G00-B00")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_petg_basicreflexblue_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("G00-B0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_petg_blue_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A07-R5")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_redgranite_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("G01-N0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_petg_translucentbrown_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A00-P0")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_beige_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A01-B4")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_matteiceblue_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A00-P1")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_pink_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A19-P00")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_puremilkypink_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A19-B00")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_silk+babyblue_1000_175_n")).AsQueryable();
-            if (info.MaterialVariantIdentifier.EqualsCI("A19-A00")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_pureapricot_1000_175_n")).AsQueryable();
-
-            if (info.DetailedFilamentType.EqualsCI("PLA Basic") && color.EqualsCI("84754E")) query = externalFilaments.Where(x => x.Id.EqualsCI("bambulab_pla_bronze_1000_175_n")).AsQueryable();
+            //Last match wins, so a more specific entry added later supersedes an earlier one.
+            var forcedId = overrides.ForcedIds.LastOrDefault(x => Matches(x.Criteria, info, color, transparent))?.FilamentId;
+            if (forcedId != null) query = externalFilaments.Where(x => x.Id.EqualsCI(forcedId)).AsQueryable();
 
             var result = query.ToList();
 

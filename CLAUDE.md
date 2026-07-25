@@ -69,6 +69,25 @@ Solution file: `src/BambuMan.sln`
 - File-scoped namespaces allowed (mixed usage in codebase)
 - `async void` methods (e.g., event handlers, `OnAppearing`) must wrap their body in a `try/catch` — unhandled exceptions in `async void` crash the app
 
+## Privacy Policy
+
+The published policy lives in the **BambuMan.Web** repository (`src/BambuMan.Web/Components/Pages/PrivacyVersions/`), but most changes that invalidate it originate here. Add a new policy revision there — never edit one that has shipped — when a change in this repo:
+
+- adds or changes telemetry: a `SentrySdk.Metrics` counter, a Sentry scope tag, `TracesSampleRate`, `SendDefaultPii`, `AutoSessionTracking`, or the `SetBeforeSend` scrubbing in `MauiProgram`
+- adds an outbound network call, or calls a new BambuMan API endpoint
+- adds a third-party SDK or service
+- stores something new on the device (Preferences, registry, files)
+- changes what the tag-upload consent gates
+- adds a platform or app target
+
+Telemetry changes also mean re-checking the Play Console **Data safety** declaration.
+
+Note this repo is a git submodule of BambuMan.Web — a policy revision is a separate commit in the parent repository.
+
+## Filament Match Overrides
+
+Per-SKU matching exceptions are data, not code branches: `src/BambuMan.Shared/FilamentMatchOverrides.cs`. Add corrections there rather than adding `if` chains to `ExternalFilamentMatcher.FindExternalFilament`, and **bump `FilamentMatchOverrides.CurrentVersion`** — clients that cached an older set key off it. The BambuMan API serves its compiled copy of the same file, so a correction reaches existing installs on an API redeploy and the next app release inherits it automatically.
+
 ## Git
 - Commit messages must **not** include `Co-Authored-By` lines
 

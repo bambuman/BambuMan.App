@@ -147,6 +147,20 @@ namespace BambuMan
         {
             services.AddSingleton<LogService>();
             services.AddSingleton<TagApiService>();
+
+            services.AddSingleton<IFilamentOverrideService>(sp =>
+            {
+                var service = new FilamentOverrideService(sp.GetRequiredService<TagApiService>(), sp.GetRequiredService<ILogger<FilamentOverrideService>>())
+                {
+                    CacheDirectory = FileSystem.AppDataDirectory
+                };
+
+                // Read the cached set eagerly so an offline launch still gets the newest overrides we've seen.
+                service.LoadCache();
+
+                return service;
+            });
+
             services.AddSingleton<SpoolmanManager>();
             services.AddSingleton<BambuddyManager>();
             services.AddSingleton<BaseManager>(sp => sp.GetRequiredService<SpoolmanManager>());

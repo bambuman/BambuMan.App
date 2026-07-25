@@ -28,6 +28,7 @@ public partial class MainForm : Form
     private readonly NfcReader? nfcReader;
     private readonly SpoolmanManager? spoolmanManager;
     private readonly TagApiService? tagApiService;
+    private readonly FilamentOverrideService? filamentOverrideService;
     private Spool? currentSpool;
     private BambuFilamentInfo? currentBambuFilamentInfo;
 
@@ -76,6 +77,17 @@ public partial class MainForm : Form
         spoolmanManager.OnSpoolFound += SpoolmanManagerOnSpoolFound;
 
         tagApiService = new TagApiService(new HttpClient()) { LogAction = AppendText };
+
+        filamentOverrideService = new FilamentOverrideService(tagApiService)
+        {
+            LogAction = AppendText,
+            CacheDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BambuMan")
+        };
+
+        // Read the cached set eagerly so an offline launch still gets the newest overrides we've seen.
+        filamentOverrideService.LoadCache();
+
+        spoolmanManager.FilamentOverrides = filamentOverrideService;
     }
 
     protected override async void OnLoad(EventArgs e)
@@ -84,6 +96,7 @@ public partial class MainForm : Form
         {
             base.OnLoad(e);
             if (spoolmanManager != null) await spoolmanManager.Init();
+            if (filamentOverrideService != null) await filamentOverrideService.RefreshAsync();
         }
         catch (Exception ex)
         {
