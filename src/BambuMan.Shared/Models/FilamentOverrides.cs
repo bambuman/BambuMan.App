@@ -63,8 +63,17 @@ namespace BambuMan.Shared.Models
         /// <summary>Catalog ids that are translucent despite the catalog not saying so.</summary>
         public string[] TransparentFilamentIds { get; init; } = [];
 
+        /// <summary>
+        /// Bambu's five-digit filament code per material variant identifier, imported from the
+        /// Bambu-Lab-RFID-Library README. Keys are the tag's <c>MaterialVariantIdentifier</c>, uppercase.
+        /// A variant the README lists against several codes resolves to whichever colour has the most
+        /// scanned tags. Look it up through <see cref="ExternalFilamentMatcher.FindFilamentCode"/> rather
+        /// than indexing directly — a set deserialized from json is case-sensitive.
+        /// </summary>
+        public Dictionary<string, string> FilamentCodes { get; init; } = [];
+
         /// <summary>Total number of override entries — for logging. Not part of the wire format.</summary>
         [System.Text.Json.Serialization.JsonIgnore]
-        public int Count => SupportForcedIds.Length + ForcedIds.Length + ColorHexes.Length + MultiColors.Length + NameFilters.Length + TransparentFilamentIds.Length;
+        public int Count => SupportForcedIds.Length + ForcedIds.Length + ColorHexes.Length + MultiColors.Length + NameFilters.Length + TransparentFilamentIds.Length + FilamentCodes.Count;
     }
 }

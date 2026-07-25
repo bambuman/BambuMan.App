@@ -40,6 +40,26 @@ namespace BambuMan.Shared
             return list;
         }
 
+        /// <summary>
+        /// Bambu's five-digit filament code for a scanned tag, or null when the tag's variant isn't in the map.
+        /// </summary>
+        /// <param name="overrides">
+        /// The set holding the map. Defaults to <see cref="FilamentMatchOverrides.Internal"/>; callers that
+        /// can reach the BambuMan API pass the possibly-newer set they fetched instead.
+        /// </param>
+        public static string? FindFilamentCode(BambuFilamentInfo info, FilamentOverrideSet? overrides = null)
+        {
+            var variant = info.MaterialVariantIdentifier;
+            if (string.IsNullOrEmpty(variant)) return null;
+
+            overrides ??= FilamentMatchOverrides.Internal;
+
+            // The internal map is OrdinalIgnoreCase, but a set deserialized from json is not — hence the retry.
+            if (overrides.FilamentCodes.TryGetValue(variant, out var code)) return code;
+
+            return overrides.FilamentCodes.TryGetValue(variant.ToUpperInvariant(), out code) ? code : null;
+        }
+
         /// <summary>Merge the embedded catalog into <paramref name="externalFilaments"/>, skipping entries already present (by id + weight).</summary>
         public static void ExtendWithMissingFilaments(List<ExternalFilament> externalFilaments)
         {

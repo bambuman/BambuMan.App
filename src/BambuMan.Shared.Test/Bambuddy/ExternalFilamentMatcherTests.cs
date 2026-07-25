@@ -106,6 +106,7 @@ namespace BambuMan.Shared.Test.Bambuddy
             Assert.Contains(round.MultiColors, x => x.Criteria.MaterialVariantIdentifier == "A05-T1" && x.Colors.SequenceEqual(new[] { "FF9425", "FCA2BF" }));
             Assert.Contains(round.NameFilters, x => x.Names.Contains("Weiß"));
             Assert.Contains(round.TransparentFilamentIds, x => x == "bambulab_pva_clear_500_175_n");
+            Assert.Equal("10301", round.FilamentCodes["A00-A1"]);
         }
 
         [Fact(DisplayName = "A set deserialized without any lists falls back to empty, not null")]
@@ -117,6 +118,42 @@ namespace BambuMan.Shared.Test.Bambuddy
             Assert.NotNull(sparse);
             Assert.Equal(99, sparse.Version);
             Assert.Equal(0, sparse.Count);
+            Assert.Empty(sparse.FilamentCodes);
+        }
+
+        [Fact(DisplayName = "FindFilamentCode resolves a tag variant to its Bambu filament code")]
+        public void FindFilamentCode_ResolvesKnownVariant()
+        {
+            var info = new BambuFilamentInfo([0x01, 0x02, 0x03, 0x04]) { MaterialVariantIdentifier = "A00-A1" };
+
+            Assert.Equal("10301", ExternalFilamentMatcher.FindFilamentCode(info));
+
+            // Tag data is uppercase, but a set that came back from the api is a case-sensitive dictionary.
+            info.MaterialVariantIdentifier = "a00-a1";
+            Assert.Equal("10301", ExternalFilamentMatcher.FindFilamentCode(info));
+
+            var remote = JsonSerializer.Deserialize<FilamentOverrideSet>("""{"version":99,"filamentCodes":{"A00-A1":"10301"}}""", new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+            Assert.Equal("10301", ExternalFilamentMatcher.FindFilamentCode(info, remote));
+
+            info.MaterialVariantIdentifier = "ZZZ-Z9";
+            Assert.Null(ExternalFilamentMatcher.FindFilamentCode(info));
+
+            info.MaterialVariantIdentifier = null;
+            Assert.Null(ExternalFilamentMatcher.FindFilamentCode(info));
+        }
+
+        [Theory(DisplayName = "Variants the README lists against several codes keep their dump-resolved winner")]
+        // The README claims each of these for two different colours. The generator picks the colour that
+        // actually has tags carrying the variant, which is not the row order — regenerating from a future
+        // README must not silently flip them back.
+        [InlineData("A00-A0", "10300")] // PLA Basic Orange (50 dumps), not Pink (1)
+        [InlineData("A01-A2", "11300")] // PLA Matte Mandarin Orange (33), not Lemon Yellow (1)
+        [InlineData("A00-M1", "10901")] // PLA Basic Gradient Solar Breeze (8), not Silk Gilded Rose (0)
+        [InlineData("G02-A0", "33300")] // PETG HF Orange (27), not PETG Translucent Orange (0)
+        [InlineData("C00-C1", "60102")] // PC Clear Black (7), not PC Transparent (3)
+        public void FilamentCodes_CollisionsResolveToTheScannedColour(string variant, string expected)
+        {
+            Assert.Equal(expected, FilamentMatchOverrides.Internal.FilamentCodes[variant]);
         }
     }
 }
