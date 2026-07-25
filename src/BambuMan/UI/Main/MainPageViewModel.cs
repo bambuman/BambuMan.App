@@ -27,6 +27,10 @@ namespace BambuMan.UI.Main
 
         [ObservableProperty] private bool showSpoolEdit;
 
+        // The read-only counterpart of the edit panel, used by backends with nothing to write to.
+        [ObservableProperty] private bool showSpoolInfo;
+        [ObservableProperty] private SpoolDisplayInfo? spoolInfo;
+
         [ObservableProperty] private decimal? spoolWeight;
         [ObservableProperty] private decimal? spoolEmptyWeight = 250;
         [ObservableProperty] private decimal? spoolInitialWeight;
@@ -120,9 +124,28 @@ namespace BambuMan.UI.Main
             ShowSpoolEdit = true;
         }
 
+        public void ShowReadOnlySpool(SpoolDisplayInfo info)
+        {
+            SpoolInfo = info;
+            ShowSpoolInfo = true;
+        }
+
         public async Task Validate(BaseManager manager)
         {
             await ClearMessages();
+
+            // A read-only backend has no url to check and no api to be unhealthy — without this the missing-url
+            // banner below would sit on screen permanently.
+            if (manager.IsReadOnly)
+            {
+                SettingsOk = true;
+                SpoolmanOk = manager.Status == ManagerStatusType.Ready;
+
+                if (!SpoolmanConnecting && !NfcIsEnabled)
+                    await ShowErrorMessage("NFC is not enabled. Check if you're phone supports nfc.");
+
+                return;
+            }
 
             if (string.IsNullOrEmpty(manager.ApiUrl))
             {

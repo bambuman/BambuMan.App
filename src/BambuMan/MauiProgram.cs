@@ -163,8 +163,10 @@ namespace BambuMan
 
             services.AddSingleton<SpoolmanManager>();
             services.AddSingleton<BambuddyManager>();
+            services.AddSingleton<NoBackendManager>();
             services.AddSingleton<BaseManager>(sp => sp.GetRequiredService<SpoolmanManager>());
             services.AddSingleton<BaseManager>(sp => sp.GetRequiredService<BambuddyManager>());
+            services.AddSingleton<BaseManager>(sp => sp.GetRequiredService<NoBackendManager>());
             services.AddSingleton<IInventoryBackendResolver, InventoryBackendResolver>();
             services.AddSingleton<InventoryService>();
         }

@@ -32,6 +32,8 @@
         <ResourceDictionary>
             <toolkit:BoolToObjectConverter x:Key="BoolToColorConverter" TrueObject="{x:Static Colors.Green}" FalseObject="{x:Static Colors.Red}"/>
             <converters:NoNullToBoolConverter x:Key="NoNullToBoolConverter" />
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+            <converters:HexToColorConverter x:Key="HexToColorConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -191,6 +193,35 @@
 
                         </FlexLayout>
                     </input:FormView>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Read-only counterpart of the card above, shown when the backend has nothing to write to. -->
+            <Border Stroke="{AppThemeBinding Light={StaticResource SpoolCardStroke}, Dark={StaticResource SpoolCardStrokeDark}}" StrokeThickness="1" StrokeShape="RoundRectangle 5,5,5,5" Background="{AppThemeBinding Light={StaticResource SpoolCardBackground}, Dark={StaticResource SpoolCardBackgroundDark}}" Margin="0,0,0,5" Padding="5" IsVisible="{Binding ShowSpoolInfo}">
+                <VerticalStackLayout Spacing="5">
+
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <Label Grid.Column="0" Text="Spool info:" FontAttributes="Bold" VerticalOptions="Center" />
+                        <Border Grid.Column="1" WidthRequest="26" HeightRequest="18" Margin="0,0,4,0" StrokeThickness="1" StrokeShape="RoundRectangle 3,3,3,3" Stroke="{AppThemeBinding Light={StaticResource SpoolCardStroke}, Dark={StaticResource SpoolCardStrokeDark}}" BackgroundColor="{Binding SpoolInfo.ColorHex, Converter={StaticResource HexToColorConverter}}" IsVisible="{Binding SpoolInfo.ColorHex, Converter={StaticResource NoNullToBoolConverter}}" />
+                        <Border Grid.Column="2" WidthRequest="26" HeightRequest="18" StrokeThickness="1" StrokeShape="RoundRectangle 3,3,3,3" Stroke="{AppThemeBinding Light={StaticResource SpoolCardStroke}, Dark={StaticResource SpoolCardStrokeDark}}" BackgroundColor="{Binding SpoolInfo.SecondColorHex, Converter={StaticResource HexToColorConverter}}" IsVisible="{Binding SpoolInfo.SecondColorHex, Converter={StaticResource NoNullToBoolConverter}}" />
+                    </Grid>
+
+                    <!-- Rows are built in SpoolDisplayInfo.From, which omits anything the tag didn't carry. -->
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding SpoolInfo.Rows, Mode=OneWay}" Margin="5,0,5,0">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:SpoolInfoRow">
+                                <Grid ColumnDefinitions="140,*" Margin="0,1,0,1">
+                                    <Label Grid.Column="0" Text="{Binding Label}" FontSize="12" FontAttributes="Bold" />
+                                    <Label Grid.Column="1" Text="{Binding Value}" FontSize="12" />
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <Label Margin="5,0,5,0" FontSize="11" Text="Not found in the filament catalog — showing tag data only." IsVisible="{Binding SpoolInfo.Matched, Converter={StaticResource InvertedBoolConverter}}" />
+
+                    <Button Margin="5,0,5,0" HorizontalOptions="Start" BackgroundColor="{AppThemeBinding Light={StaticResource TertiaryButtonBackground}, Dark={StaticResource TertiaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource TertiaryButtonText}, Dark={StaticResource TertiaryButtonTextDark}}" Text="Close" Clicked="CloseButton_OnClicked"/>
+
                 </VerticalStackLayout>
             </Border>
 

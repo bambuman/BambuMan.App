@@ -346,7 +346,9 @@ public partial class SettingsPage
         Preferences.Default.Set(KeyInventoryBackend, viewModel.InventoryBackend.ToString());
 
         // One visible URL field proxies to the active backend; persist both so the inactive one isn't lost.
-        if (TfServerUrl.IsValid)
+        // With no backend selected the field is hidden and therefore fails its required validation, so persist
+        // the stored urls anyway — switching to that mode must not discard them.
+        if (viewModel.IsNoBackend || TfServerUrl.IsValid)
         {
             Preferences.Default.Set(KeySpoolmanUrl, viewModel.SpoolmanUrl ?? string.Empty);
             Preferences.Default.Set(KeyBambuddyUrl, viewModel.BambuddyUrl ?? string.Empty);

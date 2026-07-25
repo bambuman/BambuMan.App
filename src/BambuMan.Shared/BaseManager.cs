@@ -18,6 +18,7 @@ namespace BambuMan.Shared
         public delegate void LogMessageEventHandler(LogLevel level, string message);
         public delegate void PlayErrorToneEventHandler();
         public delegate void SpoolFoundEventHandler(SpoolFound found, BambuFilamentInfo info);
+        public delegate void SpoolInfoReadEventHandler(SpoolDisplayInfo info);
         public delegate void LocationsLoadedEventHandler();
 
         public event StatusChangedEventHandler? OnStatusChanged;
@@ -25,6 +26,10 @@ namespace BambuMan.Shared
         public event LogMessageEventHandler? OnLogMessage;
         public event PlayErrorToneEventHandler? OnPlayErrorTone;
         public event SpoolFoundEventHandler? OnSpoolFound;
+
+        /// <summary>Raised instead of an edit form by read-only backends — see <see cref="IsReadOnly"/>.</summary>
+        public event SpoolInfoReadEventHandler? OnSpoolInfoRead;
+
         public event LocationsLoadedEventHandler? OnLocationsLoaded;
 
         /// <summary>Raise <see cref="OnShowMessage"/> from a subclass (base events can only be invoked here).</summary>
@@ -35,6 +40,9 @@ namespace BambuMan.Shared
 
         /// <summary>Raise <see cref="OnSpoolFound"/> from a subclass. Pass the scanned <paramref name="info"/> so consumers can read raw tag fields without extending <see cref="SpoolFound"/>.</summary>
         protected void RaiseSpoolFound(SpoolFound found, BambuFilamentInfo info) => OnSpoolFound?.Invoke(found, info);
+
+        /// <summary>Raise <see cref="OnSpoolInfoRead"/> from a subclass.</summary>
+        protected void RaiseSpoolInfoRead(SpoolDisplayInfo info) => OnSpoolInfoRead?.Invoke(info);
 
         /// <summary>Raise <see cref="OnLocationsLoaded"/> from a subclass.</summary>
         protected void RaiseLocationsLoaded() => OnLocationsLoaded?.Invoke();
@@ -73,6 +81,13 @@ namespace BambuMan.Shared
 
         public bool IsHealth { get; set; }
 
+        /// <summary>
+        /// A backend that neither talks to a server nor persists edits. <see cref="Init"/> skips the url,
+        /// network and health gates for these, and the ui shows a scanned tag read-only instead of the
+        /// spool edit form.
+        /// </summary>
+        public virtual bool IsReadOnly => false;
+
         public bool IsInitialized => isInitialized;
 
         public ManagerStatusType Status { get; private set; } = ManagerStatusType.Initializing;
@@ -88,6 +103,22 @@ namespace BambuMan.Shared
         public async Task Init()
         {
             if (AppVersion != null) await Log(LogLevel.Information, $"App version {AppVersion}");
+
+            // Nothing to connect to: load whatever local data the backend needs and go straight to ready.
+            // No health timer either — there is nothing to poll.
+            if (IsReadOnly)
+            {
+                if (await LoadInitialDataAsync())
+                {
+                    isInitialized = true;
+                    IsHealth = true;
+                    await LogAndSetStatus(ManagerStatusType.Ready, LogLevel.Success, "Ready to read tags");
+                    await OnReady();
+                }
+                else await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, "Could not load the filament catalog");
+
+                return;
+            }
 
             if (string.IsNullOrEmpty(ApiUrl))
             {

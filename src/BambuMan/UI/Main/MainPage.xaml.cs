@@ -90,6 +90,9 @@ namespace BambuMan.UI.Main
             {
                 viewModel.InventorySpool(found, info);
 
+                // A read-only backend shows the info card from OnSpoolInfoRead instead; there is nothing to edit.
+                if (ActiveManager.IsReadOnly) return;
+
                 viewModel.ShowSpool(found);
 
                 if (viewModel.ShowKeyboardOnSpoolRead)
@@ -103,6 +106,18 @@ namespace BambuMan.UI.Main
             catch (Exception e)
             {
                 logger.LogError(e, "Error in ManagerOnSpoolFound");
+            }
+        }
+
+        private void ManagerOnSpoolInfoRead(SpoolDisplayInfo info)
+        {
+            try
+            {
+                viewModel.ShowReadOnlySpool(info);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error in ManagerOnSpoolInfoRead");
             }
         }
 
@@ -198,12 +213,14 @@ namespace BambuMan.UI.Main
                     manager.OnShowMessage += ManagerOnShowMessage;
                     manager.OnPlayErrorTone += ManagerOnPlayErrorTone;
                     manager.OnSpoolFound += ManagerOnSpoolFound;
+                    manager.OnSpoolInfoRead += ManagerOnSpoolInfoRead;
                     manager.OnLocationsLoaded += ManagerOnLocationsLoaded;
                 }
 
                 viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
                 viewModel.ShowSpoolEdit = false;
+                viewModel.ShowSpoolInfo = false;
 
                 viewModel.ShowLogsOnMainPage = Preferences.Default.Get(SettingsPage.ShowLogsOnMainPage, true);
                 viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
@@ -213,7 +230,7 @@ namespace BambuMan.UI.Main
 
                 viewModel.OverrideLocationOnRead = active.OverrideLocationOnRead;
                 viewModel.ExistingLocations = active.ExistingLocations;
-                viewModel.BackendLabel = active.Backend.ToString().ToUpperInvariant();
+                viewModel.BackendLabel = active.Backend.DisplayName().ToUpperInvariant();
                 viewModel.ShowBuyDate = active.EditFields.BuyDate;
                 viewModel.ShowLotNr = active.EditFields.LotNr;
 
@@ -266,6 +283,10 @@ namespace BambuMan.UI.Main
                         bambuddy.ApiUrl = bambuddyUrl;
                         bambuddy.ApiKey = bambuddyApiKey;
                         if (changed) bambuddy.ResetInitialization();
+                        break;
+
+                    case InventoryBackend.NoBackend:
+                        // Nothing to configure — no url, no key, no credentials that could change.
                         break;
                 }
 
@@ -328,6 +349,7 @@ namespace BambuMan.UI.Main
                 manager.OnShowMessage -= ManagerOnShowMessage;
                 manager.OnPlayErrorTone -= ManagerOnPlayErrorTone;
                 manager.OnSpoolFound -= ManagerOnSpoolFound;
+                manager.OnSpoolInfoRead -= ManagerOnSpoolInfoRead;
                 manager.OnLocationsLoaded -= ManagerOnLocationsLoaded;
             }
 
@@ -697,6 +719,7 @@ namespace BambuMan.UI.Main
                 await TfSpoolWeight.EntryView.HideKeyboardAsync(CancellationToken.None);
 
                 viewModel.ShowSpoolEdit = false;
+                viewModel.ShowSpoolInfo = false;
             }
             catch (Exception ex)
             {

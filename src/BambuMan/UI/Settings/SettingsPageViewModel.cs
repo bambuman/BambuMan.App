@@ -12,6 +12,8 @@ namespace BambuMan.UI.Settings
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsSpoolman))]
         [NotifyPropertyChangedFor(nameof(IsBambuddy))]
+        [NotifyPropertyChangedFor(nameof(IsNoBackend))]
+        [NotifyPropertyChangedFor(nameof(ShowServerUrl))]
         [NotifyPropertyChangedFor(nameof(ServerUrl))]
         private InventoryBackend inventoryBackend = InventoryBackend.Bambuddy;
 
@@ -50,20 +52,34 @@ namespace BambuMan.UI.Settings
 
         [ObservableProperty] private bool locationsFetched;
 
+        // Labelled with DisplayName so "NoBackend" reads as "No backend"; the setting itself is still stored by
+        // enum name, so the label and the persisted value are matched up through DisplayName on both sides.
         public ObservableCollection<MaterialSegmentedButtonItem> BackendItems { get; } =
-            new(Enum.GetValues<InventoryBackend>().Select(b => new MaterialSegmentedButtonItem(b.ToString())));
+            new(Enum.GetValues<InventoryBackend>().Select(b => new MaterialSegmentedButtonItem(b.DisplayName())));
 
         public bool IsSpoolman => InventoryBackend == InventoryBackend.Spoolman;
         public bool IsBambuddy => InventoryBackend == InventoryBackend.Bambuddy;
+        public bool IsNoBackend => InventoryBackend == InventoryBackend.NoBackend;
+
+        /// <summary>There is no server to point at without a backend, so the url field is hidden entirely.</summary>
+        public bool ShowServerUrl => !IsNoBackend;
 
         partial void OnSelectedBackendItemChanged(MaterialSegmentedButtonItem? value)
         {
-            if (value?.Text != null && Enum.TryParse<InventoryBackend>(value.Text, out var backend)) InventoryBackend = backend;
+            if (value?.Text == null) return;
+
+            foreach (var backend in Enum.GetValues<InventoryBackend>())
+            {
+                if (backend.DisplayName() != value.Text) continue;
+
+                InventoryBackend = backend;
+                return;
+            }
         }
 
         /// <summary>Sync the segmented selection to the current <see cref="InventoryBackend"/> (call after loading prefs).</summary>
         public void SyncBackendSelection() =>
-            SelectedBackendItem = BackendItems.FirstOrDefault(i => i.Text == InventoryBackend.ToString());
+            SelectedBackendItem = BackendItems.FirstOrDefault(i => i.Text == InventoryBackend.DisplayName());
 
         public async void ApplyQueryAttributes(IDictionary<string, object> query)
         {

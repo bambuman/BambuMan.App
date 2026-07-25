@@ -12,14 +12,20 @@ namespace BambuMan
 
             InitializeComponent();
 
-            var activeUrl = SettingsPage.GetInventoryBackend() == InventoryBackend.Bambuddy
-                ? Preferences.Default.Get(SettingsPage.KeyBambuddyUrl, string.Empty)
-                : Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
+            var backend = SettingsPage.GetInventoryBackend();
 
-            if (string.IsNullOrWhiteSpace(activeUrl))
+            // Only nag about a missing url when there is meant to be one — "no backend" is a valid configured state.
+            if (backend != InventoryBackend.NoBackend)
             {
-                CurrentItem = Items.First(x => x.Title == "Settings");
-                //Dispatcher.DispatchAsync(async () => await GoToAsync("//SettingsPage"));
+                var activeUrl = backend == InventoryBackend.Bambuddy
+                    ? Preferences.Default.Get(SettingsPage.KeyBambuddyUrl, string.Empty)
+                    : Preferences.Default.Get(SettingsPage.KeySpoolmanUrl, string.Empty);
+
+                if (string.IsNullOrWhiteSpace(activeUrl))
+                {
+                    CurrentItem = Items.First(x => x.Title == "Settings");
+                    //Dispatcher.DispatchAsync(async () => await GoToAsync("//SettingsPage"));
+                }
             }
         }
         protected override bool OnBackButtonPressed()
