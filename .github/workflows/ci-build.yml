@@ -33,6 +33,34 @@ jobs:
           echo "GITHUB_VERSION_CODE=$((${{ github.run_number }}+100))" >> $Env:GITHUB_ENV
           echo "GITHUB_VERSION=$env:GITHUB_VERSION_BASE$((${{ github.run_number }}+100))" >> $Env:GITHUB_ENV
 
+      # actions/checkout only clones submodules when it can find git; without it on PATH it
+      # falls back to a REST API download, which cannot fetch them. Git for Windows installs
+      # into a well-known location but is not always on the runner service's PATH.
+      - name: Ensure Git is on PATH
+        shell: pwsh
+        run: |
+          if (Get-Command git -ErrorAction SilentlyContinue) {
+            Write-Host "git already on PATH: $((Get-Command git).Source)"
+            git --version
+            exit 0
+          }
+
+          $candidates = @(
+            "$env:ProgramFiles\Git\cmd",
+            "${env:ProgramFiles(x86)}\Git\cmd",
+            "$env:LOCALAPPDATA\Programs\Git\cmd"
+          )
+
+          $found = $candidates | Where-Object { Test-Path (Join-Path $_ 'git.exe') } | Select-Object -First 1
+
+          if (-not $found) {
+            Write-Error "Git was not found on this runner. Install Git for Windows (2.18+) so actions/checkout can fetch the UraniumUI submodule."
+            exit 1
+          }
+
+          Write-Host "Adding $found to PATH"
+          Add-Content -Path $env:GITHUB_PATH -Value $found
+
       - name: Checkout
         uses: actions/checkout@v5
         with:
@@ -99,6 +127,34 @@ jobs:
         run: |
           echo "GITHUB_VERSION_CODE=$((${{ github.run_number }}+100))" >> $Env:GITHUB_ENV
           echo "GITHUB_VERSION=$env:GITHUB_VERSION_BASE$((${{ github.run_number }}+100))" >> $Env:GITHUB_ENV
+
+      # actions/checkout only clones submodules when it can find git; without it on PATH it
+      # falls back to a REST API download, which cannot fetch them. Git for Windows installs
+      # into a well-known location but is not always on the runner service's PATH.
+      - name: Ensure Git is on PATH
+        shell: pwsh
+        run: |
+          if (Get-Command git -ErrorAction SilentlyContinue) {
+            Write-Host "git already on PATH: $((Get-Command git).Source)"
+            git --version
+            exit 0
+          }
+
+          $candidates = @(
+            "$env:ProgramFiles\Git\cmd",
+            "${env:ProgramFiles(x86)}\Git\cmd",
+            "$env:LOCALAPPDATA\Programs\Git\cmd"
+          )
+
+          $found = $candidates | Where-Object { Test-Path (Join-Path $_ 'git.exe') } | Select-Object -First 1
+
+          if (-not $found) {
+            Write-Error "Git was not found on this runner. Install Git for Windows (2.18+) so actions/checkout can fetch the UraniumUI submodule."
+            exit 1
+          }
+
+          Write-Host "Adding $found to PATH"
+          Add-Content -Path $env:GITHUB_PATH -Value $found
 
       - name: Checkout
         uses: actions/checkout@v5
