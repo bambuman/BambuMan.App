@@ -13,7 +13,6 @@
              xmlns:converters="clr-namespace:BambuMan.Converters"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:shared="clr-namespace:BambuMan"
-             xmlns:controls="clr-namespace:BambuMan.UI.Controls"
 
              x:Class="BambuMan.UI.Main.MainPage"
              Title="BambuMan Reader"
@@ -181,7 +180,7 @@
                                 <validation:MinValueValidation MinValue="0" />
                             </material:TextField>
 
-                            <controls:NullableDatePickerField x:Name="TfSpoolBuyDate" FlexLayout.Basis="49%" Margin="0" IsVisible="{Binding ShowBuyDate}" Title="Buy date:" Date="{Binding SpoolBuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
+                            <material:DatePickerField x:Name="TfSpoolBuyDate" FlexLayout.Basis="49%" Margin="0" IsVisible="{Binding ShowBuyDate}" Title="Buy date:" Date="{Binding SpoolBuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
 
                             <material:TextField x:Name="TfSpoolLotNr" FlexLayout.Basis="49%" Margin="0" IsVisible="{Binding ShowLotNr}" Title="Lot nr:" AllowClear="True" Text="{Binding SpoolLotNr,Mode=TwoWay}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Tag}}" />
 
