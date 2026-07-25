@@ -1,10 +1,8 @@
-﻿namespace BambuMan
+namespace BambuMan
 {
     public partial class App
     {
         private Window? mainWindow;
-        private bool isRecreatingShell;
-        private CancellationTokenSource? shellRecreationCts;
         private readonly Dictionary<ShellContent, ImageSource?> shellIcons = new();
 
         public App()
@@ -14,11 +12,6 @@
             HorusStudio.Maui.MaterialDesignControls.MaterialDesignControls.InitializeComponents();
 
             Preferences.Default.Set("default_buy_date", $"{DateTime.Today:yyyy-MM-dd}");
-
-            // UraniumUI controls cache theme colors at construction time (issue #660).
-            // Recreating the AppShell forces all pages and controls to reconstruct
-            // with the correct theme colors.
-            RequestedThemeChanged += OnRequestedThemeChanged;
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
@@ -35,20 +28,8 @@
             return mainWindow;
         }
 
-        private void OnRequestedThemeChanged(object? sender, AppThemeChangedEventArgs e)
-        {
-            // UraniumUI controls cache theme colors at construction (issue #660), so the
-            // shell has to be rebuilt for a theme switch to take effect. Rare and
-            // user-initiated, unlike a resume — a rebuild here is affordable.
-            ScheduleShellRecreation();
-        }
-
         private void OnWindowStopped(object? sender, EventArgs e)
         {
-            // Cancel any pending shell recreation — the window is stopping, so recreating
-            // the shell now would give Glide/Skia a stale Activity context (SIGSEGV).
-            shellRecreationCts?.Cancel();
-
             // Already cleared and cached: a second Stopped without an intervening Resume
             // would otherwise overwrite the cache with the nulls set below.
             if (shellIcons.Count > 0) return;
@@ -92,54 +73,6 @@
             return shell.Items
                 .SelectMany(item => item.Items)
                 .SelectMany(section => section.Items);
-        }
-
-        /// <summary>
-        /// Debounces AppShell recreation to prevent SIGSEGV from concurrent native view teardown.
-        /// Rapid theme changes on Samsung foldable devices can trigger multiple recreation
-        /// requests within milliseconds — only the last one wins.
-        /// </summary>
-        private async void ScheduleShellRecreation()
-        {
-            try
-            {
-                // Cancel any previous pending recreation
-                shellRecreationCts?.Cancel();
-                var cts = new CancellationTokenSource();
-                shellRecreationCts = cts;
-
-                // Wait briefly so rapid config changes coalesce into a single recreation
-                await Task.Delay(150, cts.Token);
-
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    if (cts.IsCancellationRequested) return;
-                    if (mainWindow == null) return;
-                    if (!IsActivityAlive()) return;
-                    if (isRecreatingShell) return;
-
-                    isRecreatingShell = true;
-                    try
-                    {
-                        mainWindow.Page = new AppShell();
-
-                        // Cached icons belong to the shell that was just replaced
-                        shellIcons.Clear();
-                    }
-                    finally
-                    {
-                        isRecreatingShell = false;
-                    }
-                });
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected when a newer recreation request supersedes this one
-            }
-            catch (Exception)
-            {
-                // Suppress to prevent crash in async void during shell recreation
-            }
         }
 
         /// <summary>

@@ -2,7 +2,9 @@
 <?xaml-comp compile="true" ?>
 <ResourceDictionary 
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:enums="clr-namespace:BambuMan.Shared.Enums;assembly=BambuMan.Shared"
+    xmlns:models="clr-namespace:BambuMan.Shared.Models;assembly=BambuMan.Shared">
 
     <Style TargetType="ActivityIndicator">
         <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
@@ -368,6 +370,30 @@
         <Setter Property="BarTextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
         <Setter Property="UnselectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray950}}" />
         <Setter Property="SelectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray200}}" />
+    </Style>
+
+    <!-- Log line color per level. DataTriggers with AppThemeBinding setters rather than a
+         converter, so a theme switch re-colors existing log lines without rebuilding the page.
+         The base setter covers None/Trace/Debug; Critical shares Error's color. -->
+    <Style x:Key="LogLine" TargetType="Label">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource LogTrace}, Dark={StaticResource LogTraceDark}}" />
+        <Style.Triggers>
+            <DataTrigger TargetType="Label" Binding="{Binding Level, x:DataType=models:LogModel}" Value="{x:Static enums:LogLevel.Information}">
+                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource LogInformation}, Dark={StaticResource LogInformationDark}}" />
+            </DataTrigger>
+            <DataTrigger TargetType="Label" Binding="{Binding Level, x:DataType=models:LogModel}" Value="{x:Static enums:LogLevel.Warning}">
+                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource LogWarning}, Dark={StaticResource LogWarningDark}}" />
+            </DataTrigger>
+            <DataTrigger TargetType="Label" Binding="{Binding Level, x:DataType=models:LogModel}" Value="{x:Static enums:LogLevel.Success}">
+                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource LogSuccess}, Dark={StaticResource LogSuccessDark}}" />
+            </DataTrigger>
+            <DataTrigger TargetType="Label" Binding="{Binding Level, x:DataType=models:LogModel}" Value="{x:Static enums:LogLevel.Error}">
+                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource LogError}, Dark={StaticResource LogErrorDark}}" />
+            </DataTrigger>
+            <DataTrigger TargetType="Label" Binding="{Binding Level, x:DataType=models:LogModel}" Value="{x:Static enums:LogLevel.Critical}">
+                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource LogError}, Dark={StaticResource LogErrorDark}}" />
+            </DataTrigger>
+        </Style.Triggers>
     </Style>
 
 </ResourceDictionary>

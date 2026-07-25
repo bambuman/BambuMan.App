@@ -32,7 +32,6 @@
         <ResourceDictionary>
             <toolkit:BoolToObjectConverter x:Key="BoolToColorConverter" TrueObject="{x:Static Colors.Green}" FalseObject="{x:Static Colors.Red}"/>
             <converters:NoNullToBoolConverter x:Key="NoNullToBoolConverter" />
-            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -232,7 +231,7 @@
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="models:LogModel">
                             <StackLayout>
-                                <Label Text="{Binding Content}" TextColor="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"></Label>
+                                <Label Text="{Binding Content}" Style="{StaticResource LogLine}"></Label>
                             </StackLayout>
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>

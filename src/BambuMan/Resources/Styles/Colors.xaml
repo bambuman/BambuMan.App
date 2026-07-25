@@ -108,6 +108,18 @@
     <Color x:Key="Separator">#C8C8C8</Color>
     <Color x:Key="SeparatorDark">#49454F</Color>
 
+    <!-- Log lines (None/Trace/Debug use LogTrace, Critical uses LogError) -->
+    <Color x:Key="LogTrace">#696969</Color>
+    <Color x:Key="LogTraceDark">#9E9E9E</Color>
+    <Color x:Key="LogInformation">#1C1B1F</Color>
+    <Color x:Key="LogInformationDark">#E6E1E5</Color>
+    <Color x:Key="LogWarning">#FF8C00</Color>
+    <Color x:Key="LogWarningDark">#FFB74D</Color>
+    <Color x:Key="LogSuccess">#006400</Color>
+    <Color x:Key="LogSuccessDark">#81C784</Color>
+    <Color x:Key="LogError">#800000</Color>
+    <Color x:Key="LogErrorDark">#EF9A9A</Color>
+
     <!-- Spool info card -->
     <Color x:Key="SpoolCardBackground">#F5EDE0</Color>
     <Color x:Key="SpoolCardBackgroundDark">#2C2520</Color>

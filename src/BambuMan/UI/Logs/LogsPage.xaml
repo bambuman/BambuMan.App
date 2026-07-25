@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:main="clr-namespace:BambuMan.UI.Logs"
              xmlns:models="clr-namespace:BambuMan.Shared.Models;assembly=BambuMan.Shared"
-             xmlns:converters="clr-namespace:BambuMan.Converters"
              xmlns:fa="clr-namespace:UraniumUI.Icons.FontAwesome;assembly=UraniumUI.Icons.FontAwesome"
              x:Class="BambuMan.UI.Logs.LogsPage"
              x:DataType="main:LogsPageViewModel"
@@ -18,12 +17,6 @@
             </ToolbarItem.IconImageSource>
         </ToolbarItem>
     </ContentPage.ToolbarItems>
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
 
     <VerticalStackLayout Padding="10">
         
@@ -46,7 +39,7 @@
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="models:LogModel">
                         <StackLayout>
-                            <Label Text="{Binding Content}" TextColor="{Binding Level, Converter={StaticResource LogLevelToColorConverter}}"></Label>
+                            <Label Text="{Binding Content}" Style="{StaticResource LogLine}"></Label>
                         </StackLayout>
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
