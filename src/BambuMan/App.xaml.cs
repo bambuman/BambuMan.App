@@ -5,6 +5,7 @@
         private Window? mainWindow;
         private bool isRecreatingShell;
         private CancellationTokenSource? shellRecreationCts;
+        private readonly Dictionary<ShellContent, ImageSource?> shellIcons = new();
 
         public App()
         {
@@ -26,7 +27,8 @@
 
             // Workaround for Glide/FontImageSource crash when Android destroys and
             // recreates the Activity (dotnet/maui#12513). Clearing icons on stop prevents
-            // Glide from using a stale Activity context during reconstruction.
+            // Glide from using a stale Activity context during reconstruction; they are
+            // put back on resume.
             mainWindow.Stopped += OnWindowStopped;
             mainWindow.Resumed += OnWindowResumed;
 
@@ -35,7 +37,9 @@
 
         private void OnRequestedThemeChanged(object? sender, AppThemeChangedEventArgs e)
         {
-            // Debounce: theme changes during resume are already handled by OnWindowResumed
+            // UraniumUI controls cache theme colors at construction (issue #660), so the
+            // shell has to be rebuilt for a theme switch to take effect. Rare and
+            // user-initiated, unlike a resume — a rebuild here is affordable.
             ScheduleShellRecreation();
         }
 
@@ -45,29 +49,55 @@
             // the shell now would give Glide/Skia a stale Activity context (SIGSEGV).
             shellRecreationCts?.Cancel();
 
+            // Already cleared and cached: a second Stopped without an intervening Resume
+            // would otherwise overwrite the cache with the nulls set below.
+            if (shellIcons.Count > 0) return;
+
             // Clear font image sources so Glide has nothing to render if Android
             // destroys the Activity while backgrounded (dotnet/maui#12513)
-            if (mainWindow?.Page is Shell shell)
+            foreach (var content in EnumerateShellContents())
             {
-                foreach (var content in shell.Items
-                             .SelectMany(item => item.Items)
-                             .SelectMany(section => section.Items))
-                    content.Icon = null;
+                shellIcons[content] = content.Icon;
+                content.Icon = null;
             }
         }
 
         private void OnWindowResumed(object? sender, EventArgs e)
         {
-            // Recreate AppShell to restore font image sources with a valid Activity context.
-            // Debounced to prevent rapid config changes (orientation + density on foldable
-            // devices) from causing concurrent shell reconstructions that SIGSEGV.
-            ScheduleShellRecreation();
+            // Restore the icons cleared on stop. FontImageSource carries no native state,
+            // so reassigning the cached instance re-renders it against the current Activity.
+            // Rebuilding the whole AppShell here instead tore down and reconstructed every
+            // fragment on the main thread on every resume — an ANR and SIGSEGV source.
+            if (shellIcons.Count == 0) return;
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (!IsActivityAlive()) return;
+
+                foreach (var (content, icon) in shellIcons)
+                    content.Icon = icon;
+
+                shellIcons.Clear();
+            });
+        }
+
+        /// <summary>
+        /// Walks every <see cref="ShellContent"/> of the current shell, or nothing when the
+        /// window has no shell attached.
+        /// </summary>
+        private IEnumerable<ShellContent> EnumerateShellContents()
+        {
+            if (mainWindow?.Page is not Shell shell) return [];
+
+            return shell.Items
+                .SelectMany(item => item.Items)
+                .SelectMany(section => section.Items);
         }
 
         /// <summary>
         /// Debounces AppShell recreation to prevent SIGSEGV from concurrent native view teardown.
-        /// Rapid configuration changes (orientation, density, theme) on Samsung foldable devices
-        /// can trigger multiple recreation requests within milliseconds — only the last one wins.
+        /// Rapid theme changes on Samsung foldable devices can trigger multiple recreation
+        /// requests within milliseconds — only the last one wins.
         /// </summary>
         private async void ScheduleShellRecreation()
         {
@@ -92,6 +122,9 @@
                     try
                     {
                         mainWindow.Page = new AppShell();
+
+                        // Cached icons belong to the shell that was just replaced
+                        shellIcons.Clear();
                     }
                     finally
                     {
