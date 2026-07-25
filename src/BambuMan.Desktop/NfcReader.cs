@@ -19,7 +19,10 @@ public class NfcReader
     public event LogMessageEventHandler? OnLogMessage;
     public event SpoolFoundEventHandler? OnSpoolFound;
 
+    private const int RetryIntervalMs = 10000;
+
     private ISCardMonitor? monitor;
+    private System.Timers.Timer? retryTimer;
 
     public bool ShowApduCommands { get; set; }
 
@@ -29,28 +32,116 @@ public class NfcReader
 
     public bool FullTagScanAndUpload { get; set; }
 
-    public void Start()
+    public bool IsRunning => monitor?.Monitoring == true;
+
+    /// <summary>
+    /// Connects to the PC/SC subsystem and starts monitoring the connected readers.
+    /// Returns false when the Windows smart card service is not running or no reader is present — both are normal on a
+    /// machine that has never had a reader plugged in — and schedules a retry so a reader connected later is picked up.
+    /// </summary>
+    public bool Start()
     {
-        var contextFactory = ContextFactory.Instance;
+        DisposeMonitor();
 
-        using var context = contextFactory.Establish(SCardScope.System);
+        try
+        {
+            var contextFactory = ContextFactory.Instance;
 
-        var readerNames = context.GetReaders();
+            using var context = contextFactory.Establish(SCardScope.System);
 
-        if (ShowLogs) OnLogMessage?.Invoke(LogLevel.Debug, $"Currently connected readers: {string.Join(", ", readerNames)}");
+            var readerNames = context.GetReaders();
 
-        var monitorFactory = MonitorFactory.Instance;
-        monitor = monitorFactory.Create(SCardScope.System);
+            if (ShowLogs) OnLogMessage?.Invoke(LogLevel.Debug, $"Currently connected readers: {string.Join(", ", readerNames)}");
 
-        monitor.StatusChanged += MonitorOnStatusChanged;
-        monitor.CardInserted += MonitorOnCardInserted;
+            if (readerNames.Length == 0)
+            {
+                RetryLater("No smart card reader connected.");
+                return false;
+            }
 
-        if (readerNames.Any()) monitor.Start(readerNames);
+            var monitorFactory = MonitorFactory.Instance;
+            monitor = monitorFactory.Create(SCardScope.System);
+
+            monitor.StatusChanged += MonitorOnStatusChanged;
+            monitor.CardInserted += MonitorOnCardInserted;
+            monitor.MonitorException += MonitorOnMonitorException;
+
+            monitor.Start(readerNames);
+
+            StopRetry();
+
+            OnLogMessage?.Invoke(LogLevel.Success, $"Listening for tags on: {string.Join(", ", readerNames)}");
+
+            return true;
+        }
+        catch (PCSCException e)
+        {
+            RetryLater($"Smart card subsystem unavailable ({e.SCardError}): {e.Message}");
+            return false;
+        }
+    }
+
+    public void Stop()
+    {
+        StopRetry();
+        DisposeMonitor();
+    }
+
+    private void DisposeMonitor()
+    {
+        if (monitor == null) return;
+
+        monitor.StatusChanged -= MonitorOnStatusChanged;
+        monitor.CardInserted -= MonitorOnCardInserted;
+        monitor.MonitorException -= MonitorOnMonitorException;
+
+        monitor.Cancel();
+        monitor.Dispose();
+        monitor = null;
+    }
+
+    private void RetryLater(string reason)
+    {
+        OnLogMessage?.Invoke(LogLevel.Warning, $"{reason} Retrying every {RetryIntervalMs / 1000}s.");
+
+        if (retryTimer != null) return;
+
+        retryTimer = new System.Timers.Timer(RetryIntervalMs) { AutoReset = true };
+
+        retryTimer.Elapsed += (_, _) =>
+        {
+            // Runs on a timer thread — nothing above it can catch, so it has to stay contained here.
+            try
+            {
+                Start();
+            }
+            catch (Exception e)
+            {
+                OnLogMessage?.Invoke(LogLevel.Error, "Error restarting the pcsc reader: " + e);
+            }
+        };
+
+        retryTimer.Start();
+    }
+
+    private void StopRetry()
+    {
+        if (retryTimer == null) return;
+
+        retryTimer.Stop();
+        retryTimer.Dispose();
+        retryTimer = null;
     }
 
     private void MonitorOnStatusChanged(object sender, StatusChangeEventArgs args)
     {
         if (ShowLogs) OnLogMessage?.Invoke(LogLevel.Debug, $"PCSC reader '{args.ReaderName}, new state {args.NewState}");
+    }
+
+    private void MonitorOnMonitorException(object sender, PCSCException exception)
+    {
+        // The monitor thread is dead once this fires (reader unplugged, service stopped) — reconnect instead of going silent.
+        RetryLater($"Reader monitoring stopped ({exception.SCardError}): {exception.Message}");
     }
 
     private void MonitorOnCardInserted(object sender, CardStatusEventArgs args)

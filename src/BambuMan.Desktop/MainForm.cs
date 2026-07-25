@@ -62,8 +62,6 @@ public partial class MainForm : Form
         nfcReader.OnLogMessage += NfcReaderOnOnLogMessage;
         nfcReader.OnSpoolFound += NfcReaderOnOnSpoolFound;
 
-        nfcReader.Start();
-
         spoolmanManager = new SpoolmanManager(null)
         {
             ShowLogs = logSpoolmanApiToolStripMenuItem.Checked,
@@ -95,6 +93,10 @@ public partial class MainForm : Form
         try
         {
             base.OnLoad(e);
+
+            // Started here rather than in the constructor so a PC/SC failure can be reported in a window that already exists.
+            nfcReader?.Start();
+
             if (spoolmanManager != null) await spoolmanManager.Init();
             if (filamentOverrideService != null) await filamentOverrideService.RefreshAsync();
         }
@@ -102,6 +104,12 @@ public partial class MainForm : Form
         {
             AppendText(LogLevel.Error, ex.ToString());
         }
+    }
+
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        nfcReader?.Stop();
+        base.OnFormClosed(e);
     }
 
     #region Events
