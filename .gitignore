@@ -366,3 +366,8 @@ FodyWeavers.xsd
 /CLAUDE.local.md
 
 tmp/**
+
+# The stock [Ll]ogs/ rule above targets build output. This is the app's Logs UI feature
+# folder, so re-include it -- git skips excluded directories entirely, which would
+# otherwise make new files under it invisible to git add.
+!src/BambuMan/UI/Logs/
