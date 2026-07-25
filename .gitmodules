@@ -1,0 +1,4 @@
+[submodule "src/UraniumUI/UraniumUI"]
+	path = src/UraniumUI/UraniumUI
+	url = https://github.com/bambuman/UraniumUI
+	branch = fix/dark-light-mode-change

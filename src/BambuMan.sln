@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.6.11822.322 stable
+VisualStudioVersion = 18.6.11822.322
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BambuMan", "BambuMan\BambuMan.csproj", "{47FB452E-A8EA-4DDB-8CE0-205A9C48F018}"
 EndProject
@@ -27,6 +27,17 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Api", "Api", "{E6B0CDFA-A318-4596-AA80-8369D231DA77}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bambuddy.Api.Test", "Bambuddy.Api.Test\Bambuddy.Api.Test.csproj", "{95E5460E-F229-2A03-0360-D30924A60899}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UraniumUI", "UraniumUI", "{B725F046-2A1E-431A-93CE-6953B4CDE3EA}"
+	ProjectSection(SolutionItems) = preProject
+		UraniumUI\UraniumUI\src\UraniumUI.Icons.MaterialIcons\UraniumUI.Icons.MaterialIcons.csproj = UraniumUI\UraniumUI\src\UraniumUI.Icons.MaterialIcons\UraniumUI.Icons.MaterialIcons.csproj
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumUI", "UraniumUI\UraniumUI\src\UraniumUI\UraniumUI.csproj", "{1B5EAD5F-EA56-052C-9E93-4F7DF83DE815}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumUI.Material", "UraniumUI\UraniumUI\src\UraniumUI.Material\UraniumUI.Material.csproj", "{C4AB426F-E60B-B170-1B6F-30888E7AD750}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumUI.Icons.FontAwesome", "UraniumUI\UraniumUI\src\UraniumUI.Icons.FontAwesome\UraniumUI.Icons.FontAwesome.csproj", "{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -68,6 +79,18 @@ Global
 		{95E5460E-F229-2A03-0360-D30924A60899}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95E5460E-F229-2A03-0360-D30924A60899}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95E5460E-F229-2A03-0360-D30924A60899}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B5EAD5F-EA56-052C-9E93-4F7DF83DE815}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B5EAD5F-EA56-052C-9E93-4F7DF83DE815}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B5EAD5F-EA56-052C-9E93-4F7DF83DE815}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B5EAD5F-EA56-052C-9E93-4F7DF83DE815}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4AB426F-E60B-B170-1B6F-30888E7AD750}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4AB426F-E60B-B170-1B6F-30888E7AD750}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4AB426F-E60B-B170-1B6F-30888E7AD750}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4AB426F-E60B-B170-1B6F-30888E7AD750}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -77,6 +100,9 @@ Global
 		{ABBE14A0-89C5-E9C1-3819-32612AD458B6} = {E6B0CDFA-A318-4596-AA80-8369D231DA77}
 		{CFEF94C7-C59B-1B29-FBAF-996D31190C29} = {E6B0CDFA-A318-4596-AA80-8369D231DA77}
 		{95E5460E-F229-2A03-0360-D30924A60899} = {E6B0CDFA-A318-4596-AA80-8369D231DA77}
+		{1B5EAD5F-EA56-052C-9E93-4F7DF83DE815} = {B725F046-2A1E-431A-93CE-6953B4CDE3EA}
+		{C4AB426F-E60B-B170-1B6F-30888E7AD750} = {B725F046-2A1E-431A-93CE-6953B4CDE3EA}
+		{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E} = {B725F046-2A1E-431A-93CE-6953B4CDE3EA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F8390EFD-C861-448C-AE37-A902A6530CE3}

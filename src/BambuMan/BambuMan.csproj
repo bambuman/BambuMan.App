@@ -117,9 +117,14 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.90" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.10" />
-		<PackageReference Include="UraniumUI.Icons.FontAwesome" Version="3.0.0" />
-		<PackageReference Include="UraniumUI.Icons.MaterialSymbols" Version="3.0.0" />
-		<PackageReference Include="UraniumUI.Material" Version="3.0.0" />
+	</ItemGroup>
+
+	<!-- UraniumUI is referenced from the src/UraniumUI/UraniumUI submodule (fork of v3.0.0)
+	     instead of NuGet, so theme-change fixes can be developed here before being upstreamed. -->
+	<ItemGroup>
+		<ProjectReference Include="..\UraniumUI\UraniumUI\src\UraniumUI.Icons.FontAwesome\UraniumUI.Icons.FontAwesome.csproj" />
+		<ProjectReference Include="..\UraniumUI\UraniumUI\src\UraniumUI.Icons.MaterialSymbols\UraniumUI.Icons.MaterialSymbols.csproj" />
+		<ProjectReference Include="..\UraniumUI\UraniumUI\src\UraniumUI.Material\UraniumUI.Material.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
