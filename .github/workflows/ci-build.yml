@@ -70,7 +70,7 @@ jobs:
       - name: Inject Production Secrets
         shell: pwsh
         run: |
-          $clientFile = "${{ github.workspace }}/src/BambuMan.Shared/TagApiService.cs"
+          $clientFile = "${{ github.workspace }}/src/BambuMan.Shared/Services/TagApiService.cs"
           (Get-Content $clientFile) `
             -replace '___HMAC_SECRET_PLACEHOLDER___', '${{ secrets.ANDROID_HMAC_KEY }}' |
           Set-Content $clientFile
@@ -165,7 +165,7 @@ jobs:
       - name: Inject Production Secrets
         shell: pwsh
         run: |
-          $clientFile = "${{ github.workspace }}/src/BambuMan.Shared/TagApiService.cs"
+          $clientFile = "${{ github.workspace }}/src/BambuMan.Shared/Services/TagApiService.cs"
           (Get-Content $clientFile) `
             -replace '___HMAC_SECRET_PLACEHOLDER___', '${{ secrets.ANDROID_HMAC_KEY }}' |
           Set-Content $clientFile
