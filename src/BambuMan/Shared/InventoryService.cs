@@ -1,4 +1,3 @@
-using BambuMan.Shared;
 using BambuMan.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;

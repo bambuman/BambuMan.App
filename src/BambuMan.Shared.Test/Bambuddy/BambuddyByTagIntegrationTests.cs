@@ -1,5 +1,5 @@
-using BambuMan.Shared;
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
 using Newtonsoft.Json;
 

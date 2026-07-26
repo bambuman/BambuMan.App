@@ -1,5 +1,7 @@
 ﻿using System.Text.RegularExpressions;
-using BambuMan.Shared;
+using BambuMan.Shared.Managers;
+using BambuMan.Shared.Resolvers;
+using BambuMan.Shared.Services;
 using BambuMan.UI.Consent;
 using BambuMan.UI.Logs;
 using BambuMan.UI.Main;

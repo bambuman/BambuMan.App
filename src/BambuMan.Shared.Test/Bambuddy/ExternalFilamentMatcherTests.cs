@@ -1,4 +1,4 @@
-using BambuMan.Shared;
+using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
 using Newtonsoft.Json;
 using System.Text.Json;

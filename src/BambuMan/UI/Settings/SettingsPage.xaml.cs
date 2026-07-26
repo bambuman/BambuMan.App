@@ -1,5 +1,6 @@
-using BambuMan.Shared;
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Managers;
+using BambuMan.Shared.Resolvers;
 using BambuMan.UI.Consent;
 using BambuMan.UI.Scan;
 using CommunityToolkit.Maui;

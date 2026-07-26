@@ -1,4 +1,5 @@
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,7 +13,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
-namespace BambuMan.Shared
+namespace BambuMan.Shared.Managers
 {
     public class SpoolmanManager(ILogger<SpoolmanManager>? logger) : BaseManager(logger)
     {

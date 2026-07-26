@@ -4,6 +4,7 @@ using Android.Content;
 using Android.Nfc;
 using Android.Nfc.Tech;
 using BambuMan.Shared;
+using BambuMan.Shared.Models;
 using BambuMan.Shared.Nfc;
 using Newtonsoft.Json;
 using System.Text;

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text;
 
-namespace BambuMan.Shared
+namespace BambuMan.Shared.Services
 {
     public class TagApiService
     {

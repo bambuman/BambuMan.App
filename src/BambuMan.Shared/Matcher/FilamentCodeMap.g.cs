@@ -3,6 +3,8 @@
 // Source: https://github.com/queengooborg/Bambu-Lab-RFID-Library
 // 274 rows, 294 variants, 12 collisions resolved against the tag dumps.
 
+using BambuMan.Shared.Matcher;
+
 namespace BambuMan.Shared
 {
     /// <summary>

@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using BambuMan.Shared.Managers;
+using BambuMan.Shared.Models;
+using Newtonsoft.Json;
 using SpoolMan.Api.Model;
 
 namespace BambuMan.Shared.Test

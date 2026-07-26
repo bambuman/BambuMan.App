@@ -1,6 +1,8 @@
 using BambuMan.Shared;
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
+using BambuMan.Shared.Services;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using SpoolMan.Api.Model;

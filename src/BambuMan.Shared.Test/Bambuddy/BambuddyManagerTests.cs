@@ -1,7 +1,8 @@
-using BambuMan.Shared;
 using Bambuddy.Api.Client;
 using Bambuddy.Api.Model;
 using Newtonsoft.Json;
+using BambuMan.Shared.Managers;
+using BambuMan.Shared.Models;
 
 namespace BambuMan.Shared.Test.Bambuddy
 {

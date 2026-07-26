@@ -1,11 +1,12 @@
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ExternalFilament = SpoolMan.Api.Model.ExternalFilament;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
-namespace BambuMan.Shared
+namespace BambuMan.Shared.Managers
 {
     /// <summary>
     /// The "no inventory server" option: a scanned tag is matched against the embedded Bambu Lab catalog and

@@ -1,9 +1,11 @@
 ﻿using BambuMan.Interfaces;
-using BambuMan.Shared;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
+using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
 using BambuMan.Shared.Nfc;
+using BambuMan.Shared.Resolvers;
+using BambuMan.Shared.Services;
 using BambuMan.UI.Settings;
 using CommunityToolkit.Maui.Core.Platform;
 using Microsoft.Extensions.Logging;
@@ -297,21 +299,29 @@ namespace BambuMan.UI.Main
             return activeChanged;
         }
 
+        /// <summary>
+        /// Connect the selected backend only. The others are configured and subscribed, but must not
+        /// connect, log, or poll — a backend the user did not select never talks to its server.
+        /// </summary>
         private async Task InitializeBackendsAsync()
         {
+            var active = ActiveManager;
+
             foreach (var manager in backends.All)
             {
-                try
-                {
-                    await manager.Init();
-                }
-                catch (Exception e)
-                {
-                    logger.LogError(e, "Error initializing {Backend}", manager.Backend);
-                }
+                if (manager.Backend != active.Backend) manager.StopHealthChecks();
             }
 
-            _ = ActiveManager.RefreshLocationsAsync();
+            try
+            {
+                await active.Init();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error initializing {Backend}", active.Backend);
+            }
+
+            _ = active.RefreshLocationsAsync();
         }
 
         private async Task SetupNfcAsync()
@@ -697,7 +707,19 @@ namespace BambuMan.UI.Main
                 await viewModel.AddLog(LogLevel.Information, objJsonEnc);
 
                 await viewModel.ClearMessages();
-                await ActiveManager.InventorySpool(obj, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+
+                var active = ActiveManager;
+                SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
+                await active.InventorySpool(obj, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+
+                if (viewModel.FullTagScanAndUpload)
+                {
+                    var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(obj);
+                    if (rateLimited)
+                    {
+                        await viewModel.ShowErrorMessage("Daily upload limit reached (1000 tags/day). Try again tomorrow.");
+                    }
+                }
 
                 //var jsons = new[]
                 //{

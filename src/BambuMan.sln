@@ -29,15 +29,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bambuddy.Api.Test", "Bambuddy.Api.Test\Bambuddy.Api.Test.csproj", "{95E5460E-F229-2A03-0360-D30924A60899}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UraniumUI", "UraniumUI", "{B725F046-2A1E-431A-93CE-6953B4CDE3EA}"
-	ProjectSection(SolutionItems) = preProject
-		UraniumUI\UraniumUI\src\UraniumUI.Icons.MaterialIcons\UraniumUI.Icons.MaterialIcons.csproj = UraniumUI\UraniumUI\src\UraniumUI.Icons.MaterialIcons\UraniumUI.Icons.MaterialIcons.csproj
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumUI", "UraniumUI\UraniumUI\src\UraniumUI\UraniumUI.csproj", "{1B5EAD5F-EA56-052C-9E93-4F7DF83DE815}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumUI.Material", "UraniumUI\UraniumUI\src\UraniumUI.Material\UraniumUI.Material.csproj", "{C4AB426F-E60B-B170-1B6F-30888E7AD750}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumUI.Icons.FontAwesome", "UraniumUI\UraniumUI\src\UraniumUI.Icons.FontAwesome\UraniumUI.Icons.FontAwesome.csproj", "{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumUI.Icons.MaterialIcons", "UraniumUI\UraniumUI\src\UraniumUI.Icons.MaterialIcons\UraniumUI.Icons.MaterialIcons.csproj", "{537D0CF9-3458-6366-1D09-F4DD04517511}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,6 +90,10 @@ Global
 		{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{537D0CF9-3458-6366-1D09-F4DD04517511}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{537D0CF9-3458-6366-1D09-F4DD04517511}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{537D0CF9-3458-6366-1D09-F4DD04517511}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{537D0CF9-3458-6366-1D09-F4DD04517511}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -103,6 +106,7 @@ Global
 		{1B5EAD5F-EA56-052C-9E93-4F7DF83DE815} = {B725F046-2A1E-431A-93CE-6953B4CDE3EA}
 		{C4AB426F-E60B-B170-1B6F-30888E7AD750} = {B725F046-2A1E-431A-93CE-6953B4CDE3EA}
 		{37A48AF6-0F07-0214-4D7C-7AAB1EF5569E} = {B725F046-2A1E-431A-93CE-6953B4CDE3EA}
+		{537D0CF9-3458-6366-1D09-F4DD04517511} = {B725F046-2A1E-431A-93CE-6953B4CDE3EA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F8390EFD-C861-448C-AE37-A902A6530CE3}

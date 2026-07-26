@@ -1,10 +1,12 @@
+using BambuMan.Shared.Enums;
+using BambuMan.Shared.Matcher;
+using BambuMan.Shared.Models;
+using BambuMan.Shared.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using BambuMan.Shared.Enums;
-using BambuMan.Shared.Models;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
-namespace BambuMan.Shared
+namespace BambuMan.Shared.Managers
 {
     /// <summary>
     /// Shared infrastructure for inventory backend managers (SpoolMan, Bambuddy):
@@ -282,6 +284,12 @@ namespace BambuMan.Shared
         #endregion
 
         #region Health check timer
+
+        /// <summary>
+        /// Stop polling the backend. Called on managers that are not the selected backend so an
+        /// inactive backend never keeps hitting its server. The next <see cref="Init"/> restarts it.
+        /// </summary>
+        public void StopHealthChecks() => healthCheckTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
         private void StartHealthCheckTimer(bool healthy = true)
         {

@@ -1,3 +1,5 @@
+using BambuMan.Shared.Matcher;
+
 namespace BambuMan.Shared.Models
 {
     /// <summary>

@@ -1,16 +1,17 @@
-using BambuMan.Shared.Enums;
-using BambuMan.Shared.Models;
 using Bambuddy.Api.Api;
 using Bambuddy.Api.Client;
 using Bambuddy.Api.Extensions;
 using Bambuddy.Api.Model;
+using BambuMan.Shared.Enums;
+using BambuMan.Shared.Matcher;
+using BambuMan.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ExternalFilament = SpoolMan.Api.Model.ExternalFilament;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
-namespace BambuMan.Shared
+namespace BambuMan.Shared.Managers
 {
     /// <summary>
     /// Inventory backend for a Bambuddy server. Mirrors <see cref="SpoolmanManager"/>'s narrow surface but talks

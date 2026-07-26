@@ -1,6 +1,7 @@
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Managers;
 
-namespace BambuMan.Shared
+namespace BambuMan.Shared.Resolvers
 {
     /// <summary>
     /// Factory over the available inventory backend managers. The UI resolves the active backend by

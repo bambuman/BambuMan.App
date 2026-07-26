@@ -1,3 +1,5 @@
+using BambuMan.Shared.Managers;
+using BambuMan.Shared.Matcher;
 using SpoolMan.Api.Model;
 using System.Globalization;
 

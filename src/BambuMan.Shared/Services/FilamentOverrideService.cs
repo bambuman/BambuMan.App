@@ -1,9 +1,10 @@
+using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
-namespace BambuMan.Shared
+namespace BambuMan.Shared.Services
 {
     /// <summary>
     /// Keeps the active <see cref="FilamentOverrideSet"/> up to date: the set compiled into this build, or a

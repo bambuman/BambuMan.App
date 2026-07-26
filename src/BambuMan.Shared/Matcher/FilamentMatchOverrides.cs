@@ -1,6 +1,6 @@
 using BambuMan.Shared.Models;
 
-namespace BambuMan.Shared
+namespace BambuMan.Shared.Matcher
 {
     /// <summary>
     /// The per-SKU matching exceptions compiled into every build. The BambuMan API serves its own copy of

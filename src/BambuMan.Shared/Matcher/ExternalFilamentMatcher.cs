@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using SpoolMan.Api.Client;
 using SpoolMan.Api.Model;
 
-namespace BambuMan.Shared
+namespace BambuMan.Shared.Matcher
 {
     /// <summary>
     /// Backend-neutral matching of a scanned Bambu Lab tag (<see cref="BambuFilamentInfo"/>) against the

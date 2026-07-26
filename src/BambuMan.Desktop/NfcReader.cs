@@ -1,6 +1,7 @@
 ﻿// ReSharper disable LocalizableElement
 
 using BambuMan.Shared;
+using BambuMan.Shared.Models;
 using Newtonsoft.Json;
 using PCSC;
 using PCSC.Exceptions;
