@@ -383,7 +383,6 @@
             txtSpoolLocation.Name = "txtSpoolLocation";
             txtSpoolLocation.Size = new Size(138, 23);
             txtSpoolLocation.TabIndex = 18;
-            txtSpoolLocation.Enter += updateSpool_Click;
             // 
             // label5
             // 
@@ -405,7 +404,6 @@
             nudSpoolPrice.TabIndex = 18;
             nudSpoolPrice.TextAlign = HorizontalAlignment.Right;
             nudSpoolPrice.Value = new decimal(new int[] { 12, 0, 0, 0 });
-            nudSpoolPrice.Enter += updateSpool_Click;
             // 
             // txtSpoolLotNr
             // 
@@ -413,7 +411,6 @@
             txtSpoolLotNr.Name = "txtSpoolLotNr";
             txtSpoolLotNr.Size = new Size(106, 23);
             txtSpoolLotNr.TabIndex = 17;
-            txtSpoolLotNr.Enter += updateSpool_Click;
             // 
             // nudSpoolWeight
             // 
@@ -457,7 +454,6 @@
             nudInitialWeight.TabIndex = 21;
             nudInitialWeight.TextAlign = HorizontalAlignment.Right;
             nudInitialWeight.Value = new decimal(new int[] { 1000, 0, 0, 0 });
-            nudInitialWeight.Enter += updateSpool_Click;
             // 
             // lblEmptyWeight
             // 
@@ -479,7 +475,6 @@
             nudEmptyWeight.TabIndex = 19;
             nudEmptyWeight.TextAlign = HorizontalAlignment.Right;
             nudEmptyWeight.Value = new decimal(new int[] { 250, 0, 0, 0 });
-            nudEmptyWeight.Enter += updateSpool_Click;
             // 
             // gbImportSettings
             // 
