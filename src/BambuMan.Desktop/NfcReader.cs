@@ -210,12 +210,15 @@ public class NfcReader
 
                 #region Fill in keys
 
-                var index = 0;
-
-                for (var i = 3; i < blockData.Length; i += 4)
+                if (FullTagScanAndUpload)
                 {
-                    blockData[i] = aKeys[index].Concat(blockData[i][6..10]).Concat(bKeys[index]).ToArray();
-                    index++;
+                    var index = 0;
+
+                    for (var i = 3; i < blockData.Length; i += 4)
+                    {
+                        blockData[i] = aKeys[index].Concat(blockData[i][6..10]).Concat(bKeys[index]).ToArray();
+                        index++;
+                    }
                 }
 
                 #endregion
