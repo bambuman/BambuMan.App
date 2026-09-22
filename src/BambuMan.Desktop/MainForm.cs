@@ -313,12 +313,16 @@ public partial class MainForm : Form
         {
             if (spoolmanManager == null || currentSpool == null) return;
 
+            var location = txtSpoolLocation.Text;
+            if (location.IsNullOrWhiteSpace())
+                location = txtLocation.Text;
+            
             await spoolmanManager.UpdateSpool(
                 currentSpool,
                 dtpBuyDate.Value,
                 nudSpoolPrice.Value,
                 txtLotNr.Text,
-                txtLocation.Text,
+                location,
                 nudEmptyWeight.Value,
                 nudInitialWeight.Value,
                 nudSpoolWeight.Value,
