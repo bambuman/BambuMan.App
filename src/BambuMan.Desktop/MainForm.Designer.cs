@@ -32,6 +32,14 @@
             menuStrip1 = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             eXitToolStripMenuItem = new ToolStripMenuItem();
+            exportCsvToolStripMenuItem = new ToolStripMenuItem();
+            importCsvToolStripMenuItem = new ToolStripMenuItem();
+            storedSpoolsToolStripMenuItem = new ToolStripMenuItem();
+            fileToolStripSeparator = new ToolStripSeparator();
+            backendToolStripMenuItem = new ToolStripMenuItem();
+            spoolmanBackendToolStripMenuItem = new ToolStripMenuItem();
+            noBackendToolStripMenuItem = new ToolStripMenuItem();
+            storeSpoolsLocallyToolStripMenuItem = new ToolStripMenuItem();
             optionsToolStripMenuItem = new ToolStripMenuItem();
             showNfcLogsToolStripMenuItem = new ToolStripMenuItem();
             showADBCommandsToolStripMenuItem = new ToolStripMenuItem();
@@ -96,7 +104,7 @@
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { eXitToolStripMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { exportCsvToolStripMenuItem, importCsvToolStripMenuItem, storedSpoolsToolStripMenuItem, fileToolStripSeparator, eXitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "File";
@@ -108,12 +116,67 @@
             eXitToolStripMenuItem.Text = "Exit";
             eXitToolStripMenuItem.Click += eXitToolStripMenuItem_Click;
             // 
+            // exportCsvToolStripMenuItem
+            // 
+            exportCsvToolStripMenuItem.Name = "exportCsvToolStripMenuItem";
+            exportCsvToolStripMenuItem.Size = new Size(180, 22);
+            exportCsvToolStripMenuItem.Text = "Export CSV...";
+            exportCsvToolStripMenuItem.Click += exportCsvToolStripMenuItem_Click;
+            // 
+            // importCsvToolStripMenuItem
+            // 
+            importCsvToolStripMenuItem.Name = "importCsvToolStripMenuItem";
+            importCsvToolStripMenuItem.Size = new Size(180, 22);
+            importCsvToolStripMenuItem.Text = "Import CSV...";
+            importCsvToolStripMenuItem.Click += importCsvToolStripMenuItem_Click;
+            // 
+            // storedSpoolsToolStripMenuItem
+            // 
+            storedSpoolsToolStripMenuItem.Name = "storedSpoolsToolStripMenuItem";
+            storedSpoolsToolStripMenuItem.Size = new Size(180, 22);
+            storedSpoolsToolStripMenuItem.Text = "Stored spools...";
+            storedSpoolsToolStripMenuItem.Click += storedSpoolsToolStripMenuItem_Click;
+            // 
+            // fileToolStripSeparator
+            // 
+            fileToolStripSeparator.Name = "fileToolStripSeparator";
+            fileToolStripSeparator.Size = new Size(177, 6);
+            // 
             // optionsToolStripMenuItem
             // 
-            optionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { showNfcLogsToolStripMenuItem, showADBCommandsToolStripMenuItem, writeJsonFilesOnReadToolStripMenuItem, logSpoolmanApiToolStripMenuItem, unknownFilamentEnabledToolStripMenuItem, fullTagScanAndUploadToolStripMenuItem });
+            optionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { backendToolStripMenuItem, storeSpoolsLocallyToolStripMenuItem, showNfcLogsToolStripMenuItem, showADBCommandsToolStripMenuItem, writeJsonFilesOnReadToolStripMenuItem, logSpoolmanApiToolStripMenuItem, unknownFilamentEnabledToolStripMenuItem, fullTagScanAndUploadToolStripMenuItem });
             optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             optionsToolStripMenuItem.Size = new Size(61, 20);
             optionsToolStripMenuItem.Text = "Options";
+            // 
+            // backendToolStripMenuItem
+            // 
+            backendToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { spoolmanBackendToolStripMenuItem, noBackendToolStripMenuItem });
+            backendToolStripMenuItem.Name = "backendToolStripMenuItem";
+            backendToolStripMenuItem.Size = new Size(219, 22);
+            backendToolStripMenuItem.Text = "Backend";
+            // 
+            // spoolmanBackendToolStripMenuItem
+            // 
+            spoolmanBackendToolStripMenuItem.Name = "spoolmanBackendToolStripMenuItem";
+            spoolmanBackendToolStripMenuItem.Size = new Size(180, 22);
+            spoolmanBackendToolStripMenuItem.Text = "Spoolman";
+            spoolmanBackendToolStripMenuItem.Click += spoolmanBackendToolStripMenuItem_Click;
+            // 
+            // noBackendToolStripMenuItem
+            // 
+            noBackendToolStripMenuItem.Name = "noBackendToolStripMenuItem";
+            noBackendToolStripMenuItem.Size = new Size(180, 22);
+            noBackendToolStripMenuItem.Text = "No backend";
+            noBackendToolStripMenuItem.Click += noBackendToolStripMenuItem_Click;
+            // 
+            // storeSpoolsLocallyToolStripMenuItem
+            // 
+            storeSpoolsLocallyToolStripMenuItem.CheckOnClick = true;
+            storeSpoolsLocallyToolStripMenuItem.Name = "storeSpoolsLocallyToolStripMenuItem";
+            storeSpoolsLocallyToolStripMenuItem.Size = new Size(219, 22);
+            storeSpoolsLocallyToolStripMenuItem.Text = "Store spools locally";
+            storeSpoolsLocallyToolStripMenuItem.CheckStateChanged += storeSpoolsLocallyToolStripMenuItem_CheckStateChanged;
             // 
             // showNfcLogsToolStripMenuItem
             // 
@@ -602,5 +665,13 @@
         private ToolStripMenuItem unknownFilamentEnabledToolStripMenuItem;
         private ToolStripMenuItem fullTagScanAndUploadToolStripMenuItem;
         private ToolStripMenuItem testTagsToolStripMenuItem;
+        private ToolStripMenuItem exportCsvToolStripMenuItem;
+        private ToolStripMenuItem importCsvToolStripMenuItem;
+        private ToolStripMenuItem storedSpoolsToolStripMenuItem;
+        private ToolStripSeparator fileToolStripSeparator;
+        private ToolStripMenuItem backendToolStripMenuItem;
+        private ToolStripMenuItem spoolmanBackendToolStripMenuItem;
+        private ToolStripMenuItem noBackendToolStripMenuItem;
+        private ToolStripMenuItem storeSpoolsLocallyToolStripMenuItem;
     }
 }

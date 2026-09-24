@@ -27,12 +27,21 @@ public partial class MainForm : Form
     private const string RegKeyPrice = "Price";
     private const string RegKeyLocation = "Location";
 
+    private const string RegKeyInventoryBackend = "InventoryBackend";
+    private const string RegKeyStoreSpoolsLocally = "StoreSpoolsLocally";
+
     private readonly NfcReader? nfcReader;
     private readonly SpoolmanManager? spoolmanManager;
+    private readonly NoBackendManager? noBackendManager;
     private readonly TagApiService? tagApiService;
     private readonly FilamentOverrideService? filamentOverrideService;
     private Spool? currentSpool;
     private BambuFilamentInfo? currentBambuFilamentInfo;
+
+    // Desktop offers Spoolman and No backend; Bambuddy is mobile only for now.
+    private InventoryBackend backend;
+
+    private BaseManager? ActiveManager => backend == InventoryBackend.NoBackend ? noBackendManager : spoolmanManager;
 
     public MainForm()
     {
@@ -52,6 +61,10 @@ public partial class MainForm : Form
         txtSpoolmanUrl.Text = GetRegistryValue(RegKeySpoolmanUrl, string.Empty);
         nudPrice.Value = GetRegistryValue(RegKeyPrice, 12.0m);
         txtLocation.Text = GetRegistryValue(RegKeyLocation, string.Empty);
+        storeSpoolsLocallyToolStripMenuItem.Checked = GetRegistryValue(RegKeyStoreSpoolsLocally, false);
+        backend = Enum.TryParse<InventoryBackend>(GetRegistryValue(RegKeyInventoryBackend, string.Empty), out var savedBackend) && savedBackend == InventoryBackend.NoBackend
+            ? InventoryBackend.NoBackend
+            : InventoryBackend.Spoolman;
 
         nfcReader = new NfcReader
         {
@@ -72,22 +85,39 @@ public partial class MainForm : Form
             HasNetworkAccess = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable
         };
 
-        spoolmanManager.OnStatusChanged += SpoolmanManagerOnStatusChanged;
-        spoolmanManager.OnLogMessage += SpoolmanManagerOnLogMessage;
+        spoolmanManager.OnStatusChanged += ManagerOnStatusChanged;
+        spoolmanManager.OnLogMessage += ManagerOnLogMessage;
         spoolmanManager.OnSpoolFound += SpoolmanManagerOnSpoolFound;
+
+        var appDataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BambuMan");
+
+        noBackendManager = new NoBackendManager(null, new LocalInventoryStore { Directory = appDataDirectory })
+        {
+            ShowLogs = true,
+            StoreSpoolsLocally = storeSpoolsLocallyToolStripMenuItem.Checked
+        };
+
+        noBackendManager.OnStatusChanged += ManagerOnStatusChanged;
+        noBackendManager.OnLogMessage += ManagerOnLogMessage;
+        noBackendManager.OnShowMessage += NoBackendManagerOnShowMessage;
+        noBackendManager.OnSpoolInfoRead += NoBackendManagerOnSpoolInfoRead;
+        noBackendManager.OnSpoolsChanged += UpdateBackendUi;
 
         tagApiService = new TagApiService(new HttpClient()) { LogAction = AppendText };
 
         filamentOverrideService = new FilamentOverrideService(tagApiService)
         {
             LogAction = AppendText,
-            CacheDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BambuMan")
+            CacheDirectory = appDataDirectory
         };
 
         // Read the cached set eagerly so an offline launch still gets the newest overrides we've seen.
         filamentOverrideService.LoadCache();
 
         spoolmanManager.FilamentOverrides = filamentOverrideService;
+        noBackendManager.FilamentOverrides = filamentOverrideService;
+
+        UpdateBackendUi();
     }
 
     protected override async void OnLoad(EventArgs e)
@@ -99,7 +129,7 @@ public partial class MainForm : Form
             // Started here rather than in the constructor so a PC/SC failure can be reported in a window that already exists.
             nfcReader?.Start();
 
-            if (spoolmanManager != null) await spoolmanManager.Init();
+            if (ActiveManager != null) await ActiveManager.Init();
             if (filamentOverrideService != null) await filamentOverrideService.RefreshAsync();
         }
         catch (Exception ex)
@@ -129,7 +159,7 @@ public partial class MainForm : Form
             var json = JsonConvert.SerializeObject(info, Formatting.Indented);
             AppendText(LogLevel.Information, json);
 
-            if (spoolmanManager != null) await spoolmanManager.InventorySpool(info, dtpBuyDate.Value, nudPrice.Value, txtLotNr.Text, txtLocation.Text);
+            if (ActiveManager != null) await ActiveManager.InventorySpool(info, dtpBuyDate.Value, nudPrice.Value, txtLotNr.Text, txtLocation.Text);
             if (fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null) await tagApiService.UploadNfcTagAsync(info);
         }
         catch (Exception ex)
@@ -149,11 +179,11 @@ public partial class MainForm : Form
         AppendText(level, message);
     }
 
-    private void SpoolmanManagerOnLogMessage(LogLevel level, string message)
+    private void ManagerOnLogMessage(LogLevel level, string message)
     {
         if (InvokeRequired)
         {
-            BeginInvoke(new MethodInvoker(delegate { SpoolmanManagerOnLogMessage(level, message); }));
+            BeginInvoke(new MethodInvoker(delegate { ManagerOnLogMessage(level, message); }));
             return;
         }
 
@@ -188,15 +218,30 @@ public partial class MainForm : Form
         currentBambuFilamentInfo = info;
     }
 
-    private void SpoolmanManagerOnStatusChanged()
+    private void ManagerOnStatusChanged() => UpdateBackendUi();
+
+    private void NoBackendManagerOnShowMessage(bool isError, string message)
     {
         if (InvokeRequired)
         {
-            BeginInvoke(new MethodInvoker(SpoolmanManagerOnStatusChanged));
+            BeginInvoke(new MethodInvoker(delegate { NoBackendManagerOnShowMessage(isError, message); }));
             return;
         }
 
-        tsslStatus.Text = (spoolmanManager?.Status ?? ManagerStatusType.Initializing).GetDescriptionAttr();
+        AppendText(isError ? LogLevel.Error : LogLevel.Success, message);
+    }
+
+    /// <summary>No edit panel without a backend — the tag is written to the log instead.</summary>
+    private void NoBackendManagerOnSpoolInfoRead(SpoolDisplayInfo info)
+    {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new MethodInvoker(delegate { NoBackendManagerOnSpoolInfoRead(info); }));
+            return;
+        }
+
+        var title = info.Matched ? "Spool read:" : "Spool read (not in the filament catalog, tag data only):";
+        AppendText(LogLevel.Success, $"{title}\r\n{string.Join("\r\n", info.Rows.Select(x => $"    {x.Label}: {x.Value}"))}");
     }
 
     #endregion
@@ -299,6 +344,120 @@ public partial class MainForm : Form
         }
     }
 
+    private async void spoolmanBackendToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            await SelectBackendAsync(InventoryBackend.Spoolman);
+        }
+        catch (Exception ex)
+        {
+            AppendText(LogLevel.Error, ex.ToString());
+        }
+    }
+
+    private async void noBackendToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            await SelectBackendAsync(InventoryBackend.NoBackend);
+        }
+        catch (Exception ex)
+        {
+            AppendText(LogLevel.Error, ex.ToString());
+        }
+    }
+
+    private async void storeSpoolsLocallyToolStripMenuItem_CheckStateChanged(object? sender, EventArgs e)
+    {
+        try
+        {
+            var value = SetRegistryValue(RegKeyStoreSpoolsLocally, storeSpoolsLocallyToolStripMenuItem.Checked);
+
+            // Also raised while the constructor restores the saved value, before the manager exists.
+            if (noBackendManager == null) return;
+
+            noBackendManager.StoreSpoolsLocally = value;
+
+            if (backend == InventoryBackend.NoBackend) await noBackendManager.Init();
+
+            UpdateBackendUi();
+        }
+        catch (Exception ex)
+        {
+            AppendText(LogLevel.Error, ex.ToString());
+        }
+    }
+
+    private void exportCsvToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            var spools = noBackendManager?.Spools ?? [];
+
+            if (spools.Count == 0)
+            {
+                AppendText(LogLevel.Warning, "There are no spools to export yet.");
+                return;
+            }
+
+            using var dialog = new SaveFileDialog();
+            dialog.Filter = "CSV files (*.csv)|*.csv";
+            dialog.FileName = LocalSpoolCsv.FileName(DateTime.Now);
+
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+            using (var stream = File.Create(dialog.FileName)) LocalSpoolCsv.Write(stream, spools);
+
+            AppendText(LogLevel.Success, $"Exported {spools.Count} spools to {dialog.FileName}");
+        }
+        catch (Exception ex)
+        {
+            AppendText(LogLevel.Error, ex.ToString());
+        }
+    }
+
+    private async void importCsvToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (noBackendManager is not { IsStoreLoaded: true }) return;
+
+            using var dialog = new OpenFileDialog();
+            dialog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
+
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+            LocalSpoolCsvReadResult result;
+
+            using (var stream = File.OpenRead(dialog.FileName)) result = LocalSpoolCsv.Read(stream);
+
+            foreach (var error in result.Errors) AppendText(LogLevel.Warning, $"{Path.GetFileName(dialog.FileName)}: {error}");
+
+            if (result.Spools.Count == 0)
+            {
+                AppendText(LogLevel.Error, $"No spools imported from {dialog.FileName}");
+                return;
+            }
+
+            var (added, updated) = await noBackendManager.ImportSpoolsAsync(result.Spools);
+
+            AppendText(LogLevel.Success, $"Imported {added} new and {updated} existing spools from {dialog.FileName}" + (result.Errors.Count > 0 ? $", {result.Errors.Count} rows skipped" : ""));
+        }
+        catch (Exception ex)
+        {
+            AppendText(LogLevel.Error, ex.ToString());
+        }
+    }
+
+    private void storedSpoolsToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        if (noBackendManager is not { IsStoreLoaded: true }) return;
+
+        using var form = new LocalInventoryForm(noBackendManager);
+        form.ShowDialog(this);
+    }
+
     private void clearLogsToolStripMenuItem_Click(object? sender, EventArgs e)
     {
         lock (rtbLogs)
@@ -351,6 +510,56 @@ public partial class MainForm : Form
     #endregion
 
     #region Helpers
+
+    private async Task SelectBackendAsync(InventoryBackend value)
+    {
+        if (backend == value) return;
+
+        backend = value;
+        SetRegistryValue(RegKeyInventoryBackend, value.ToString());
+
+        // An inactive backend must not keep polling its server.
+        if (value == InventoryBackend.NoBackend) spoolmanManager?.StopHealthChecks();
+
+        UpdateBackendUi();
+
+        if (ActiveManager != null) await ActiveManager.Init();
+    }
+
+    /// <summary>Menus, panels and status bar for the active backend and, without one, the kept spools.</summary>
+    private void UpdateBackendUi()
+    {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new MethodInvoker(UpdateBackendUi));
+            return;
+        }
+
+        var isNoBackend = backend == InventoryBackend.NoBackend;
+        var stored = isNoBackend && noBackendManager?.IsStoreLoaded == true;
+
+        spoolmanBackendToolStripMenuItem.Checked = !isNoBackend;
+        noBackendToolStripMenuItem.Checked = isNoBackend;
+        storeSpoolsLocallyToolStripMenuItem.Visible = isNoBackend;
+
+        exportCsvToolStripMenuItem.Visible = isNoBackend;
+        importCsvToolStripMenuItem.Visible = stored;
+        storedSpoolsToolStripMenuItem.Visible = stored;
+
+        // Spoolman only: its url and the fields a read-only scan never uses.
+        txtSpoolmanUrl.Enabled = !isNoBackend;
+        btnSetUrl.Enabled = !isNoBackend;
+        dtpBuyDate.Enabled = !isNoBackend;
+        txtLotNr.Enabled = !isNoBackend;
+        if (isNoBackend) gbSpoolInfo.Enabled = false;
+
+        var status = (ActiveManager?.Status ?? ManagerStatusType.Initializing).GetDescriptionAttr();
+
+        if (isNoBackend && noBackendManager != null)
+            status += stored ? $" | Stored spools: {noBackendManager.Spools.Count}" : $" | Scanned spools: {noBackendManager.Spools.Count}";
+
+        tsslStatus.Text = status;
+    }
 
     public void AppendText(LogLevel level, string text)
     {
@@ -480,7 +689,7 @@ public partial class MainForm : Form
         json = JsonConvert.SerializeObject(bambuFilamentInfo, Formatting.Indented);
         AppendText(LogLevel.Information, json);
 
-        if (spoolmanManager != null) await spoolmanManager.InventorySpool(bambuFilamentInfo!, DateTime.Today, 12, string.Empty, string.Empty);
+        if (ActiveManager != null) await ActiveManager.InventorySpool(bambuFilamentInfo!, DateTime.Today, 12, string.Empty, string.Empty);
 
         //await Task.Delay(2000);
 
