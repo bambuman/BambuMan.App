@@ -151,6 +151,13 @@
                 </StackLayout>
             </StackLayout>
 
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="4" Margin="0,5,0,0" IsVisible="{Binding ShowLocalSpools}">
+                <Label Grid.Column="0" Text="{Binding LocalSpoolsText}" FontAttributes="Bold" VerticalOptions="Center"></Label>
+                <Button Grid.Column="1" Padding="8,0" Text="List" IsVisible="{Binding LocalSpoolsStored}" BackgroundColor="{AppThemeBinding Light={StaticResource SecondaryButtonBackground}, Dark={StaticResource SecondaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource SecondaryButtonText}, Dark={StaticResource SecondaryButtonTextDark}}" FontSize="12" HeightRequest="30" Clicked="LocalSpools_OnClicked"></Button>
+                <Button Grid.Column="2" Padding="8,0" Text="Import CSV" IsVisible="{Binding LocalSpoolsStored}" BackgroundColor="{AppThemeBinding Light={StaticResource SecondaryButtonBackground}, Dark={StaticResource SecondaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource SecondaryButtonText}, Dark={StaticResource SecondaryButtonTextDark}}" FontSize="12" HeightRequest="30" Clicked="ImportCsv_OnClicked"></Button>
+                <Button Grid.Column="3" Padding="8,0" Text="Export CSV" BackgroundColor="{AppThemeBinding Light={StaticResource SecondaryButtonBackground}, Dark={StaticResource SecondaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource SecondaryButtonText}, Dark={StaticResource SecondaryButtonTextDark}}" FontSize="12" HeightRequest="30" Clicked="ExportCsv_OnClicked"></Button>
+            </Grid>
+
             <Border HeightRequest="2" BackgroundColor="{AppThemeBinding Light={StaticResource Separator}, Dark={StaticResource SeparatorDark}}" Margin="0,5,0,5" IsVisible="{Binding HasInventoryItems}"></Border>
 
             <VerticalStackLayout HorizontalOptions="Center" Margin="0,20,0,20" IsVisible="{Binding SpoolmanConnecting}">

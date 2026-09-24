@@ -6,6 +6,7 @@ using BambuMan.Shared.Models;
 using BambuMan.Shared.Nfc;
 using BambuMan.Shared.Resolvers;
 using BambuMan.Shared.Services;
+using BambuMan.UI.LocalInventory;
 using BambuMan.UI.Settings;
 using CommunityToolkit.Maui.Core.Platform;
 using Microsoft.Extensions.Logging;
@@ -73,6 +74,8 @@ namespace BambuMan.UI.Main
         }
 
         private BaseManager ActiveManager => backends.Resolve(SettingsPage.GetInventoryBackend());
+
+        private NoBackendManager NoBackend => (NoBackendManager)backends.Resolve(InventoryBackend.NoBackend);
 
         private async void ManagerOnPlayErrorTone()
         {
@@ -220,6 +223,7 @@ namespace BambuMan.UI.Main
                 }
 
                 viewModel.PropertyChanged += ViewModel_PropertyChanged;
+                NoBackend.OnSpoolsChanged += NoBackendOnSpoolsChanged;
 
                 viewModel.ShowSpoolEdit = false;
                 viewModel.ShowSpoolInfo = false;
@@ -236,6 +240,7 @@ namespace BambuMan.UI.Main
                 viewModel.ShowInventoryOptions = !active.IsReadOnly;
                 viewModel.ShowBuyDate = active.EditFields.BuyDate;
                 viewModel.ShowLotNr = active.EditFields.LotNr;
+                viewModel.ShowLocalSpools = active.Backend == InventoryBackend.NoBackend;
 
                 // Only show connecting animation if the active backend's config changed or it's not yet initialized
                 if (activeChanged || !active.IsInitialized)
@@ -288,8 +293,9 @@ namespace BambuMan.UI.Main
                         if (changed) bambuddy.ResetInitialization();
                         break;
 
-                    case InventoryBackend.NoBackend:
-                        // Nothing to configure — no url, no key, no credentials that could change.
+                    case InventoryBackend.NoBackend when manager is NoBackendManager noBackend:
+                        // No url, no key — only whether scanned spools are kept on the device. Applied on its next Init.
+                        noBackend.StoreSpoolsLocally = Preferences.Default.Get(SettingsPage.KeyStoreSpoolsLocally, false);
                         break;
                 }
 
@@ -322,6 +328,8 @@ namespace BambuMan.UI.Main
             }
 
             _ = active.RefreshLocationsAsync();
+
+            UpdateLocalSpools();
         }
 
         private async Task SetupNfcAsync()
@@ -365,6 +373,7 @@ namespace BambuMan.UI.Main
             }
 
             viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+            NoBackend.OnSpoolsChanged -= NoBackendOnSpoolsChanged;
         }
 
         protected override bool OnBackButtonPressed()
@@ -765,9 +774,20 @@ namespace BambuMan.UI.Main
             viewModel.Logs.Clear();
         }
 
-        private void ClearInventory_OnClicked(object? sender, EventArgs e)
+        private async void ClearInventory_OnClicked(object? sender, EventArgs e)
         {
-            viewModel.ClearInventory();
+            try
+            {
+                viewModel.ClearInventory();
+
+                // Without the device store the scanned spools are this session's batch, the same the counter shows,
+                // so clearing it starts a fresh export too. Stored spools are only removed from the list page.
+                if (ActiveManager is NoBackendManager { IsStoreLoaded: false } noBackend) await noBackend.ClearSpoolsAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error in ClearInventory_OnClicked");
+            }
         }
 
         private async void EmailLogs_OnClicked(object? sender, EventArgs e)
@@ -780,6 +800,107 @@ namespace BambuMan.UI.Main
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error in EmailLogs_OnClicked");
+            }
+        }
+
+        #endregion
+
+        #region Local spools
+
+        private void NoBackendOnSpoolsChanged() => UpdateLocalSpools();
+
+        private void UpdateLocalSpools()
+        {
+            var noBackend = NoBackend;
+            var stored = noBackend.IsStoreLoaded;
+            var count = noBackend.Spools.Count;
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                viewModel.LocalSpoolsStored = stored;
+                viewModel.LocalSpoolsText = stored ? $"Stored spools: {count}" : $"Scanned spools: {count}";
+            });
+        }
+
+        private async void LocalSpools_OnClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                await Shell.Current.GoToAsync(nameof(LocalInventoryPage));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error in LocalSpools_OnClicked");
+            }
+        }
+
+        private async void ExportCsv_OnClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                var spools = NoBackend.Spools;
+
+                if (spools.Count == 0)
+                {
+                    await viewModel.ShowInfoMessage("There are no spools to export yet.");
+                    return;
+                }
+
+                var path = Path.Combine(FileSystem.CacheDirectory, LocalSpoolCsv.FileName(DateTime.Now));
+
+                await using (var stream = File.Create(path)) LocalSpoolCsv.Write(stream, spools);
+
+                await Share.Default.RequestAsync(new ShareFileRequest
+                {
+                    Title = "Export spools",
+                    File = new ShareFile(path, "text/csv")
+                });
+            }
+            catch (Exception ex)
+            {
+                await viewModel.ShowErrorMessage("Export failed. See logs.");
+                logger.LogError(ex, "Error in ExportCsv_OnClicked");
+            }
+        }
+
+        private static readonly FilePickerFileType CsvFileType = new(new Dictionary<DevicePlatform, IEnumerable<string>>
+        {
+            // Android file managers label .csv inconsistently, so accept the usual spellings.
+            { DevicePlatform.Android, ["text/csv", "text/comma-separated-values", "application/csv", "application/vnd.ms-excel", "text/plain"] },
+            { DevicePlatform.iOS, ["public.comma-separated-values-text"] }
+        });
+
+        private async void ImportCsv_OnClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                var file = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Import spools CSV", FileTypes = CsvFileType });
+
+                if (file == null) return;
+
+                LocalSpoolCsvReadResult result;
+
+                await using (var stream = await file.OpenReadAsync()) result = LocalSpoolCsv.Read(stream);
+
+                foreach (var error in result.Errors) await viewModel.AddLog(LogLevel.Warning, $"{file.FileName}: {error}");
+
+                if (result.Spools.Count == 0)
+                {
+                    await viewModel.ShowErrorMessage($"No spools imported from {file.FileName}. {result.Errors.FirstOrDefault()}");
+                    return;
+                }
+
+                var (added, updated) = await NoBackend.ImportSpoolsAsync(result.Spools);
+
+                var message = $"Imported {added} new and {updated} existing spools.";
+                if (result.Errors.Count > 0) message += $" {result.Errors.Count} rows skipped, see logs.";
+
+                await viewModel.ShowSuccessMessage(message);
+            }
+            catch (Exception ex)
+            {
+                await viewModel.ShowErrorMessage("Import failed. See logs.");
+                logger.LogError(ex, "Error in ImportCsv_OnClicked");
             }
         }
 

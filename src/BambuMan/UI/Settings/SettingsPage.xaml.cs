@@ -30,6 +30,7 @@ public partial class SettingsPage
     public const string KeyInventoryBackend = "inventory_backend";
     public const string KeyBambuddyUrl = "bambuddy_url";
     public const string KeyBambuddyApiKey = "bambuddy_api_key";
+    public const string KeyStoreSpoolsLocally = "store_spools_locally";
 
     private readonly SettingsPageViewModel viewModel;
     private readonly ILogger<SettingsPage> logger;
@@ -84,6 +85,7 @@ public partial class SettingsPage
             viewModel.ShowLogsOnMainPage = Preferences.Default.Get(ShowLogsOnMainPage, true);
             viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(ShowKeyboardOnSpoolRead, true);
             viewModel.FullTagScanAndUpload = Preferences.Default.Get(FullTagScanAndUpload, false);
+            viewModel.StoreSpoolsLocally = Preferences.Default.Get(KeyStoreSpoolsLocally, false);
             viewModel.OverrideLocationOnRead = backends.Resolve(GetInventoryBackend()).OverrideLocationOnRead;
 
             await ShowConsentPopupIfNeeded();
@@ -100,7 +102,8 @@ public partial class SettingsPage
     {
         try
         {
-            if (!EnsureApiHost()) return;
+            // "No backend" promises nothing is sent to an inventory server, so don't fetch the Spoolman locations either.
+            if (viewModel.IsNoBackend || !EnsureApiHost()) return;
 
             var settingApi = apiHost!.Services.GetRequiredService<ISettingApi>();
 
@@ -380,6 +383,8 @@ public partial class SettingsPage
         if (TfShowKeyboardOnSpoolRead.IsValid) Preferences.Default.Set(ShowKeyboardOnSpoolRead, viewModel.ShowKeyboardOnSpoolRead);
 
         if (TfFullTagScanAndUpload.IsValid) Preferences.Default.Set(FullTagScanAndUpload, viewModel.FullTagScanAndUpload);
+
+        if (TfStoreSpoolsLocally.IsValid) Preferences.Default.Set(KeyStoreSpoolsLocally, viewModel.StoreSpoolsLocally);
 
         if (TfOverrideLocationOnRead.IsValid)
             foreach (var manager in backends.All) manager.OverrideLocationOnRead = viewModel.OverrideLocationOnRead;
