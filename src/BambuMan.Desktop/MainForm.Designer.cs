@@ -32,6 +32,15 @@
             menuStrip1 = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             eXitToolStripMenuItem = new ToolStripMenuItem();
+            exportCsvToolStripMenuItem = new ToolStripMenuItem();
+            importCsvToolStripMenuItem = new ToolStripMenuItem();
+            storedSpoolsToolStripMenuItem = new ToolStripMenuItem();
+            fileToolStripSeparator = new ToolStripSeparator();
+            backendToolStripMenuItem = new ToolStripMenuItem();
+            spoolmanBackendToolStripMenuItem = new ToolStripMenuItem();
+            bambuddyBackendToolStripMenuItem = new ToolStripMenuItem();
+            noBackendToolStripMenuItem = new ToolStripMenuItem();
+            storeSpoolsLocallyToolStripMenuItem = new ToolStripMenuItem();
             optionsToolStripMenuItem = new ToolStripMenuItem();
             showNfcLogsToolStripMenuItem = new ToolStripMenuItem();
             showADBCommandsToolStripMenuItem = new ToolStripMenuItem();
@@ -73,6 +82,8 @@
             gbImportSettings = new GroupBox();
             lblSpoolmanUrl = new Label();
             btnSetUrl = new Button();
+            lblApiKey = new Label();
+            txtApiKey = new TextBox();
             testTagsToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -96,7 +107,7 @@
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { eXitToolStripMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { exportCsvToolStripMenuItem, importCsvToolStripMenuItem, storedSpoolsToolStripMenuItem, fileToolStripSeparator, eXitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "File";
@@ -108,12 +119,74 @@
             eXitToolStripMenuItem.Text = "Exit";
             eXitToolStripMenuItem.Click += eXitToolStripMenuItem_Click;
             // 
+            // exportCsvToolStripMenuItem
+            // 
+            exportCsvToolStripMenuItem.Name = "exportCsvToolStripMenuItem";
+            exportCsvToolStripMenuItem.Size = new Size(180, 22);
+            exportCsvToolStripMenuItem.Text = "Export CSV...";
+            exportCsvToolStripMenuItem.Click += exportCsvToolStripMenuItem_Click;
+            // 
+            // importCsvToolStripMenuItem
+            // 
+            importCsvToolStripMenuItem.Name = "importCsvToolStripMenuItem";
+            importCsvToolStripMenuItem.Size = new Size(180, 22);
+            importCsvToolStripMenuItem.Text = "Import CSV...";
+            importCsvToolStripMenuItem.Click += importCsvToolStripMenuItem_Click;
+            // 
+            // storedSpoolsToolStripMenuItem
+            // 
+            storedSpoolsToolStripMenuItem.Name = "storedSpoolsToolStripMenuItem";
+            storedSpoolsToolStripMenuItem.Size = new Size(180, 22);
+            storedSpoolsToolStripMenuItem.Text = "Stored spools...";
+            storedSpoolsToolStripMenuItem.Click += storedSpoolsToolStripMenuItem_Click;
+            // 
+            // fileToolStripSeparator
+            // 
+            fileToolStripSeparator.Name = "fileToolStripSeparator";
+            fileToolStripSeparator.Size = new Size(177, 6);
+            // 
             // optionsToolStripMenuItem
             // 
-            optionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { showNfcLogsToolStripMenuItem, showADBCommandsToolStripMenuItem, writeJsonFilesOnReadToolStripMenuItem, logSpoolmanApiToolStripMenuItem, unknownFilamentEnabledToolStripMenuItem, fullTagScanAndUploadToolStripMenuItem });
+            optionsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { backendToolStripMenuItem, storeSpoolsLocallyToolStripMenuItem, showNfcLogsToolStripMenuItem, showADBCommandsToolStripMenuItem, writeJsonFilesOnReadToolStripMenuItem, logSpoolmanApiToolStripMenuItem, unknownFilamentEnabledToolStripMenuItem, fullTagScanAndUploadToolStripMenuItem });
             optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             optionsToolStripMenuItem.Size = new Size(61, 20);
             optionsToolStripMenuItem.Text = "Options";
+            // 
+            // backendToolStripMenuItem
+            // 
+            backendToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { bambuddyBackendToolStripMenuItem, spoolmanBackendToolStripMenuItem, noBackendToolStripMenuItem });
+            backendToolStripMenuItem.Name = "backendToolStripMenuItem";
+            backendToolStripMenuItem.Size = new Size(219, 22);
+            backendToolStripMenuItem.Text = "Backend";
+            // 
+            // bambuddyBackendToolStripMenuItem
+            // 
+            bambuddyBackendToolStripMenuItem.Name = "bambuddyBackendToolStripMenuItem";
+            bambuddyBackendToolStripMenuItem.Size = new Size(180, 22);
+            bambuddyBackendToolStripMenuItem.Text = "Bambuddy";
+            bambuddyBackendToolStripMenuItem.Click += bambuddyBackendToolStripMenuItem_Click;
+            // 
+            // spoolmanBackendToolStripMenuItem
+            // 
+            spoolmanBackendToolStripMenuItem.Name = "spoolmanBackendToolStripMenuItem";
+            spoolmanBackendToolStripMenuItem.Size = new Size(180, 22);
+            spoolmanBackendToolStripMenuItem.Text = "Spoolman";
+            spoolmanBackendToolStripMenuItem.Click += spoolmanBackendToolStripMenuItem_Click;
+            // 
+            // noBackendToolStripMenuItem
+            // 
+            noBackendToolStripMenuItem.Name = "noBackendToolStripMenuItem";
+            noBackendToolStripMenuItem.Size = new Size(180, 22);
+            noBackendToolStripMenuItem.Text = "No backend";
+            noBackendToolStripMenuItem.Click += noBackendToolStripMenuItem_Click;
+            // 
+            // storeSpoolsLocallyToolStripMenuItem
+            // 
+            storeSpoolsLocallyToolStripMenuItem.CheckOnClick = true;
+            storeSpoolsLocallyToolStripMenuItem.Name = "storeSpoolsLocallyToolStripMenuItem";
+            storeSpoolsLocallyToolStripMenuItem.Size = new Size(219, 22);
+            storeSpoolsLocallyToolStripMenuItem.Text = "Store spools locally";
+            storeSpoolsLocallyToolStripMenuItem.CheckStateChanged += storeSpoolsLocallyToolStripMenuItem_CheckStateChanged;
             // 
             // showNfcLogsToolStripMenuItem
             // 
@@ -152,7 +225,7 @@
             logSpoolmanApiToolStripMenuItem.CheckState = CheckState.Checked;
             logSpoolmanApiToolStripMenuItem.Name = "logSpoolmanApiToolStripMenuItem";
             logSpoolmanApiToolStripMenuItem.Size = new Size(219, 22);
-            logSpoolmanApiToolStripMenuItem.Text = "Log Spoolman Api";
+            logSpoolmanApiToolStripMenuItem.Text = "Log inventory api";
             logSpoolmanApiToolStripMenuItem.CheckStateChanged += logSpoolmanApiToolStripMenuItem_CheckStateChanged;
             // 
             // unknownFilamentEnabledToolStripMenuItem
@@ -479,6 +552,8 @@
             // gbImportSettings
             // 
             gbImportSettings.Controls.Add(lblSpoolmanUrl);
+            gbImportSettings.Controls.Add(lblApiKey);
+            gbImportSettings.Controls.Add(txtApiKey);
             gbImportSettings.Controls.Add(txtSpoolmanUrl);
             gbImportSettings.Controls.Add(lblBuyDate);
             gbImportSettings.Controls.Add(btnSetUrl);
@@ -512,9 +587,28 @@
             btnSetUrl.Name = "btnSetUrl";
             btnSetUrl.Size = new Size(75, 23);
             btnSetUrl.TabIndex = 5;
-            btnSetUrl.Text = "Change Url";
+            btnSetUrl.Text = "Connect";
             btnSetUrl.UseVisualStyleBackColor = true;
             btnSetUrl.Click += btnSetUrl_Click;
+            // 
+            // lblApiKey
+            // 
+            lblApiKey.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lblApiKey.AutoSize = true;
+            lblApiKey.Location = new Point(447, 63);
+            lblApiKey.Name = "lblApiKey";
+            lblApiKey.Size = new Size(50, 15);
+            lblApiKey.TabIndex = 3;
+            lblApiKey.Text = "API key:";
+            // 
+            // txtApiKey
+            // 
+            txtApiKey.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            txtApiKey.Location = new Point(447, 81);
+            txtApiKey.Name = "txtApiKey";
+            txtApiKey.Size = new Size(294, 23);
+            txtApiKey.TabIndex = 4;
+            txtApiKey.UseSystemPasswordChar = true;
             // 
             // testTagsToolStripMenuItem
             // 
@@ -602,5 +696,16 @@
         private ToolStripMenuItem unknownFilamentEnabledToolStripMenuItem;
         private ToolStripMenuItem fullTagScanAndUploadToolStripMenuItem;
         private ToolStripMenuItem testTagsToolStripMenuItem;
+        private ToolStripMenuItem exportCsvToolStripMenuItem;
+        private ToolStripMenuItem importCsvToolStripMenuItem;
+        private ToolStripMenuItem storedSpoolsToolStripMenuItem;
+        private ToolStripSeparator fileToolStripSeparator;
+        private ToolStripMenuItem backendToolStripMenuItem;
+        private ToolStripMenuItem spoolmanBackendToolStripMenuItem;
+        private ToolStripMenuItem bambuddyBackendToolStripMenuItem;
+        private Label lblApiKey;
+        private TextBox txtApiKey;
+        private ToolStripMenuItem noBackendToolStripMenuItem;
+        private ToolStripMenuItem storeSpoolsLocallyToolStripMenuItem;
     }
 }

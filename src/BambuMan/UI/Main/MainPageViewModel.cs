@@ -34,6 +34,11 @@ namespace BambuMan.UI.Main
         // False for a read-only backend, which hides the controls that only make sense when writing to a server.
         [ObservableProperty] private bool showInventoryOptions = true;
 
+        // The no-backend spool bar: export always, list + import only while spools are stored on the device.
+        [ObservableProperty] private bool showLocalSpools;
+        [ObservableProperty] private bool localSpoolsStored;
+        [ObservableProperty] private string? localSpoolsText;
+
         [ObservableProperty] private decimal? spoolWeight;
         [ObservableProperty] private decimal? spoolEmptyWeight = 250;
         [ObservableProperty] private decimal? spoolInitialWeight;
