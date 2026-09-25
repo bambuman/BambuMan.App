@@ -175,7 +175,7 @@ public partial class MainForm : Form
         nudInitialWeight.Value = spool.InitialWeight ?? spool.Filament.Weight ?? 0;
         nudSpoolWeight.Value = Math.Max(0, nudEmptyWeight.Value + nudInitialWeight.Value - spool.UsedWeight);
         nudSpoolPrice.Value = spool.Price ?? spool.Filament.Price ?? 0;
-        txtLotNr.Text = spool.LotNr;
+        txtSpoolLotNr.Text = spool.LotNr;
         txtSpoolLocation.Text = spool.Location;
         dtpSpoolBuyDate.Value = spool.Extra.TryGetValue("buy_date", out var buyDate) ? DateTime.Parse(buyDate.Replace("\"", "")) : DateTime.Today;
 
@@ -319,9 +319,9 @@ public partial class MainForm : Form
             
             await spoolmanManager.UpdateSpool(
                 currentSpool,
-                dtpBuyDate.Value,
+                dtpSpoolBuyDate.Value,
                 nudSpoolPrice.Value,
-                txtLotNr.Text,
+                txtSpoolLotNr.Text,
                 location,
                 nudEmptyWeight.Value,
                 nudInitialWeight.Value,
