@@ -38,6 +38,7 @@
             fileToolStripSeparator = new ToolStripSeparator();
             backendToolStripMenuItem = new ToolStripMenuItem();
             spoolmanBackendToolStripMenuItem = new ToolStripMenuItem();
+            bambuddyBackendToolStripMenuItem = new ToolStripMenuItem();
             noBackendToolStripMenuItem = new ToolStripMenuItem();
             storeSpoolsLocallyToolStripMenuItem = new ToolStripMenuItem();
             optionsToolStripMenuItem = new ToolStripMenuItem();
@@ -81,6 +82,8 @@
             gbImportSettings = new GroupBox();
             lblSpoolmanUrl = new Label();
             btnSetUrl = new Button();
+            lblApiKey = new Label();
+            txtApiKey = new TextBox();
             testTagsToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -151,10 +154,17 @@
             // 
             // backendToolStripMenuItem
             // 
-            backendToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { spoolmanBackendToolStripMenuItem, noBackendToolStripMenuItem });
+            backendToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { bambuddyBackendToolStripMenuItem, spoolmanBackendToolStripMenuItem, noBackendToolStripMenuItem });
             backendToolStripMenuItem.Name = "backendToolStripMenuItem";
             backendToolStripMenuItem.Size = new Size(219, 22);
             backendToolStripMenuItem.Text = "Backend";
+            // 
+            // bambuddyBackendToolStripMenuItem
+            // 
+            bambuddyBackendToolStripMenuItem.Name = "bambuddyBackendToolStripMenuItem";
+            bambuddyBackendToolStripMenuItem.Size = new Size(180, 22);
+            bambuddyBackendToolStripMenuItem.Text = "Bambuddy";
+            bambuddyBackendToolStripMenuItem.Click += bambuddyBackendToolStripMenuItem_Click;
             // 
             // spoolmanBackendToolStripMenuItem
             // 
@@ -215,7 +225,7 @@
             logSpoolmanApiToolStripMenuItem.CheckState = CheckState.Checked;
             logSpoolmanApiToolStripMenuItem.Name = "logSpoolmanApiToolStripMenuItem";
             logSpoolmanApiToolStripMenuItem.Size = new Size(219, 22);
-            logSpoolmanApiToolStripMenuItem.Text = "Log Spoolman Api";
+            logSpoolmanApiToolStripMenuItem.Text = "Log inventory api";
             logSpoolmanApiToolStripMenuItem.CheckStateChanged += logSpoolmanApiToolStripMenuItem_CheckStateChanged;
             // 
             // unknownFilamentEnabledToolStripMenuItem
@@ -542,6 +552,8 @@
             // gbImportSettings
             // 
             gbImportSettings.Controls.Add(lblSpoolmanUrl);
+            gbImportSettings.Controls.Add(lblApiKey);
+            gbImportSettings.Controls.Add(txtApiKey);
             gbImportSettings.Controls.Add(txtSpoolmanUrl);
             gbImportSettings.Controls.Add(lblBuyDate);
             gbImportSettings.Controls.Add(btnSetUrl);
@@ -575,9 +587,28 @@
             btnSetUrl.Name = "btnSetUrl";
             btnSetUrl.Size = new Size(75, 23);
             btnSetUrl.TabIndex = 5;
-            btnSetUrl.Text = "Change Url";
+            btnSetUrl.Text = "Connect";
             btnSetUrl.UseVisualStyleBackColor = true;
             btnSetUrl.Click += btnSetUrl_Click;
+            // 
+            // lblApiKey
+            // 
+            lblApiKey.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lblApiKey.AutoSize = true;
+            lblApiKey.Location = new Point(447, 63);
+            lblApiKey.Name = "lblApiKey";
+            lblApiKey.Size = new Size(50, 15);
+            lblApiKey.TabIndex = 3;
+            lblApiKey.Text = "API key:";
+            // 
+            // txtApiKey
+            // 
+            txtApiKey.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            txtApiKey.Location = new Point(447, 81);
+            txtApiKey.Name = "txtApiKey";
+            txtApiKey.Size = new Size(294, 23);
+            txtApiKey.TabIndex = 4;
+            txtApiKey.UseSystemPasswordChar = true;
             // 
             // testTagsToolStripMenuItem
             // 
@@ -671,6 +702,9 @@
         private ToolStripSeparator fileToolStripSeparator;
         private ToolStripMenuItem backendToolStripMenuItem;
         private ToolStripMenuItem spoolmanBackendToolStripMenuItem;
+        private ToolStripMenuItem bambuddyBackendToolStripMenuItem;
+        private Label lblApiKey;
+        private TextBox txtApiKey;
         private ToolStripMenuItem noBackendToolStripMenuItem;
         private ToolStripMenuItem storeSpoolsLocallyToolStripMenuItem;
     }
