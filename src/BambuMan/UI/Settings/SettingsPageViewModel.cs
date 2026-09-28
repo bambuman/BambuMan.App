@@ -48,6 +48,7 @@ namespace BambuMan.UI.Settings
         [ObservableProperty] private bool showLogsOnMainPage;
         [ObservableProperty] private bool showKeyboardOnSpoolRead;
         [ObservableProperty] private bool fullTagScanAndUpload;
+        [ObservableProperty] private bool storeSpoolsLocally;
         [ObservableProperty] private bool overrideLocationOnRead;
         [ObservableProperty] private IEnumerable<string> existingLocations = [];
 
@@ -66,9 +67,9 @@ namespace BambuMan.UI.Settings
         public bool ShowServerUrl => !IsNoBackend;
 
         /// <summary>
-        /// Defaults and toggles that only mean anything when a spool is being written somewhere — price,
-        /// location, the unknown-filament import and the two edit-panel conveniences. All meaningless with
-        /// no backend, where the tag is only ever displayed.
+        /// Toggles that only mean anything when a spool is being written to a server — the unknown-filament import,
+        /// the edit-panel conveniences and the server's location list. Meaningless with no backend, where the tag is
+        /// only displayed. Default price and location still apply there: they go into the csv export.
         /// </summary>
         public bool ShowInventoryOptions => !IsNoBackend;
 

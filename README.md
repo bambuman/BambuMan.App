@@ -1,6 +1,6 @@
 # <img alt="logo" src="branding/appiconv2.png" height="36" /> BambuMan
 
-BambuMan imports `Bambu Lab` filament spools into your inventory by reading their `NFC` tag. It supports two inventory backends — [bambuddy](https://bambuddy.cool) and [Spoolman](https://github.com/Donkie/Spoolman) — selectable in the app settings.
+BambuMan imports `Bambu Lab` filament spools into your inventory by reading their `NFC` tag. It supports two inventory backends — [bambuddy](https://bambuddy.cool) and [Spoolman](https://github.com/Donkie/Spoolman) — selectable in the app settings (Android) or the `Options` menu (Windows).
 
 The app tries to match the tag info with the existing [SpoolmanDB](https://github.com/Donkie/SpoolmanDB) entry. When a match is found, the app creates the filament and spool. Imported spools will have the same `tray_uuid` as the `AMS` reports over `MQTT`.
 
@@ -76,11 +76,15 @@ The Android app can inventory into [bambuddy](https://bambuddy.cool). Pick the b
 
  1. You will need [.NET Desktop Runtime 10](https://dotnet.microsoft.com/download/dotnet/10.0) installed
  2. Download the released `BambuMan.exe` or compile from source
- 3. Paste the Spoolman URL and click `Change Url` button
+ 3. Pick the backend in `Options` → `Backend`: **Bambuddy**, **Spoolman** or **No backend**
+ 4. Bambuddy: paste the bambuddy address (for example `http://host:8000`) and the API key (created as described in [Android — bambuddy](#android--bambuddy)), then click `Connect`
+	 - You can also paste bambuddy's setup link (`bambuddy://config?...`) into the url box; `Connect` fills in both fields
+ 5. Spoolman: paste the Spoolman URL and click `Connect`
 	 - BambuMan supports basic authentication, URL format `http[s]://username:password@host[:port]/`
 	 - If the password contains special characters (like `@` `:`) it must be URL encoded
- 4. The app connects to Spoolman and creates the necessary extra fields and default vendor.
- 5. You can start reading `NFC` tags.
+	 - The app connects to Spoolman and creates the necessary extra fields and default vendor.
+ 6. Once the status bar shows `Ready to inventory fillament`, you can start reading `NFC` tags. A scanned spool is created in the backend, or found again by its tag if it is already there, and its weight, price and location can be edited in the spool panel.
+ 7. No backend: scanned tags are only shown in the log. `Options` → `Store spools locally` keeps them on the computer, and `File` → `Export CSV...` writes them to a file that bambuddy can import.
 
 ## F-Droid repository
 

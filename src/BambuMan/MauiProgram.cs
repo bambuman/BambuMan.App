@@ -3,6 +3,7 @@ using BambuMan.Shared.Managers;
 using BambuMan.Shared.Resolvers;
 using BambuMan.Shared.Services;
 using BambuMan.UI.Consent;
+using BambuMan.UI.LocalInventory;
 using BambuMan.UI.Logs;
 using BambuMan.UI.Main;
 using BambuMan.UI.Scan;
@@ -140,6 +141,8 @@ namespace BambuMan
             services.AddTransient<SettingsPageViewModel>();
             services.AddTransient<LogsPageViewModel>();
             services.AddTransient<ScanPage>();
+            services.AddTransient<LocalInventoryPage>();
+            services.AddTransient<LocalInventoryPageViewModel>();
             services.AddTransient<TagUploadConsentPopup>();
 
             services.AddHttpClient();
@@ -162,6 +165,8 @@ namespace BambuMan
 
                 return service;
             });
+
+            services.AddSingleton<ILocalInventoryStore>(_ => new LocalInventoryStore { Directory = FileSystem.AppDataDirectory });
 
             services.AddSingleton<SpoolmanManager>();
             services.AddSingleton<BambuddyManager>();

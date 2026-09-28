@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:BambuMan.UI.LocalInventory"
+             x:Class="BambuMan.UI.LocalInventory.LocalInventoryPage"
+             x:DataType="local:LocalInventoryPageViewModel"
+             Title="Stored spools">
+
+    <Grid RowDefinitions="Auto,Auto,*" Padding="10">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,5">
+            <Label Grid.Column="0" Text="{Binding CountText}" FontAttributes="Bold" VerticalOptions="Center"></Label>
+            <Button Grid.Column="1" Padding="18,0" Text="Delete all" BackgroundColor="{AppThemeBinding Light={StaticResource TertiaryButtonBackground}, Dark={StaticResource TertiaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource TertiaryButtonText}, Dark={StaticResource TertiaryButtonTextDark}}" FontSize="14" HeightRequest="30" Clicked="DeleteAll_OnClicked"></Button>
+        </Grid>
+
+        <Border Grid.Row="1" HeightRequest="2" BackgroundColor="{AppThemeBinding Light={StaticResource Separator}, Dark={StaticResource SeparatorDark}}" Margin="0,5,0,5"></Border>
+
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Spools}">
+            <CollectionView.EmptyView>
+                <Label Text="No spools stored yet. Scan a spool to add it." Margin="0,10,0,0"></Label>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="local:LocalSpoolItem">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Padding="0,6">
+                        <Border Grid.Column="0" WidthRequest="28" HeightRequest="28" StrokeShape="RoundRectangle 14" Stroke="{AppThemeBinding Light={StaticResource Separator}, Dark={StaticResource SeparatorDark}}" BackgroundColor="{Binding Color}" VerticalOptions="Center"></Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label Text="{Binding Title}" FontAttributes="Bold"></Label>
+                            <Label Text="{Binding Subtitle}" FontSize="12"></Label>
+                        </VerticalStackLayout>
+                        <Button Grid.Column="2" Padding="12,0" Text="Delete" FontSize="12" HeightRequest="30" VerticalOptions="Center" CommandParameter="{Binding Key}" Clicked="Delete_OnClicked" BackgroundColor="{AppThemeBinding Light={StaticResource SecondaryButtonBackground}, Dark={StaticResource SecondaryButtonBackgroundDark}}" TextColor="{AppThemeBinding Light={StaticResource SecondaryButtonText}, Dark={StaticResource SecondaryButtonTextDark}}"></Button>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

@@ -31,7 +31,12 @@
             <md:MaterialSegmentedButton ItemsSource="{Binding BackendItems}" SelectedItem="{Binding SelectedBackendItem}" Type="Filled" HorizontalOptions="Fill" Margin="0,0,0,5" />
 
             <Label IsVisible="{Binding IsNoBackend}" FontSize="12" Margin="0,0,0,5"
-                   Text="Scanned tags are shown read-only. Nothing is sent to an inventory server, and it works offline." />
+                   Text="Scanned tags are shown read-only and can be exported to CSV. Nothing is sent to an inventory server, and it works offline." />
+
+            <material:CheckBox x:Name="TfStoreSpoolsLocally" IsVisible="{Binding IsNoBackend}" Text="Store spools locally" IsChecked="{Binding StoreSpoolsLocally, Mode=TwoWay}" Margin="10,0,10,0" />
+
+            <Label IsVisible="{Binding IsNoBackend}" FontSize="12" Margin="10,0,10,5"
+                   Text="Keeps scanned spools on this device between app starts, so they can be listed, exported and imported later. Unchecked, only this session's scans are exported." />
 
             <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowServerUrl}">
                 <material:TextField x:Name="TfServerUrl" Grid.Column="0" Title="Server url:"
@@ -81,7 +86,7 @@
 
             <material:DatePickerField x:Name="TfBuyDate" IsVisible="{Binding IsSpoolman}" Title="Buy date:" Date="{Binding BuyDate,Mode=TwoWay}" Format="yyyy-MM-dd" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Calendar_month}}" />
 
-            <material:TextField x:Name="TfPrice" IsVisible="{Binding ShowInventoryOptions}" Title="Price:" Keyboard="Numeric" Text="{Binding DefaultPrice,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}">
+            <material:TextField x:Name="TfPrice" Title="Price:" Keyboard="Numeric" Text="{Binding DefaultPrice,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Sell}}">
                 <validation1:NumericNullableValidation  />
                 <validation:MinValueValidation MinValue="0" />
             </material:TextField>
@@ -90,9 +95,9 @@
 
             <!--<material:TextField x:Name="TfLocation" Title="Location:" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />-->
 
-            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ShowInventoryOptions}">
+            <Grid ColumnDefinitions="*,Auto">
                 <material:AutoCompleteTextField x:Name="TfLocation" Grid.Column="0" Title="Location:" Threshold="1" Text="{Binding DefaultLocation,Mode=TwoWay}" AllowClear="True" ItemsSource="{Binding ExistingLocations}" Icon="{FontImageSource FontFamily=MaterialSharp, Glyph={x:Static m:MaterialSharp.Map}}" />
-                <Button Grid.Column="1" Clicked="RefreshLocations_OnClicked"
+                <Button Grid.Column="1" Clicked="RefreshLocations_OnClicked" IsVisible="{Binding ShowInventoryOptions}"
                         VerticalOptions="Start" Margin="6,6,0,0" Padding="10,4"
                         HeightRequest="48"
                         BackgroundColor="Transparent"

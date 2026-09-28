@@ -1,4 +1,5 @@
 ﻿using BambuMan.Shared.Enums;
+using BambuMan.UI.LocalInventory;
 using BambuMan.UI.Scan;
 using BambuMan.UI.Settings;
 
@@ -9,6 +10,7 @@ namespace BambuMan
         public AppShell()
         {
             Routing.RegisterRoute(nameof(ScanPage), typeof(ScanPage));
+            Routing.RegisterRoute(nameof(LocalInventoryPage), typeof(LocalInventoryPage));
 
             InitializeComponent();
 

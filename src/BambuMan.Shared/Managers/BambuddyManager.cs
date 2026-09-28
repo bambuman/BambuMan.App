@@ -421,11 +421,20 @@ namespace BambuMan.Shared.Managers
             return null;
         }
 
+        /// <summary>Empty spool weight (g) Bambuddy is given for a Bambu spool.</summary>
+        public const int CoreWeight = 250;
+
+        /// <summary>Filament weight (g) printed on the label; a tag without one is taken as a 1 kg spool.</summary>
+        public static int LabelWeight(BambuFilamentInfo info) => info.SpoolWeight ?? 1000;
+
+        /// <summary>Bambuddy prices by the kilogram; BambuMan's price is for the whole spool.</summary>
+        public static decimal? CostPerKg(decimal? price, int labelWeight) => price.HasValue ? price.Value / (labelWeight / 1000m) : null;
+
         /// <summary>Map a scanned tag + matched catalog entry to a Bambuddy spool-create body, converting per-spool price to cost_per_kg.</summary>
         public static SpoolCreate BuildSpoolCreate(BambuFilamentInfo info, ExternalFilament? matched, decimal? price, string? location)
         {
-            var labelWeight = info.SpoolWeight ?? 1000;
-            decimal? costPerKg = price.HasValue ? price.Value / (labelWeight / 1000m) : null;
+            var labelWeight = LabelWeight(info);
+            var costPerKg = CostPerKg(price, labelWeight);
             var (material, subtype, slicerFilament, slicerFilamentName) = DeriveFilament(info);
 
             return new SpoolCreate(
@@ -435,7 +444,7 @@ namespace BambuMan.Shared.Managers
                 rgba: new Option<string?>(info.Color),
                 brand: new Option<string?>("Bambu"), // Bambuddy's brand for Bambu filaments is "Bambu" (matches its slicer presets)
                 labelWeight: new Option<int?>(labelWeight),
-                coreWeight: new Option<int?>(250),
+                coreWeight: new Option<int?>(CoreWeight),
                 slicerFilament: new Option<string?>(slicerFilament),
                 slicerFilamentName: new Option<string?>(slicerFilamentName),
                 nozzleTempMin: new Option<int?>((int?)info.MinTemperatureForHotend),
@@ -453,7 +462,7 @@ namespace BambuMan.Shared.Managers
         /// unique material id with a leading 'G' ("FA16" → "GFA16" = Bambu PLA Wood). Setting slicer_filament on
         /// create stops Bambuddy's edit form demanding a preset (and keeps our brand instead of it forcing "Bambu").
         /// </summary>
-        private static (string material, string? subtype, string? slicerFilament, string? slicerFilamentName) DeriveFilament(BambuFilamentInfo info)
+        public static (string material, string? subtype, string? slicerFilament, string? slicerFilamentName) DeriveFilament(BambuFilamentInfo info)
         {
             var material = info.FilamentType ?? "Unknown";
             string? subtype = null;
