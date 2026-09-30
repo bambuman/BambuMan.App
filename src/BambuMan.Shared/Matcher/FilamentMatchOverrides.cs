@@ -110,6 +110,9 @@ namespace BambuMan.Shared.Matcher
                 new(new(MaterialVariantIdentifier: "A19-P00"), "bambulab_pla_puremilkypink_1000_175_n"),
                 new(new(MaterialVariantIdentifier: "A19-B00"), "bambulab_pla_silk+babyblue_1000_175_n"),
                 new(new(MaterialVariantIdentifier: "A19-A00"), "bambulab_pla_pureapricot_1000_175_n"),
+                new(new(MaterialVariantIdentifier: "A00-Y0"), "bambulab_pla_yellow_1000_175_n"),
+                new(new(MaterialVariantIdentifier: "A18-D1"), "bambulab_pla_litegray_1000_175_n"),
+                new(new(MaterialVariantIdentifier: "G00-C1"), "bambulab_petg_clear_1000_175_n"),
 
                 new(new(DetailedFilamentType: "PLA Basic", Color: "84754E"), "bambulab_pla_bronze_1000_175_n")
             ],

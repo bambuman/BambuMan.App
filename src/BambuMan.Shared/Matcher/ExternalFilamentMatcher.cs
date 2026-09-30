@@ -189,6 +189,7 @@ namespace BambuMan.Shared.Matcher
             {
                 var type when type.EqualsCI("PETG Basic") => query.Where(x => x.Name.StartsWithCI("Basic ")),
                 var type when type.EqualsCI("PETG HF") => query.Where(x => x.Name.StartsWithCI("HF ")),
+                var type when type.EqualsCI("PETG Matte") => query.Where(x => x.Name.StartsWithCI("Matte ")),
                 var type when type.EqualsCI("PC FR") => query.Where(x => x.Name.StartsWithCI("FR ")),
 
                 var type when type.ContainsCI("Basic") => query.Where(x => x.Finish == null && x.Pattern == null && !x.Name.ContainsCI("Aero") && !x.Name.ContainsCI("Tough") && !x.Name.ContainsCI("Lite") && !x.Name.ContainsCI("Pure")),
