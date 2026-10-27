@@ -27,6 +27,8 @@ namespace BambuMan.UI.Settings
 
         [ObservableProperty] private string? bambuddyApiKey;
 
+        [ObservableProperty] private TextScale textScale;
+
         /// <summary>Single URL field shown in the UI; proxies to the active backend's stored URL (reloads on backend switch).</summary>
         public string? ServerUrl
         {
