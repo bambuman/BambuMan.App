@@ -327,6 +327,12 @@ public partial class SettingsPage
 
         try
         {
+            if (!Vm.ValidateServerUrl())
+            {
+                Toasts.Show(Vm.ServerUrlError ?? "Invalid URL", ToastKind.Error, true);
+                return;
+            }
+
             if (Vm.IsBambuddy) await TestBambuddyUrlAsync();
             else await TestSpoolmanUrlAsync();
         }
