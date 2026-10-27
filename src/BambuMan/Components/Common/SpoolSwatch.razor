@@ -35,5 +35,5 @@
     }
 
     /// <summary>The ui model carries <c>#AARRGGBB</c>; CSS wants <c>#RRGGBBAA</c>.</summary>
-    private static string ToCss(string argbHex) => argbHex.Length == 9 ? $"#{argbHex[3..]}{argbHex[1..3]}" : argbHex;
+    public static string ToCss(string argbHex) => argbHex.Length == 9 ? $"#{argbHex[3..]}{argbHex[1..3]}" : argbHex;
 }

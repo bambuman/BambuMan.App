@@ -21,7 +21,7 @@
             @foreach (var spool in Vm.Spools)
             {
                 <div class="list-row" @key="spool.Key">
-                    <div class="swatch round" style="background: @spool.Color"></div>
+                    <div class="swatch round" style="background: @SpoolSwatch.ToCss(spool.Color)"></div>
                     <div class="list-row-text">
                         <div class="list-row-title">@spool.Title</div>
                         <div class="list-row-sub">@spool.Subtitle</div>
