@@ -65,6 +65,8 @@ namespace BambuMan
 
                         // On Android this is the SDK's generated installation id.
                         evt.Contexts.Device.DeviceUniqueIdentifier = null;
+                        // The name the user gave the device, which often contains their own name.
+                        evt.Contexts.Device.Name = null;
 
                         if (evt.Message is { } message)
                         {
