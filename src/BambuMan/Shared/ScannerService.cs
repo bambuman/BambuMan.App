@@ -638,6 +638,11 @@ namespace BambuMan
 
                 viewModel.NewVersionAvailable = !tagName.Equals(currentTagName, StringComparison.CurrentCultureIgnoreCase);
                 viewModel.NewVersionText = $"New version available: {tagName}";
+
+                //In debug we should not show it hoggs screen
+#if DEBUG
+                viewModel.NewVersionAvailable = false;
+#endif
             }
             catch (Exception)
             {
