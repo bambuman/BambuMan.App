@@ -544,7 +544,23 @@ namespace BambuMan
                     return;
                 }
 
-                if (!tagInfo.IsSupported)
+                if (tagInfo is MifareReadFailure failure)
+                {
+                    SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
+
+                    // Counts and the phone's MIFARE feature flag only, so the logs tell an unsupported phone from a
+                    // tag moved away mid-read. No keys or tag ids.
+                    logger.LogWarning("MIFARE read failed ({Reason}): {SectorsAuthenticated}/{SectorCount} sectors authenticated, {BlocksRead} blocks read, com.nxp.mifare: {HasMifareFeature}",
+                        failure.Reason, failure.SectorsAuthenticated, failure.SectorCount, failure.BlocksRead, failure.HasMifareFeature);
+                    await viewModel.AddLog(LogLevel.Warning, failure.ToString());
+
+                    await viewModel.ShowErrorMessage(failure.IsAuthenticationUnsupported
+                        ? "This phone couldn't unlock the tag. Some phones' NFC chips (e.g. Google Pixel) can't read Bambu Lab (MIFARE Classic) tags."
+                        : "Tag read was interrupted, hold the phone still on the tag and try again.");
+
+                    if (toneGenerator != null) await toneGenerator.PlayAlarmTone();
+                }
+                else if (!tagInfo.IsSupported)
                 {
                     SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
                     await viewModel.ShowErrorMessage("Error reading tag, please try again!");
