@@ -1,0 +1,49 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject NavigationManager Navigation
+@inject AppNavigation AppNavigation
+
+<div class="app-shell @(menuOpen ? "menu-open" : null)">
+
+    <header class="topbar">
+        <button class="btn-icon" aria-label="Menu" @onclick="ToggleMenu"><Blazicon Svg="Lucide.Menu" /></button>
+        <a class="brand" href="">
+            <img src="img/logo.svg" alt="" />
+            <span class="brand-name">BambuMan</span>
+        </a>
+    </header>
+
+    <div class="sidebar-backdrop" @onclick="CloseMenu"></div>
+
+    <NavMenu />
+
+    <main class="content">
+        <div class="page">
+            @Body
+        </div>
+    </main>
+
+    <ToastHost />
+</div>
+
+@code {
+    private bool menuOpen;
+
+    protected override void OnInitialized()
+    {
+        AppNavigation.Attach(Navigation);
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void ToggleMenu() => menuOpen = !menuOpen;
+
+    private void CloseMenu() => menuOpen = false;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        menuOpen = false;
+        StateHasChanged();
+    }
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

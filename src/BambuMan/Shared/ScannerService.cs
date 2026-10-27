@@ -1,4 +1,4 @@
-﻿using BambuMan.Interfaces;
+using BambuMan.Interfaces;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Managers;
@@ -6,9 +6,8 @@ using BambuMan.Shared.Models;
 using BambuMan.Shared.Nfc;
 using BambuMan.Shared.Resolvers;
 using BambuMan.Shared.Services;
-using BambuMan.UI.LocalInventory;
+using BambuMan.UI.Main;
 using BambuMan.UI.Settings;
-using CommunityToolkit.Maui.Core.Platform;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,30 +16,36 @@ using System.Globalization;
 using System.Text;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
-namespace BambuMan.UI.Main
+namespace BambuMan
 {
-    public partial class MainPage
+    /// <summary>
+    /// Wires NFC and the inventory backends to the scan page state. A singleton rather than page code, because Blazor
+    /// pages are rebuilt on every navigation while tag reads and backend events must keep flowing into the same state.
+    /// </summary>
+    public class ScannerService
     {
         private readonly MainPageViewModel viewModel;
-
         private readonly IInventoryBackendResolver backends;
-        private readonly ILogger<MainPage> logger;
+        private readonly ILogger<ScannerService> logger;
         private readonly IToneGenerator? toneGenerator;
         private readonly IInvokeIndent invokeIndent;
         private readonly TagApiService tagApiService;
         private readonly IFilamentOverrideService filamentOverrides;
+        private readonly ToastService toasts;
 
-        public MainPage(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<MainPage> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IFilamentOverrideService filamentOverrides)
+        private bool versionChecked;
+
+        public ScannerService(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<ScannerService> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IFilamentOverrideService filamentOverrides, ToastService toasts)
         {
-            InitializeComponent();
-
+            this.viewModel = viewModel;
             this.backends = backends;
-
             this.logger = logger;
             this.toneGenerator = toneGenerator;
             this.invokeIndent = invokeIndent;
             this.tagApiService = tagApiService;
             this.filamentOverrides = filamentOverrides;
+            this.toasts = toasts;
+
             this.filamentOverrides.LogAction = async void (level, message) =>
             {
                 try
@@ -64,18 +69,51 @@ namespace BambuMan.UI.Main
                 }
             };
 
-            this.viewModel = viewModel;
-            BindingContext = viewModel;
+            // Subscribed for the app's lifetime: this service is a singleton, so there is no page to unsubscribe with.
+            foreach (var manager in backends.All)
+            {
+                manager.OnStatusChanged += ManagerOnStatusChanged;
+                manager.OnLogMessage += ManagerOnLogMessage;
+                manager.OnShowMessage += ManagerOnShowMessage;
+                manager.OnPlayErrorTone += ManagerOnPlayErrorTone;
+                manager.OnSpoolFound += ManagerOnSpoolFound;
+                manager.OnSpoolInfoRead += ManagerOnSpoolInfoRead;
+                manager.OnLocationsLoaded += ManagerOnLocationsLoaded;
+            }
 
-            viewModel.ShowLogsOnMainPage = Preferences.Default.Get(SettingsPage.ShowLogsOnMainPage, true);
-            viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
-            viewModel.FullTagScanAndUpload = Preferences.Default.Get(SettingsPage.FullTagScanAndUpload, false);
-
+            viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            NoBackend.OnSpoolsChanged += NoBackendOnSpoolsChanged;
         }
 
-        private BaseManager ActiveManager => backends.Resolve(SettingsPage.GetInventoryBackend());
+        /// <summary>Raised with true when a read spool should take keyboard focus, false when the edit card closes.</summary>
+        public event Action<bool>? SpoolEditFocusRequested;
+
+        public MainPageViewModel ViewModel => viewModel;
+
+        public BaseManager ActiveManager => backends.Resolve(SettingsPage.GetInventoryBackend());
 
         private NoBackendManager NoBackend => (NoBackendManager)backends.Resolve(InventoryBackend.NoBackend);
+
+        /// <summary>
+        /// Called whenever the scan page is shown: re-reads settings (they may have just changed), connects the
+        /// selected backend and (re)starts NFC listening.
+        /// </summary>
+        public async Task ActivateAsync()
+        {
+            await ApplySettingsAsync();
+            await InitializeBackendsAsync();
+            await SetupNfcAsync();
+            await RefreshFilamentOverridesAsync().ConfigureAwait(false);
+#if !GOOGLE_PLAY
+            if (!versionChecked)
+            {
+                versionChecked = true;
+                await CheckVersion().ConfigureAwait(false);
+            }
+#endif
+        }
+
+        #region Manager events
 
         private async void ManagerOnPlayErrorTone()
         {
@@ -89,29 +127,27 @@ namespace BambuMan.UI.Main
             }
         }
 
-        private async void ManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
+        private void ManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
         {
-            try
+            // On the main thread, so the inventory counter is updated before HasInventoryItems is read back from it.
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                viewModel.InventorySpool(found, info);
-
-                // A read-only backend shows the info card from OnSpoolInfoRead instead; there is nothing to edit.
-                if (ActiveManager.IsReadOnly) return;
-
-                viewModel.ShowSpool(found);
-
-                if (viewModel.ShowKeyboardOnSpoolRead)
+                try
                 {
-                    TfSpoolWeight.Focus();
-                    TfSpoolWeight.SelectAllText();
+                    viewModel.InventorySpool(found, info);
 
-                    await TfSpoolWeight.EntryView.ShowKeyboardAsync(CancellationToken.None);
+                    // A read-only backend shows the info card from OnSpoolInfoRead instead; there is nothing to edit.
+                    if (ActiveManager.IsReadOnly) return;
+
+                    viewModel.ShowSpool(found, info);
+
+                    if (viewModel.ShowKeyboardOnSpoolRead) SpoolEditFocusRequested?.Invoke(true);
                 }
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Error in ManagerOnSpoolFound");
-            }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error in ManagerOnSpoolFound");
+                }
+            });
         }
 
         private void ManagerOnSpoolInfoRead(SpoolDisplayInfo info)
@@ -135,8 +171,7 @@ namespace BambuMan.UI.Main
                 if (isError)
                 {
                     await viewModel.ShowErrorMessage(message);
-                    var toast = CommunityToolkit.Maui.Alerts.Toast.Make(message, CommunityToolkit.Maui.Core.ToastDuration.Long);
-                    await toast.Show();
+                    toasts.Show(message, ToastKind.Error, true);
                 }
                 else await viewModel.ShowSuccessMessage(message);
             }
@@ -168,6 +203,8 @@ namespace BambuMan.UI.Main
 
                 if (manager.Status >= ManagerStatusType.Ready) viewModel.SpoolmanConnecting = false;
 
+                viewModel.BackendStatus = manager.Status;
+
                 await viewModel.Validate(manager);
             }
             catch (Exception e)
@@ -175,7 +212,6 @@ namespace BambuMan.UI.Main
                 logger.LogError(e, "Error in ManagerOnStatusChanged");
             }
         }
-
 
         private void ManagerOnLocationsLoaded()
         {
@@ -188,55 +224,29 @@ namespace BambuMan.UI.Main
                 foreach (var manager in backends.All) manager.OverrideLocationOnRead = viewModel.OverrideLocationOnRead;
         }
 
-        protected override async void OnAppearing()
+        #endregion
+
+        #region Backends
+
+        private async Task ApplySettingsAsync()
         {
             try
             {
-                base.OnAppearing();
-                await SetupEventSubscriptionsAsync();
-                await InitializeBackendsAsync();
-                await SetupNfcAsync();
-                await RefreshFilamentOverridesAsync().ConfigureAwait(false);
-#if !GOOGLE_PLAY
-                await CheckVersion().ConfigureAwait(false);
-#endif
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Error in OnAppearing");
-            }
-        }
-
-        private async Task SetupEventSubscriptionsAsync()
-        {
-            try
-            {
-                foreach (var manager in backends.All)
-                {
-                    manager.OnStatusChanged += ManagerOnStatusChanged;
-                    manager.OnLogMessage += ManagerOnLogMessage;
-                    manager.OnShowMessage += ManagerOnShowMessage;
-                    manager.OnPlayErrorTone += ManagerOnPlayErrorTone;
-                    manager.OnSpoolFound += ManagerOnSpoolFound;
-                    manager.OnSpoolInfoRead += ManagerOnSpoolInfoRead;
-                    manager.OnLocationsLoaded += ManagerOnLocationsLoaded;
-                }
-
-                viewModel.PropertyChanged += ViewModel_PropertyChanged;
-                NoBackend.OnSpoolsChanged += NoBackendOnSpoolsChanged;
-
                 viewModel.ShowSpoolEdit = false;
                 viewModel.ShowSpoolInfo = false;
 
                 viewModel.ShowLogsOnMainPage = Preferences.Default.Get(SettingsPage.ShowLogsOnMainPage, true);
                 viewModel.ShowKeyboardOnSpoolRead = Preferences.Default.Get(SettingsPage.ShowKeyboardOnSpoolRead, true);
+                viewModel.FullTagScanAndUpload = Preferences.Default.Get(SettingsPage.FullTagScanAndUpload, false);
 
                 var active = ActiveManager;
                 var activeChanged = ConfigureBackends(active);
 
                 viewModel.OverrideLocationOnRead = active.OverrideLocationOnRead;
                 viewModel.ExistingLocations = active.ExistingLocations;
-                viewModel.BackendLabel = active.Backend.DisplayName().ToUpperInvariant();
+                viewModel.Backend = active.Backend;
+                viewModel.BackendLabel = active.Backend.DisplayName();
+                viewModel.BackendStatus = active.Status;
                 viewModel.ShowInventoryOptions = !active.IsReadOnly;
                 viewModel.ShowBuyDate = active.EditFields.BuyDate;
                 viewModel.ShowLotNr = active.EditFields.LotNr;
@@ -249,12 +259,11 @@ namespace BambuMan.UI.Main
                     viewModel.SpoolmanConnecting = true;
                 }
 
-                //viewModel.Logs.Clear();
                 await viewModel.Validate(active);
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error in OnAppearing setup");
+                logger.LogError(e, "Error in scan page setup");
             }
         }
 
@@ -332,6 +341,10 @@ namespace BambuMan.UI.Main
             UpdateLocalSpools();
         }
 
+        #endregion
+
+        #region Nfc Logic
+
         private async Task SetupNfcAsync()
         {
             try
@@ -342,7 +355,7 @@ namespace BambuMan.UI.Main
                 if (CrossNfc.IsSupported)
                 {
                     viewModel.NfcIsEnabled = CrossNfc.Current.IsEnabled;
-                    viewModel.NfcText = CrossNfc.Current.IsEnabled ? "NFC ENABLED" : "NFC DISABLED";
+                    viewModel.NfcText = CrossNfc.Current.IsEnabled ? "Enabled" : "Disabled";
 
                     await viewModel.Validate(ActiveManager);
 
@@ -357,51 +370,14 @@ namespace BambuMan.UI.Main
             }
         }
 
-        protected override void OnDisappearing()
-        {
-            base.OnDisappearing();
-
-            foreach (var manager in backends.All)
-            {
-                manager.OnStatusChanged -= ManagerOnStatusChanged;
-                manager.OnLogMessage -= ManagerOnLogMessage;
-                manager.OnShowMessage -= ManagerOnShowMessage;
-                manager.OnPlayErrorTone -= ManagerOnPlayErrorTone;
-                manager.OnSpoolFound -= ManagerOnSpoolFound;
-                manager.OnSpoolInfoRead -= ManagerOnSpoolInfoRead;
-                manager.OnLocationsLoaded -= ManagerOnLocationsLoaded;
-            }
-
-            viewModel.PropertyChanged -= ViewModel_PropertyChanged;
-            NoBackend.OnSpoolsChanged -= NoBackendOnSpoolsChanged;
-        }
-
-        protected override bool OnBackButtonPressed()
-        {
-            Task.Run(StopListening);
-            return base.OnBackButtonPressed();
-        }
-
-        #region Helpers
-
-        /// <summary>
-        /// Write a debug message in the debug console
-        /// </summary>
-        /// <param name="message">The message to be displayed</param>
-        private void Debug(string message) => System.Diagnostics.Debug.WriteLine(message);
-
         /// <summary>
         /// Display an alert
         /// </summary>
         /// <param name="message">Message to be displayed</param>
         /// <param name="title">Alert title</param>
         /// <returns>The task to be performed</returns>
-        private Task ShowAlert(string message, string? title = null) => DisplayAlertAsync(string.IsNullOrWhiteSpace(title) ? "NFC" : title, message, "OK");
-
-
-        #endregion
-
-        #region Nfc Logic
+        private static Task ShowAlert(string message, string? title = null) =>
+            MainThread.InvokeOnMainThreadAsync(() => Application.Current?.Windows.FirstOrDefault()?.Page?.DisplayAlertAsync(string.IsNullOrWhiteSpace(title) ? "NFC" : title, message, "OK") ?? Task.CompletedTask);
 
         /// <summary>
         /// Task to start listening for NFC tags if the user's device platform is not iOS
@@ -437,27 +413,6 @@ namespace BambuMan.UI.Main
                 await ShowAlert(ex.Message);
             }
         }
-
-        /// <summary>
-        /// Task to safely stop listening for NFC tags
-        /// </summary>
-        /// <returns>The task to be performed</returns>
-        private async Task StopListening()
-        {
-            try
-            {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    CrossNfc.Current.StopListening();
-                    UnsubscribeEvents();
-                });
-            }
-            catch (Exception ex)
-            {
-                await ShowAlert(ex.Message);
-            }
-        }
-
 
         /// <summary>
         /// Auto Start Listening
@@ -503,10 +458,7 @@ namespace BambuMan.UI.Main
             viewModel.EventsAlreadySubscribed = false;
         }
 
-        private void Current_OnTagIntentReceived(object? sender, EventArgs e)
-        {
-            CloseButton_OnClicked(sender, e);
-        }
+        private void Current_OnTagIntentReceived(object? sender, EventArgs e) => CloseSpool();
 
         /// <summary>
         /// Event raised when Listener Status has changed
@@ -523,7 +475,7 @@ namespace BambuMan.UI.Main
             try
             {
                 viewModel.NfcIsEnabled = isEnabled;
-                viewModel.NfcText = isEnabled ? "NFC ENABLED" : "NFC DISABLED";
+                viewModel.NfcText = isEnabled ? "Enabled" : "Disabled";
 
                 await viewModel.Validate(ActiveManager);
             }
@@ -564,26 +516,7 @@ namespace BambuMan.UI.Main
                     var json = JsonConvert.SerializeObject(bambuFilamentInfo, Formatting.Indented);
                     await viewModel.AddLog(LogLevel.Information, json);
 
-                    var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
-                    var defaultPrice = decimal.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? (decimal?)result : null;
-                    var defaultLotNr = Preferences.Default.Get(SettingsPage.KeyDefaultLotNr, string.Empty);
-                    var defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
-
-                    await viewModel.ClearMessages();
-
-                    var active = ActiveManager;
-                    SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
-                    await active.InventorySpool(bambuFilamentInfo, buyDate, defaultPrice, defaultLotNr, defaultLocation);
-
-                    if (viewModel.FullTagScanAndUpload)
-                    {
-                        var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(bambuFilamentInfo);
-                        if (rateLimited)
-                        {
-                            await viewModel.ShowErrorMessage("Daily upload limit reached (1000 tags/day). Try again tomorrow.");
-                        }
-                    }
-
+                    await InventorySpoolAsync(bambuFilamentInfo);
                     return;
                 }
 
@@ -611,19 +544,43 @@ namespace BambuMan.UI.Main
             }
         }
 
+        /// <summary>Inventory a read tag against the active backend with the configured defaults, then upload it if opted in.</summary>
+        private async Task InventorySpoolAsync(BambuFilamentInfo info)
+        {
+            var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
+            var defaultPrice = decimal.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? (decimal?)result : null;
+            var defaultLotNr = Preferences.Default.Get(SettingsPage.KeyDefaultLotNr, string.Empty);
+            var defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
+
+            await viewModel.ClearMessages();
+
+            var active = ActiveManager;
+            SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
+            await active.InventorySpool(info, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+
+            if (viewModel.FullTagScanAndUpload)
+            {
+                var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(info);
+                if (rateLimited)
+                {
+                    await viewModel.ShowErrorMessage("Daily upload limit reached (1000 tags/day). Try again tomorrow.");
+                }
+            }
+        }
+
         /// <summary>
         /// Event raised when user cancelled NFC session on iOS
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Current_OniOSReadingSessionCancelled(object? sender, EventArgs e) => Debug("iOS NFC Session has been cancelled");
+        private void Current_OniOSReadingSessionCancelled(object? sender, EventArgs e) => System.Diagnostics.Debug.WriteLine("iOS NFC Session has been cancelled");
 
         /// <summary>
         /// Returns the tag information from NDEF record
         /// </summary>
         /// <param name="record"><see cref="NfcNdefRecord"/></param>
         /// <returns>The tag information</returns>
-        private string GetMessage(NfcNdefRecord record)
+        private static string GetMessage(NfcNdefRecord record)
         {
             var message = $"Message: {record.Message}";
             message += Environment.NewLine;
@@ -690,23 +647,13 @@ namespace BambuMan.UI.Main
 
         #endregion
 
-        #region Test Stuff
+        #region Page actions
 
         [SuppressMessage("ReSharper", "StringLiteralTypo")]
-        private async void Button_OnClicked(object? sender, EventArgs e)
+        public async Task TestTagAsync()
         {
             try
             {
-                var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
-                var defaultPrice = decimal.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? (decimal?)result : null;
-                var defaultLotNr = Preferences.Default.Get(SettingsPage.KeyDefaultLotNr, string.Empty);
-                var defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
-
-                //var json = "{\"SerialNumber\":\"C3DB40A2\",\"TagManufacturerData\":\"+ggEAARS8na7x5uQ\",\"MaterialVariantIdentifier\":\"A00-D0\",\"UniqueMaterialIdentifier\":\"FA00\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Basic\",\"Color\":\"8E9089FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":55,\"DryingTime\":8,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"0AfQB+gD6AOamRk/\",\"NozzleDiameter\":0.2,\"TrayUid\":\"F1FACEE5124249F6AEB7DCEC0AAE0C4F\",\"SpoolWidth\":2875,\"ProductionDateTime\":\"2025-01-20T19:14:00\",\"ProductionDateTimeShort\":\"20250120\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A00-D0-1.75-1000\"}";
-                //var json = "{\"SerialNumber\":\"83EC9A1C\",\"TagManufacturerData\":\"6QgEAAR8EZ2x4zmQ\",\"MaterialVariantIdentifier\":\"A17-R1\",\"UniqueMaterialIdentifier\":\"FA17\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Translucent\",\"Color\":\"F5B6CD80\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":55,\"DryingTime\":8,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":240,\"MinTemperatureForHotend\":200,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"2DC9E553D1924FA89FBB893C9E921DBA\",\"SpoolWidth\":666,\"ProductionDateTime\":\"2024-12-20T09:40:00\",\"ProductionDateTimeShort\":\"20241220\",\"FilamentLength\":345,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A17-R1-1.75-1000\"}";
-                //var json = "{\"SerialNumber\":\"5B1449F6\",\"TagManufacturerData\":\"8AgEAATrOVf5DLaQ\",\"MaterialVariantIdentifier\":\"A16-G0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"918669FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"4663E9ADF9CC454380EB58CE627BFE72\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-11T00:38:00\",\"ProductionDateTimeShort\":\"25_03_11_00\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-G0-1.75-1000\"}";
-
-                //var dataCoaxial = "Eg8ZJiIIBAAFf1s9okAUkEEwNS1UNwAAR0ZBMDUAAABQTEEAAAAAAAAAAAAAAAAAfLSMtuHBh4eHadUPEqhTzVBMQSBTaWxrAAAAAAAAAAByAGL/6AMAAAAA4D8AAAAANwAIAAAAAADmANIAAAAAANSW2qpwXYeHh2nxWNbDCIU0IawN6APoAzMzMz/NzEw+BU7RvaYNT5mXeCiF6XTQnQAAAACaAgAAAAAAAAAAAADoZOxRYt6Hh4dp9M34cqBjMjAyNV8xMl8zMV8wMl8zNDIwMjUxMjMwAAAAAAAAAAAAAAAAOwEAAAAAAAAAAAAAIdLI7Y07h4eHaYZu1SZMYQIAAgD/P5E6AAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJwAj/Il1YeHh2l7553RMgQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHiuKJHOWHh4dpC15Jifk5AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWpvK+1m9h4eHaaQZ+QFvfAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMTWZmZMV4eHh2l2ZiuhybEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBGXFGED6Hh4dpsb08yxGpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8xtYkDrSh4eHaVhTuC/28QEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeSHcGTHDu+e91diqPG9yuAtOzfoyY4eHh2mMCvh/IH14uFwv1FfqWKRnkk6qKerL3TMwdWKyeiyowADfJYpmYwyaUsj4Pl0tPK1uMe2wMKf6FNip7FaHh4dpBRKaKwk0l05y3Sp6EB5Gbdd+Nu99LhNxGGyKyMvtS1uhfnZuLCYZkV8CdvgzDE7qAFmSRgOelZEEe8Ymh4eHaRA5VXmGgvpjk4KBZsci01HIgmcA6XURhJEESX69bwoFvOfCE3ers3DRdDJg7T733R9bNdqDtIArNI9ZtYeHh2k2cwcK9vh9N4HTdDD2Au5cYfK8zBcQ6YIXqvq8Xi4XzHITuP5W+O4+wIsFoqcEWE8mx0L97WiFl5dbIgGHh4dpMwSKSTNrYWbRJ3qJznJnLWqluMdAq8rjANhwxi7uYVJVe3MP9qdd8R1CvKFRmNlky6gFBmInkjQZYMSuh4eHaXzVAwEylQ==";
                 var dataLongitudinal = "2gTK38sIBAAE7+LThEa8kEEwMC1NMgAAR0ZBMDAAAABQTEEAAAAAAAAAAAAAAAAAj6I0TjpCh4eHaUzx56HVOFBMQSBCYXNpYwAAAAAAAAAwf+L/6AMAAAAA4D8AAAAANwAIAAAAAADmAL4AAAAAAGO3Tm5QLYeHh2lFGA4vcBmsDYgT6APoAwAAQD/NzEw+QtwFeFsbQSeIqVoWefuLPwAAAADhGQAAAAAAAAAAAAAchlMhA/KHh4dp5M9qkeR4MjAyNF8wNl8yNl8wOF8xNzI0XzA2XzI2XzA4AAAAAAAAAAAASgEAAAAAAAAAAAAAZykp5/PQh4eHaaS4zo243AIAAgD/m/9UAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAF+u9l44qoeHh2np51tuCSMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAev+pvMiaHh4dp0FCv+tkSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAjmBJcuM/h4eHaVDa8TNsrQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO1IFbR3oYeHh2lFtqszHLkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADOyuVYGkOHh4dp8F4DumLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9Xu6vCQ4h4eHaQWtYR9eEAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATrA8lD3R5t0jd6l9tYpY9AN14fVR1YeHh2kXqMRrgkfi4KYOllLMnFzvTEsVv2DVwhBPYzFqob4v9uijC1sYsONVFLpPkoyTQtKu5eKg4j/0i/iVXBmHh4dpiCQmh8D8g6NlNRrsnW2c5em5/4IX0jYy2URgH5mMlblvGrIEyw5/Cy5G6bdXsqi2uLya80TrtaGVFt1Zh4eHaZNsNxt9+YvngMmocr4e46/FWgBLtOIlLyqmHe/n+KESZaoZc2Hf4vUxXG9wVIwZduYMrop9KUKFr9cno4eHh2mpYUno1c00VJYxBPuSw99xZZGxy11f/qaOLVREyiciL+aia5vM9FBMdYgqsQryW13mfBqeQgR9Ji9/K2eHh4dpuOhd3XqRxHCRSMsncC4gVoJCTKkOq5xS28st7HD/+twihntY+XSzpCV3hGQPD7TfeMvBnFWYG7DP1SWhh4eHad6EsAwkoQ==";
 
                 var obj = new BambuFilamentInfo();
@@ -715,38 +662,7 @@ namespace BambuMan.UI.Main
                 var objJsonEnc = JsonConvert.SerializeObject(obj, Formatting.Indented);
                 await viewModel.AddLog(LogLevel.Information, objJsonEnc);
 
-                await viewModel.ClearMessages();
-
-                var active = ActiveManager;
-                SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
-                await active.InventorySpool(obj, buyDate, defaultPrice, defaultLotNr, defaultLocation);
-
-                if (viewModel.FullTagScanAndUpload)
-                {
-                    var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(obj);
-                    if (rateLimited)
-                    {
-                        await viewModel.ShowErrorMessage("Daily upload limit reached (1000 tags/day). Try again tomorrow.");
-                    }
-                }
-
-                //var jsons = new[]
-                //{
-                //    "{\"SerialNumber\":\"5B1449F6\",\"TagManufacturerData\":\"8AgEAATrOVf5DLaQ\",\"MaterialVariantIdentifier\":\"A16-G0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"918669FF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"4663E9ADF9CC454380EB58CE627BFE72\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-11T00:38:00\",\"ProductionDateTimeShort\":\"25_03_11_00\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-G0-1.75-1000\"}",
-                //    "{\"SerialNumber\":\"0509F50D\",\"TagManufacturerData\":\"9AgEAASm165pzJOQ\",\"MaterialVariantIdentifier\":\"A16-R0\",\"UniqueMaterialIdentifier\":\"FA16\",\"FilamentType\":\"PLA\",\"DetailedFilamentType\":\"PLA Wood\",\"Color\":\"3F231CFF\",\"SpoolWeight\":1000,\"FilamentDiameter\":1.75,\"DryingTemperature\":60,\"DryingTime\":6,\"BedTemperatureType\":0,\"BedTemperature\":0,\"MaxTemperatureForHotend\":230,\"MinTemperatureForHotend\":190,\"XCamInfo\":\"AAAAAAAAAAAAAAAA\",\"NozzleDiameter\":0.2,\"TrayUid\":\"26E72842404F41F2A227FC7276299DFA\",\"SpoolWidth\":1536,\"ProductionDateTime\":\"2025-03-24T14:32:00\",\"ProductionDateTimeShort\":\"25_03_24_14\",\"FilamentLength\":330,\"FormatIdentifier\":2,\"ColorCount\":1,\"SecondColor\":\"00000000\",\"SkuStart\":\"A16-R0-1.75-1000\"}"
-                //};
-
-                //foreach (var json in jsons)
-                //{
-                //    var bambuFilamentInfo = JsonConvert.DeserializeObject<BambuFilamentInfo>(json);
-
-                //    var jsonEnc = JsonConvert.SerializeObject(bambuFilamentInfo, Formatting.Indented);
-                //    await viewModel.AddLog(LogLevel.Information, jsonEnc);
-
-                //    await viewModel.ClearMessages();
-                //    await ActiveManager.InventorySpool(bambuFilamentInfo!, buyDate, defaultPrice, defaultLotNr, defaultLocation);
-                //    await Task.Delay(2000);
-                //}
+                await InventorySpoolAsync(obj);
             }
             catch (Exception ex)
             {
@@ -754,27 +670,45 @@ namespace BambuMan.UI.Main
             }
         }
 
-        private async void CloseButton_OnClicked(object? sender, EventArgs e)
+        public void CloseSpool()
+        {
+            viewModel.ShowSpoolEdit = false;
+            viewModel.ShowSpoolInfo = false;
+
+            SpoolEditFocusRequested?.Invoke(false);
+        }
+
+        /// <summary>Validates and writes the edit card back to the active backend; false leaves the card open with its errors.</summary>
+        public async Task<bool> SaveSpoolAsync()
         {
             try
             {
-                await TfSpoolWeight.EntryView.HideKeyboardAsync(CancellationToken.None);
+                await viewModel.ClearMessages();
 
-                viewModel.ShowSpoolEdit = false;
-                viewModel.ShowSpoolInfo = false;
+                if (!viewModel.ValidateSpoolEdit()) return false;
+
+                var input = new SpoolEditInput(
+                    viewModel.SpoolWeight,
+                    viewModel.SpoolEmptyWeight,
+                    viewModel.SpoolPrice,
+                    viewModel.SpoolBuyDate,
+                    viewModel.SpoolLotNr,
+                    viewModel.SpoolLocation);
+
+                await ActiveManager.UpdateCurrentSpoolAsync(input);
+
+                CloseSpool();
+                return true;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error in CloseButton_OnClicked");
+                await viewModel.AddLog(LogLevel.Error, "Error on save changes. " + ex.Message);
+                logger.LogError(ex, "Error on spool save changes");
+                return false;
             }
         }
 
-        private void ClearLogs_OnClicked(object? sender, EventArgs e)
-        {
-            viewModel.Logs.Clear();
-        }
-
-        private async void ClearInventory_OnClicked(object? sender, EventArgs e)
+        public async Task ClearInventoryAsync()
         {
             try
             {
@@ -786,11 +720,11 @@ namespace BambuMan.UI.Main
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error in ClearInventory_OnClicked");
+                logger.LogError(ex, "Error in ClearInventoryAsync");
             }
         }
 
-        private async void EmailLogs_OnClicked(object? sender, EventArgs e)
+        public async Task EmailLogsAsync()
         {
             try
             {
@@ -799,7 +733,7 @@ namespace BambuMan.UI.Main
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error in EmailLogs_OnClicked");
+                logger.LogError(ex, "Error in EmailLogsAsync");
             }
         }
 
@@ -818,23 +752,12 @@ namespace BambuMan.UI.Main
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 viewModel.LocalSpoolsStored = stored;
-                viewModel.LocalSpoolsText = stored ? $"Stored spools: {count}" : $"Scanned spools: {count}";
+                viewModel.LocalSpoolsCount = count;
+                viewModel.LocalSpoolsText = stored ? "Stored spools" : "Scanned spools";
             });
         }
 
-        private async void LocalSpools_OnClicked(object? sender, EventArgs e)
-        {
-            try
-            {
-                await Shell.Current.GoToAsync(nameof(LocalInventoryPage));
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error in LocalSpools_OnClicked");
-            }
-        }
-
-        private async void ExportCsv_OnClicked(object? sender, EventArgs e)
+        public async Task ExportCsvAsync()
         {
             try
             {
@@ -859,7 +782,7 @@ namespace BambuMan.UI.Main
             catch (Exception ex)
             {
                 await viewModel.ShowErrorMessage("Export failed. See logs.");
-                logger.LogError(ex, "Error in ExportCsv_OnClicked");
+                logger.LogError(ex, "Error in ExportCsvAsync");
             }
         }
 
@@ -870,7 +793,7 @@ namespace BambuMan.UI.Main
             { DevicePlatform.iOS, ["public.comma-separated-values-text"] }
         });
 
-        private async void ImportCsv_OnClicked(object? sender, EventArgs e)
+        public async Task ImportCsvAsync()
         {
             try
             {
@@ -896,57 +819,18 @@ namespace BambuMan.UI.Main
                 if (result.Errors.Count > 0) message += $" {result.Errors.Count} rows skipped, see logs.";
 
                 await viewModel.ShowSuccessMessage(message);
+
+                // The import can be started from the spool list too, where the scan page banner isn't visible.
+                toasts.Show(message, ToastKind.Success, true);
             }
             catch (Exception ex)
             {
                 await viewModel.ShowErrorMessage("Import failed. See logs.");
-                logger.LogError(ex, "Error in ImportCsv_OnClicked");
+                toasts.Show("Import failed. See logs.", ToastKind.Error, true);
+                logger.LogError(ex, "Error in ImportCsvAsync");
             }
         }
 
         #endregion
-
-        private async void Settings_OnClicked(object? sender, EventArgs e)
-        {
-            try
-            {
-                await Shell.Current.GoToAsync("//SettingsPage");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error in Settings_OnClicked");
-            }
-        }
-
-        private async void SaveChanges_OnClicked(object? sender, EventArgs e)
-        {
-            try
-            {
-                await viewModel.ClearMessages();
-
-                FormView.Submit();
-
-                if (!FormView.IsValidated) return;
-
-                await TfSpoolWeight.EntryView.HideKeyboardAsync(CancellationToken.None);
-
-                var input = new SpoolEditInput(
-                    viewModel.SpoolWeight,
-                    viewModel.SpoolEmptyWeight,
-                    viewModel.SpoolPrice,
-                    viewModel.SpoolBuyDate,
-                    viewModel.SpoolLotNr,
-                    viewModel.SpoolLocation);
-
-                await ActiveManager.UpdateCurrentSpoolAsync(input);
-
-                viewModel.ShowSpoolEdit = false;
-            }
-            catch (Exception ex)
-            {
-                await viewModel.AddLog(LogLevel.Error, "Error on save changes. " + e);
-                logger.LogError(ex, "Error on spool save changes");
-            }
-        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using BambuMan.Shared.Enums;
+using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,7 +7,8 @@ using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.UI.Main
 {
-    public partial class MainPageViewModel(LogService logService, InventoryService inventoryService) : ObservableObject, IQueryAttributable
+    /// <summary>State of the scan page. A singleton, so it survives navigating to the other pages and back.</summary>
+    public partial class MainPageViewModel(LogService logService, InventoryService inventoryService) : ObservableObject
     {
 
 #if DEBUG
@@ -37,7 +38,12 @@ namespace BambuMan.UI.Main
         // The no-backend spool bar: export always, list + import only while spools are stored on the device.
         [ObservableProperty] private bool showLocalSpools;
         [ObservableProperty] private bool localSpoolsStored;
-        [ObservableProperty] private string? localSpoolsText;
+        [ObservableProperty] private string? localSpoolsText = "Scanned spools";
+        [ObservableProperty] private int localSpoolsCount;
+
+        // The spool behind the edit card, kept whole so the card can show tag fields (colour, material) directly.
+        [ObservableProperty] private SpoolFound? spool;
+        [ObservableProperty] private BambuFilamentInfo? spoolTag;
 
         [ObservableProperty] private decimal? spoolWeight;
         [ObservableProperty] private decimal? spoolEmptyWeight = 250;
@@ -47,18 +53,24 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private string? spoolLotNr;
         [ObservableProperty] private string? spoolLocation;
 
+        [ObservableProperty] private string? spoolWeightError;
+        [ObservableProperty] private string? spoolEmptyWeightError;
+        [ObservableProperty] private string? spoolPriceError;
+
         [ObservableProperty] private bool settingsOk;
         [ObservableProperty] private bool spoolmanOk;
 
         [ObservableProperty] private bool spoolmanConnecting = true;
 
-        [ObservableProperty] private string backendLabel = "SPOOLMAN";
+        [ObservableProperty] private InventoryBackend backend = InventoryBackend.Spoolman;
+        [ObservableProperty] private string backendLabel = "Spoolman";
+        [ObservableProperty] private ManagerStatusType backendStatus = ManagerStatusType.Initializing;
 
         // Edit-panel field visibility, driven by the active backend's BaseManager.EditFields.
         [ObservableProperty] private bool showBuyDate = true;
         [ObservableProperty] private bool showLotNr = true;
 
-        [ObservableProperty] private string nfcText = "NFC ENABLED";
+        [ObservableProperty] private string nfcText = "Enabled";
 
         [ObservableProperty] private string? errorMessage;
         [ObservableProperty] private string? successMessage;
@@ -75,11 +87,6 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private bool fullTagScanAndUpload;
 
         [ObservableProperty] private bool overrideLocationOnRead;
-
-        public void ApplyQueryAttributes(IDictionary<string, object> query)
-        {
-
-        }
 
         public Task ClearMessages()
         {
@@ -121,8 +128,13 @@ namespace BambuMan.UI.Main
             return logService.AddLog(level, text);
         }
 
-        public void ShowSpool(SpoolFound found)
+        public void ShowSpool(SpoolFound found, BambuFilamentInfo info)
         {
+            Spool = found;
+            SpoolTag = info;
+            SpoolWeightError = null;
+            SpoolEmptyWeightError = null;
+            SpoolPriceError = null;
             SpoolWeight = found.Weight;
             SpoolEmptyWeight = found.EmptyWeight;
             SpoolPrice = found.Price;
@@ -136,6 +148,16 @@ namespace BambuMan.UI.Main
         {
             SpoolInfo = info;
             ShowSpoolInfo = true;
+        }
+
+        /// <summary>Checks the edit card before it is written back; each failing field gets its message.</summary>
+        public bool ValidateSpoolEdit()
+        {
+            SpoolWeightError = SpoolWeight < 0 ? "Weight can't be negative." : null;
+            SpoolEmptyWeightError = SpoolEmptyWeight < 0 ? "Empty weight can't be negative." : null;
+            SpoolPriceError = SpoolPrice < 0 ? "Price can't be negative." : null;
+
+            return SpoolWeightError == null && SpoolEmptyWeightError == null && SpoolPriceError == null;
         }
 
         public async Task Validate(BaseManager manager)

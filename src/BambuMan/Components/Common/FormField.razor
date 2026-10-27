@@ -1,0 +1,46 @@
+<div class="field @Class">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="field-label">@Label</label>
+    }
+    <div class="input-wrap @(string.IsNullOrEmpty(Error) ? null : "invalid")">
+        @if (Icon != null)
+        {
+            <Blazicon Svg="Icon" class="input-icon" />
+        }
+        @ChildContent
+        @if (CanClear)
+        {
+            <button type="button" class="input-clear" aria-label="Clear" @onclick="OnClear"><Blazicon Svg="Lucide.X" /></button>
+        }
+    </div>
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <div class="field-error">@Error</div>
+    }
+    else if (!string.IsNullOrEmpty(Help))
+    {
+        <div class="field-help">@Help</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+
+    [Parameter] public SvgIcon? Icon { get; set; }
+
+    [Parameter] public string? Error { get; set; }
+
+    [Parameter] public string? Help { get; set; }
+
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>Shows the clear button while the field has a value; the handler empties it.</summary>
+    [Parameter] public EventCallback OnClear { get; set; }
+
+    [Parameter] public bool HasValue { get; set; }
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool CanClear => OnClear.HasDelegate && HasValue;
+}

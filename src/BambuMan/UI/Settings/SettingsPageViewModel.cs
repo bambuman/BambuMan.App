@@ -1,13 +1,11 @@
-﻿using BambuMan.Shared;
+using BambuMan.Shared;
 using BambuMan.Shared.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
-using HorusStudio.Maui.MaterialDesignControls;
-using Microsoft.Extensions.Logging;
-using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 
 namespace BambuMan.UI.Settings
 {
-    public partial class SettingsPageViewModel(ILogger<SettingsPageViewModel> logger) : ObservableObject, IQueryAttributable
+    public partial class SettingsPageViewModel : ObservableObject
     {
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsSpoolman))]
@@ -17,8 +15,6 @@ namespace BambuMan.UI.Settings
         [NotifyPropertyChangedFor(nameof(ShowInventoryOptions))]
         [NotifyPropertyChangedFor(nameof(ServerUrl))]
         private InventoryBackend inventoryBackend = InventoryBackend.Bambuddy;
-
-        [ObservableProperty] private MaterialSegmentedButtonItem? selectedBackendItem;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ServerUrl))]
@@ -54,10 +50,9 @@ namespace BambuMan.UI.Settings
 
         [ObservableProperty] private bool locationsFetched;
 
-        // Labelled with DisplayName so "NoBackend" reads as "No backend"; the setting itself is still stored by
-        // enum name, so the label and the persisted value are matched up through DisplayName on both sides.
-        public ObservableCollection<MaterialSegmentedButtonItem> BackendItems { get; } =
-            new(Enum.GetValues<InventoryBackend>().Select(b => new MaterialSegmentedButtonItem(b.DisplayName())));
+        [ObservableProperty] private string? serverUrlError;
+        [ObservableProperty] private string? bambuddyApiKeyError;
+        [ObservableProperty] private string? defaultPriceError;
 
         public bool IsSpoolman => InventoryBackend == InventoryBackend.Spoolman;
         public bool IsBambuddy => InventoryBackend == InventoryBackend.Bambuddy;
@@ -73,53 +68,49 @@ namespace BambuMan.UI.Settings
         /// </summary>
         public bool ShowInventoryOptions => !IsNoBackend;
 
-        partial void OnSelectedBackendItemChanged(MaterialSegmentedButtonItem? value)
+        /// <summary>Re-checks the fields that have rules, setting each one's message. True when the url is fine to store.</summary>
+        public bool ValidateServerUrl()
         {
-            if (value?.Text == null) return;
+            if (string.IsNullOrWhiteSpace(ServerUrl)) ServerUrlError = "Server url is required.";
+            else if (!Regex.IsMatch(ServerUrl, Constants.UrlValidation)) ServerUrlError = "Invalid url, must start with http:// or https://";
+            else ServerUrlError = null;
 
-            foreach (var backend in Enum.GetValues<InventoryBackend>())
-            {
-                if (backend.DisplayName() != value.Text) continue;
-
-                InventoryBackend = backend;
-                return;
-            }
+            return ServerUrlError == null;
         }
 
-        /// <summary>Sync the segmented selection to the current <see cref="InventoryBackend"/> (call after loading prefs).</summary>
-        public void SyncBackendSelection() =>
-            SelectedBackendItem = BackendItems.FirstOrDefault(i => i.Text == InventoryBackend.DisplayName());
-
-        public async void ApplyQueryAttributes(IDictionary<string, object> query)
+        public bool ValidateBambuddyApiKey()
         {
-            try
+            BambuddyApiKeyError = string.IsNullOrWhiteSpace(BambuddyApiKey) ? "API key is required." : null;
+
+            return BambuddyApiKeyError == null;
+        }
+
+        public bool ValidateDefaultPrice()
+        {
+            DefaultPriceError = DefaultPrice < 0 ? "Price can't be negative." : null;
+
+            return DefaultPriceError == null;
+        }
+
+        /// <summary>Fills in what the QR scanner read for <paramref name="target"/> (<c>server_url</c> or <c>bambuddy_key</c>).</summary>
+        public void ApplyScanResult(string target, string value)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+
+            // A combined Bambuddy config QR carries both fields — switch to Bambuddy first so ServerUrl routes
+            // to the Bambuddy URL, then fill both.
+            if (BambuddyConfigUri.TryParse(value, out var configUrl, out var configKey))
             {
-                // Runs after OnAppearing (which loads from prefs), so a scanned value wins.
-                await Task.Delay(100);
-
-                if (!query.TryGetValue("scan_value", out var raw) || raw is not string value || string.IsNullOrEmpty(value)) return;
-
-                // A combined Bambuddy config QR carries both fields — switch to Bambuddy first so ServerUrl routes
-                // to the Bambuddy URL, then fill both and reflect the backend in the selector.
-                if (BambuddyConfigUri.TryParse(value, out var configUrl, out var configKey))
-                {
-                    InventoryBackend = InventoryBackend.Bambuddy;
-                    if (!string.IsNullOrEmpty(configUrl)) ServerUrl = configUrl;
-                    if (!string.IsNullOrEmpty(configKey)) BambuddyApiKey = configKey;
-                    SyncBackendSelection();
-                    return;
-                }
-
-                var target = query.TryGetValue("scan_target", out var t) ? t as string : null;
-                switch (target)
-                {
-                    case "bambuddy_key": BambuddyApiKey = value; break;
-                    default: ServerUrl = value; break;
-                }
+                InventoryBackend = InventoryBackend.Bambuddy;
+                if (!string.IsNullOrEmpty(configUrl)) ServerUrl = configUrl;
+                if (!string.IsNullOrEmpty(configKey)) BambuddyApiKey = configKey;
+                return;
             }
-            catch (Exception ex)
+
+            switch (target)
             {
-                logger.LogError(ex, "Error in ApplyQueryAttributes");
+                case "bambuddy_key": BambuddyApiKey = value; break;
+                default: ServerUrl = value; break;
             }
         }
     }

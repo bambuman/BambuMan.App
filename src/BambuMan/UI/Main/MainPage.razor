@@ -1,0 +1,234 @@
+@page "/"
+@inherits ObservingComponentBase
+
+<PageHeader Title="Scanner" Icon="Lucide.Nfc">
+    <Subtitle>
+        <span class="dot @StatusDot"></span> @StatusText
+    </Subtitle>
+    <Actions>
+        @if (Vm.IsTest)
+        {
+            <button class="btn btn-outline" @onclick="Scanner.TestTagAsync"><Blazicon Svg="Lucide.FlaskConical" /> Test tag</button>
+        }
+    </Actions>
+</PageHeader>
+
+<div class="stack">
+
+    <Banner Kind="version" Icon="Lucide.Download" Message="@(Vm.NewVersionAvailable ? Vm.NewVersionText : null)" />
+
+    <div class="stats">
+        <div class="card stat stat-@(Vm.SettingsOk ? "success" : "error")">
+            <div class="stat-label"><Blazicon Svg="Lucide.Settings2" /> Settings</div>
+            <div class="stat-value"><span class="stat-long">@(Vm.SettingsOk ? "Configured" : "Incomplete")</span><span class="stat-short">@(Vm.SettingsOk ? "OK" : "Missing")</span></div>
+            @if (Vm.SettingsOk)
+            {
+                <span class="pill success"><Blazicon Svg="Lucide.CircleCheck" /> OK</span>
+            }
+            else
+            {
+                <a class="pill error" href="settings"><Blazicon Svg="Lucide.CircleAlert" /> Open settings</a>
+            }
+        </div>
+
+        <div class="card stat stat-@BackendPill.Kind">
+            <div class="stat-label"><Blazicon Svg="Lucide.Server" /> Inventory</div>
+            <div class="stat-value"><span class="stat-long">@Vm.BackendLabel</span><span class="stat-short">@(Vm.Backend == InventoryBackend.NoBackend ? "Local" : Vm.BackendLabel)</span></div>
+            <span class="pill @BackendPill.Kind">@BackendPill.Text</span>
+        </div>
+
+        <div class="card stat stat-@NfcStatus">
+            <div class="stat-label"><Blazicon Svg="Lucide.Nfc" /> NFC</div>
+            <div class="stat-value">@Vm.NfcText</div>
+            @if (!Vm.NfcIsEnabled)
+            {
+                <span class="pill error"><Blazicon Svg="Lucide.CircleX" /> Off</span>
+            }
+            else if (Vm.DeviceIsListening)
+            {
+                <span class="pill success"><Blazicon Svg="Lucide.Radio" /> Listening</span>
+            }
+            else
+            {
+                <span class="pill">Idle</span>
+            }
+        </div>
+
+        <div class="card stat stat-primary">
+            <div class="stat-label"><Blazicon Svg="Lucide.Package" /> This session</div>
+            <div class="stat-value">@SessionSpoolCount<span class="stat-long">&nbsp;@(SessionSpoolCount == 1 ? "spool" : "spools")</span></div>
+            <span class="pill primary">@InventoryService.Inventory.Count @(InventoryService.Inventory.Count == 1 ? "material" : "materials")</span>
+        </div>
+    </div>
+
+    @if (Vm.SpoolmanConnecting)
+    {
+        <div class="card connecting">
+            <div class="spinner"></div>
+            Connecting, please wait ...
+        </div>
+    }
+
+    @if (Vm.HasInventoryItems)
+    {
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><Blazicon Svg="Lucide.Package" /> Inventory</div>
+                <button class="btn btn-secondary btn-sm" @onclick="Scanner.ClearInventoryAsync"><Blazicon Svg="Lucide.Eraser" /> Clear inventory</button>
+            </div>
+            <div class="chips">
+                @foreach (var item in InventoryService.Inventory)
+                {
+                    <span class="chip" style="background: @item.Color">@item.Material <span class="chip-count">× @item.Quantity</span></span>
+                }
+            </div>
+        </div>
+    }
+
+    <Banner Kind="error" Label="Error:" Icon="Lucide.CircleAlert" Message="@Vm.ErrorMessage" />
+    <Banner Kind="success" Label="Success:" Icon="Lucide.CircleCheck" Message="@Vm.SuccessMessage" />
+    <Banner Kind="info" Label="Info:" Icon="Lucide.Info" Message="@Vm.InfoMessage" />
+
+    @if (Vm.ShowSpoolEdit)
+    {
+        <div class="card spool-card">
+            <div class="section-title">Spool</div>
+
+            <div class="spool-head">
+                <SpoolSwatch Info="SpoolColors" />
+                <div class="spool-head-text">
+                    <div class="spool-title">@(Vm.Spool?.Material ?? "Spool info")</div>
+                    @if (!string.IsNullOrEmpty(Vm.Spool?.TrayUid))
+                    {
+                        <div class="small subtle mono">@Vm.Spool.TrayUid</div>
+                    }
+                </div>
+            </div>
+
+            <form class="form-grid" @onsubmit="SaveAsync" @onsubmit:preventDefault>
+                <FormField Label="Weight (g)" Icon="Lucide.Weight" Error="@Vm.SpoolWeightError">
+                    <input type="number" inputmode="decimal" step="any" min="0" @ref="weightInput" @bind="Vm.SpoolWeight" />
+                </FormField>
+
+                <FormField Label="Empty weight (g)" Icon="Lucide.Cylinder" Error="@Vm.SpoolEmptyWeightError">
+                    <input type="number" inputmode="decimal" step="any" min="0" @bind="Vm.SpoolEmptyWeight" />
+                </FormField>
+
+                <FormField Label="Price" Icon="Lucide.Tag" Error="@Vm.SpoolPriceError" HasValue="Vm.SpoolPrice != null" OnClear="() => Vm.SpoolPrice = null">
+                    <input type="number" inputmode="decimal" step="any" min="0" @bind="Vm.SpoolPrice" />
+                </FormField>
+
+                @if (Vm.ShowBuyDate)
+                {
+                    <FormField Label="Buy date" Icon="Lucide.Calendar">
+                        <input type="date" @bind="Vm.SpoolBuyDate" />
+                    </FormField>
+                }
+
+                @if (Vm.ShowLotNr)
+                {
+                    <FormField Label="Lot nr" Icon="Lucide.Hash" HasValue="!string.IsNullOrEmpty(Vm.SpoolLotNr)" OnClear="() => Vm.SpoolLotNr = null">
+                        <input type="text" @bind="Vm.SpoolLotNr" />
+                    </FormField>
+                }
+
+                <FormField Label="Location" Icon="Lucide.MapPin" HasValue="!string.IsNullOrEmpty(Vm.SpoolLocation)" OnClear="() => Vm.SpoolLocation = null">
+                    <input type="text" list="spool-locations" autocomplete="off" @bind="Vm.SpoolLocation" />
+                    <datalist id="spool-locations">
+                        @foreach (var location in Vm.ExistingLocations)
+                        {
+                            <option value="@location"></option>
+                        }
+                    </datalist>
+                </FormField>
+
+                <div class="form-actions span-2">
+                    <button type="button" class="btn btn-tertiary" @onclick="Scanner.CloseSpool">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><Blazicon Svg="Lucide.Save" /> Save changes</button>
+                </div>
+            </form>
+        </div>
+    }
+
+    @* Read-only counterpart of the card above, shown when the backend has nothing to write to. *@
+    @if (Vm.ShowSpoolInfo && Vm.SpoolInfo != null)
+    {
+        <div class="card spool-card">
+            <div class="section-title">Spool info</div>
+
+            <div class="spool-head">
+                <SpoolSwatch Info="Vm.SpoolInfo" />
+                <div class="spool-head-text">
+                    <div class="spool-title">@(Vm.SpoolInfo.Rows.FirstOrDefault(x => x.Label == "Material")?.Value ?? "Spool")</div>
+                    @if (!Vm.SpoolInfo.Matched)
+                    {
+                        <div class="small subtle">Not found in the filament catalog — showing tag data only.</div>
+                    }
+                </div>
+            </div>
+
+            @* Rows are built in SpoolDisplayInfo.From, which omits anything the tag didn't carry. *@
+            <dl class="info-rows">
+                @foreach (var row in Vm.SpoolInfo.Rows)
+                {
+                    <dt>@row.Label</dt>
+                    <dd>@row.Value</dd>
+                }
+            </dl>
+
+            <div class="form-actions">
+                <button class="btn btn-tertiary" @onclick="Scanner.CloseSpool">Close</button>
+            </div>
+        </div>
+    }
+
+    @if (!Vm.SpoolmanConnecting && !Vm.ShowSpoolEdit && !Vm.ShowSpoolInfo)
+    {
+        <div class="card ready">
+            <div class="ready-icon"><Blazicon Svg="Lucide.Nfc" /></div>
+            <div>
+                <div class="ready-title">@(Vm.NfcIsEnabled ? "Hold a spool tag to your phone" : "NFC is off")</div>
+                <div class="muted small">
+                    @(Vm.NfcIsEnabled
+                        ? "Bambu Lab spools carry a tag on each side of the reel. The read spool shows up here."
+                        : "Turn on NFC in your phone settings to read spool tags.")
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Vm.ShowLocalSpools)
+    {
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><Blazicon Svg="Lucide.Boxes" /> @Vm.LocalSpoolsText <span class="pill primary">@Vm.LocalSpoolsCount</span></div>
+                <div class="card-actions">
+                    @if (Vm.LocalSpoolsStored)
+                    {
+                        <a class="btn btn-secondary btn-sm" href="spools"><Blazicon Svg="Lucide.List" /> List</a>
+                        <button class="btn btn-secondary btn-sm" @onclick="Scanner.ImportCsvAsync"><Blazicon Svg="Lucide.FileUp" /> Import CSV</button>
+                    }
+                    <button class="btn btn-secondary btn-sm" @onclick="Scanner.ExportCsvAsync"><Blazicon Svg="Lucide.FileDown" /> Export CSV</button>
+                </div>
+            </div>
+            <div class="small subtle">
+                @(Vm.LocalSpoolsStored ? "Kept on this device between app starts." : "Only this session's scans are exported.")
+            </div>
+        </div>
+    }
+
+    @if (Vm.ShowInventoryOptions)
+    {
+        <div class="card">
+            <div class="toggle-list">
+                <ToggleRow Title="Override location on read" Description="Moves an already known spool to the default location from settings when it is read." @bind-Value="Vm.OverrideLocationOnRead" />
+            </div>
+        </div>
+    }
+
+    @if (Vm.ShowLogsOnMainPage)
+    {
+        <LogPanel Logs="Vm.Logs" OnClear="Vm.Logs.Clear" OnEmail="Scanner.EmailLogsAsync" />
+    }
+
+</div>

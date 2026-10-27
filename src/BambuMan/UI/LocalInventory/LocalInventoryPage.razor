@@ -1,0 +1,100 @@
+@page "/spools"
+@inherits ObservingComponentBase
+
+<PageHeader Title="Stored spools" Icon="Lucide.Boxes">
+    <Subtitle>@Vm.CountText</Subtitle>
+    <Actions>
+        <button class="btn btn-secondary" @onclick="Scanner.ImportCsvAsync"><Blazicon Svg="Lucide.FileUp" /> Import CSV</button>
+        <button class="btn btn-secondary" @onclick="Scanner.ExportCsvAsync"><Blazicon Svg="Lucide.FileDown" /> Export CSV</button>
+        <button class="btn btn-tertiary" disabled="@(Vm.TotalCount == 0)" @onclick="DeleteAllAsync"><Blazicon Svg="Lucide.Trash" /> Delete all</button>
+    </Actions>
+</PageHeader>
+
+<div class="stack">
+
+    @if (Vm.TotalCount > 0)
+    {
+        <div class="filters">
+            <FormField Icon="Lucide.Search" Class="filter-search" HasValue="!string.IsNullOrEmpty(Vm.Search)" OnClear="() => Vm.Search = null">
+                <input type="text" enterkeyhint="search" placeholder="Search name or tag" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search name or tag" @bind="Vm.Search" @bind:event="oninput" />
+            </FormField>
+
+            <FormField Icon="Lucide.MapPin" Class="filter-location">
+                <select aria-label="Location" @bind="Vm.Location">
+                    <option value="">All locations</option>
+                    @foreach (var location in Vm.Locations)
+                    {
+                        <option value="@location">@location</option>
+                    }
+                </select>
+            </FormField>
+        </div>
+    }
+
+    <div class="card">
+        @if (Vm.TotalCount == 0)
+        {
+            <div class="empty">No spools stored yet. Scan a spool to add it.</div>
+        }
+        else if (Vm.Groups.Count == 0)
+        {
+            <div class="empty">
+                No spools match the filter.
+                <div><button class="btn btn-outline btn-sm" @onclick="Vm.ClearFilters">Clear filter</button></div>
+            </div>
+        }
+        else
+        {
+            <div class="list">
+                @foreach (var group in Vm.Groups)
+                {
+                    if (group.Count == 1)
+                    {
+                        var spool = group.Spools[0];
+
+                        <div class="list-row" @key="group.Key">
+                            <div class="swatch round" style="background: @SpoolSwatch.ToCss(spool.Color)"></div>
+                            <div class="list-row-text">
+                                <div class="list-row-title">@spool.Title</div>
+                                <div class="list-row-sub">@spool.Subtitle</div>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" aria-label="Delete @spool.Title" @onclick="() => DeleteAsync(spool.Key)"><Blazicon Svg="Lucide.Trash" /></button>
+                        </div>
+                    }
+                    else
+                    {
+                        var open = IsExpanded(group);
+
+                        <div class="group @(open ? "open" : null)" @key="group.Key">
+                            <button type="button" class="list-row group-head" aria-expanded="@open" @onclick="() => Toggle(group)">
+                                <div class="swatch round" style="background: @SpoolSwatch.ToCss(group.Color)"></div>
+                                <div class="list-row-text">
+                                    <div class="list-row-title">@group.Title <span class="pill primary">× @group.Count</span></div>
+                                    <div class="list-row-sub">@(string.IsNullOrEmpty(group.Locations) ? "No location" : group.Locations)</div>
+                                </div>
+                                <Blazicon Svg="Lucide.ChevronDown" class="group-chevron" />
+                            </button>
+
+                            @if (open)
+                            {
+                                <div class="group-items">
+                                    @foreach (var spool in group.Spools)
+                                    {
+                                        <div class="list-row" @key="spool.Key">
+                                            <div class="list-row-text">
+                                                <div class="small">@(spool.Location ?? "No location") · @spool.Spool.LastScanned.ToString("yyyy-MM-dd")</div>
+                                                <div class="list-row-sub mono">@(spool.Spool.Info.TrayUid ?? spool.Spool.Info.SerialNumber)</div>
+                                            </div>
+                                            <button class="btn btn-secondary btn-sm" aria-label="Delete @spool.Title" @onclick="() => DeleteAsync(spool.Key)"><Blazicon Svg="Lucide.Trash" /></button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+
+</div>

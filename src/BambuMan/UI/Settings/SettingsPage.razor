@@ -1,0 +1,148 @@
+@page "/settings"
+@inherits ObservingComponentBase
+@using BambuMan.UI.Consent
+
+<PageHeader Title="Settings" Icon="Lucide.Settings">
+    <Subtitle>Changes are saved as you make them.</Subtitle>
+</PageHeader>
+
+<div class="stack">
+
+    <div class="card">
+        <div class="section-title">Inventory backend</div>
+
+        <div class="segmented" role="radiogroup">
+            @foreach (var backend in Enum.GetValues<InventoryBackend>())
+            {
+                <button type="button" role="radio" aria-checked="@(Vm.InventoryBackend == backend)" class="@(Vm.InventoryBackend == backend ? "selected" : null)" @onclick="() => SelectBackend(backend)">
+                    @backend.DisplayName()
+                </button>
+            }
+        </div>
+
+        <p class="small subtle">
+            @switch (Vm.InventoryBackend)
+            {
+                case InventoryBackend.Bambuddy:
+                    @:Read spools are added to, or updated in, your Bambuddy inventory.
+                    break;
+                case InventoryBackend.Spoolman:
+                    @:Read spools are added to, or updated in, your Spoolman server.
+                    break;
+                default:
+                    @:Scanned tags are shown read-only and can be exported to CSV. Nothing is sent to an inventory server, and it works offline.
+                    break;
+            }
+        </p>
+    </div>
+
+    @if (Vm.ShowServerUrl)
+    {
+        <div class="card">
+            <div class="section-title">Connection</div>
+
+            <div class="stack">
+                <div class="field-row">
+                    <FormField Label="Server url" Icon="Lucide.Link" Error="@Vm.ServerUrlError">
+                        <input type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="http://192.168.1.10:8000" @bind="Vm.ServerUrl" @bind:after="Persist" />
+                    </FormField>
+                    <button type="button" class="btn btn-accent-outline" @onclick='() => ScanQrAsync("server_url")'><Blazicon Svg="Lucide.QrCode" /> Scan QR</button>
+                </div>
+
+                @if (Vm.IsBambuddy)
+                {
+                    <div class="field-row">
+                        <FormField Label="Bambuddy API key" Icon="Lucide.Key" Error="@Vm.BambuddyApiKeyError" HasValue="!string.IsNullOrEmpty(Vm.BambuddyApiKey)" OnClear="ClearApiKey">
+                            <input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" @bind="Vm.BambuddyApiKey" @bind:after="Persist" />
+                        </FormField>
+                        <button type="button" class="btn btn-accent-outline" @onclick='() => ScanQrAsync("bambuddy_key")'><Blazicon Svg="Lucide.QrCode" /> Scan QR</button>
+                    </div>
+                }
+
+                <div>
+                    <button type="button" class="btn btn-outline" disabled="@testingConnection" @onclick="TestConnectionAsync">
+                        <Blazicon Svg="Lucide.Plug" /> @(testingConnection ? "Testing …" : $"Test {Vm.InventoryBackend.DisplayName()} url")
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="card">
+        <div class="section-title">Scanning</div>
+
+        <div class="toggle-list">
+            <ToggleRow Title="Participate in NFC data upload" Description="Uploads full tag data to a public research library." Value="Vm.FullTagScanAndUpload" ValueChanged="SetFullTagScanAndUpload">
+                <TitleExtra>
+                    <button type="button" class="info-button" aria-label="About the NFC data upload" @onclick="ShowConsentInfo"><Blazicon Svg="Lucide.Info" /></button>
+                </TitleExtra>
+            </ToggleRow>
+
+            @if (Vm.IsNoBackend)
+            {
+                <ToggleRow Title="Store spools locally" Description="Keeps scanned spools on this device between app starts, so they can be listed, exported and imported later. Off, only this session's scans are exported." Value="Vm.StoreSpoolsLocally" ValueChanged="v => Set(() => Vm.StoreSpoolsLocally = v)" />
+            }
+
+            @if (Vm.ShowInventoryOptions)
+            {
+                <ToggleRow Title="Import unknown filament" Description="Adds spools the filament catalog has no match for, as an unknown filament, instead of rejecting them." Value="Vm.UnknownFilamentEnabled" ValueChanged="v => Set(() => Vm.UnknownFilamentEnabled = v)" />
+            }
+
+            <ToggleRow Title="Show logs on main page" Value="Vm.ShowLogsOnMainPage" ValueChanged="v => Set(() => Vm.ShowLogsOnMainPage = v)" />
+
+            @if (Vm.ShowInventoryOptions)
+            {
+                <ToggleRow Title="Show keyboard on spool read" Description="Focuses the weight field when a spool is read, ready to type its weight." Value="Vm.ShowKeyboardOnSpoolRead" ValueChanged="v => Set(() => Vm.ShowKeyboardOnSpoolRead = v)" />
+
+                <ToggleRow Title="Override location on read" Description="Moves an already known spool to the default location below when it is read." Value="Vm.OverrideLocationOnRead" ValueChanged="v => Set(() => Vm.OverrideLocationOnRead = v)" />
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">Defaults for read spools</div>
+
+        <div class="form-grid collapse">
+            @if (Vm.IsSpoolman)
+            {
+                <FormField Label="Buy date" Icon="Lucide.Calendar" HasValue="Vm.BuyDate != null" OnClear="() => Set(() => Vm.BuyDate = null)">
+                    <input type="date" @bind="Vm.BuyDate" @bind:after="Persist" />
+                </FormField>
+            }
+
+            <FormField Label="Price" Icon="Lucide.Tag" Error="@Vm.DefaultPriceError" HasValue="Vm.DefaultPrice != null" OnClear="() => Set(() => Vm.DefaultPrice = null)">
+                <input type="number" inputmode="decimal" step="any" min="0" @bind="Vm.DefaultPrice" @bind:after="Persist" />
+            </FormField>
+
+            @if (Vm.IsSpoolman)
+            {
+                <FormField Label="Lot nr" Icon="Lucide.Hash" HasValue="!string.IsNullOrEmpty(Vm.DefaultLotNr)" OnClear="() => Set(() => Vm.DefaultLotNr = null)">
+                    <input type="text" @bind="Vm.DefaultLotNr" @bind:after="Persist" />
+                </FormField>
+            }
+
+            <div class="field-row @(Vm.IsSpoolman ? null : "span-2")">
+                <FormField Label="Location" Icon="Lucide.MapPin" HasValue="!string.IsNullOrEmpty(Vm.DefaultLocation)" OnClear="() => Set(() => Vm.DefaultLocation = null)">
+                    <input type="text" list="default-locations" autocomplete="off" @bind="Vm.DefaultLocation" @bind:after="Persist" />
+                    <datalist id="default-locations">
+                        @foreach (var location in Vm.ExistingLocations)
+                        {
+                            <option value="@location"></option>
+                        }
+                    </datalist>
+                </FormField>
+                @if (Vm.ShowInventoryOptions)
+                {
+                    <button type="button" class="btn btn-accent-outline" aria-label="Refresh locations" @onclick="RefreshLocationsAsync"><Blazicon Svg="Lucide.RefreshCw" /></button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <a class="btn btn-primary" href=""><Blazicon Svg="Lucide.Nfc" /> Back to scanner</a>
+    </div>
+
+</div>
+
+<TagUploadConsentDialog Visible="consentVisible" Dismissible="consentDismissible" OnResult="OnConsentResultAsync" OnDismissed="() => consentVisible = false" />

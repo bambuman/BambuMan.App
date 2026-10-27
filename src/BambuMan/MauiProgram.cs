@@ -2,7 +2,6 @@
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Resolvers;
 using BambuMan.Shared.Services;
-using BambuMan.UI.Consent;
 using BambuMan.UI.LocalInventory;
 using BambuMan.UI.Logs;
 using BambuMan.UI.Main;
@@ -10,13 +9,9 @@ using BambuMan.UI.Scan;
 using BambuMan.UI.Settings;
 using BarcodeScanning;
 using CommunityToolkit.Maui;
-using CommunityToolkit.Maui.Markup;
-using HorusStudio.Maui.MaterialDesignControls;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
-using UraniumUI;
-using MainPageViewModel = BambuMan.UI.Main.MainPageViewModel;
 
 namespace BambuMan
 {
@@ -37,20 +32,7 @@ namespace BambuMan
                     options.SetShouldSuppressExceptionsInBehaviors(true);
                     options.SetShouldSuppressExceptionsInConverters(true);
                 })
-                .UseMauiCommunityToolkitMarkup()
                 .UseBarcodeScanning()
-                .UseUraniumUI()
-                .UseUraniumUIMaterial()
-                .UseMaterialDesignControls(options =>
-                {
-                    // Brand the segmented button (partial merge — other colors keep library defaults):
-                    //   selected segment  -> M3 SecondaryContainer (default is lavender)
-                    //   unselected segment + track -> M3 Surface
-                    // Selected/unselected text stays OnSurface, which reads on these tones.
-                    options.ConfigureThemes(
-                        lightTheme: new MaterialTheme { SecondaryContainer = Color.FromArgb("#FFE5B9"), Surface = Color.FromArgb("#F4F4F4") },
-                        darkTheme: new MaterialTheme { SecondaryContainer = Color.FromArgb("#AC99EA"), Surface = Color.FromArgb("#302F35") });
-                })
                 .UseSentry(options =>
                 {
                     options.Dsn = "https://1881c4151cf22d2ff6c3d92fa5d68d87@o4509141125365760.ingest.de.sentry.io/4509141131198544";
@@ -102,15 +84,15 @@ namespace BambuMan
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                    fonts.AddFontAwesomeIconFonts();
-                    fonts.AddMaterialSymbolsFonts();
                 });
 
-#if ANDROID
-            NoEmojiEntryHandler.Register();
+            var services = builder.Services;
+
+            services.AddMauiBlazorWebView();
+#if DEBUG
+            services.AddBlazorWebViewDeveloperTools();
 #endif
 
-            var services = builder.Services;
             AddUi(services);
             AddServices(services);
 
@@ -132,18 +114,18 @@ namespace BambuMan
 
         private static void AddUi(IServiceCollection services)
         {
-            services.AddSingleton<AppShell>();
+            // The scan page state outlives the page: Blazor rebuilds pages on every navigation.
+            services.AddSingleton<MainPageViewModel>();
+            services.AddSingleton<ScannerService>();
 
-            services.AddTransient<MainPageViewModel>();
-
-            services.AddTransient<MainPage>();
-            services.AddTransient<SettingsPage>();
             services.AddTransient<SettingsPageViewModel>();
             services.AddTransient<LogsPageViewModel>();
             services.AddTransient<ScanPage>();
-            services.AddTransient<LocalInventoryPage>();
             services.AddTransient<LocalInventoryPageViewModel>();
-            services.AddTransient<TagUploadConsentPopup>();
+
+            services.AddSingleton<AppNavigation>();
+            services.AddSingleton<ToastService>();
+            services.AddSingleton<QrScanService>();
 
             services.AddHttpClient();
         }

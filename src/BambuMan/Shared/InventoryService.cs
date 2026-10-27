@@ -1,4 +1,4 @@
-using BambuMan.Shared.Models;
+﻿using BambuMan.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 
@@ -34,6 +34,9 @@ namespace BambuMan
             {
                 inventoryModel.Quantity++;
                 inventoryModel.Tags.Add(info.TrayUid);
+
+                // A count change isn't a collection change; tell the page so the chip re-renders.
+                OnPropertyChanged(nameof(Inventory));
             }
         }
 

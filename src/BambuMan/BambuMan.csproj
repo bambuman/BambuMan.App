@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
@@ -16,6 +16,7 @@
 		<RootNamespace>BambuMan</RootNamespace>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
+		<EnableDefaultCssItems>false</EnableDefaultCssItems>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
@@ -46,11 +47,10 @@
 	
 	<ItemGroup>
 		<PackageReference Include="BarcodeScanning.Native.Maui" Version="3.1.0" />
+		<PackageReference Include="Blazicons.Lucide" Version="3.1.10" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
-		<PackageReference Include="CommunityToolkit.Maui.Markup" Version="8.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="HorusStudio.Maui.MaterialDesignControls" Version="10.0.1" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.110" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="10.0.110" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Sentry.Maui" Version="6.11.1" />
 		<PackageReference Include="Sentry.Serilog" Version="6.11.1" />
@@ -119,43 +119,15 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
 	</ItemGroup>
 
-	<!-- UraniumUI is referenced from the src/UraniumUI/UraniumUI submodule (fork of v3.0.0)
-	     instead of NuGet, so theme-change fixes can be developed here before being upstreamed. -->
 	<ItemGroup>
 		<ProjectReference Include="..\Bambuddy.Api\Bambuddy.Api.csproj" />
 		<ProjectReference Include="..\SpoolMan.Api\SpoolMan.Api.csproj" />
-		<ProjectReference Include="..\UraniumUI\UraniumUI\src\UraniumUI.Icons.FontAwesome\UraniumUI.Icons.FontAwesome.csproj" />
-		<ProjectReference Include="..\UraniumUI\UraniumUI\src\UraniumUI.Icons.MaterialSymbols\UraniumUI.Icons.MaterialSymbols.csproj" />
-		<ProjectReference Include="..\UraniumUI\UraniumUI\src\UraniumUI.Material\UraniumUI.Material.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Resources\Images\" />
-	  <Folder Include="Resources\Values\" />
-	  <Folder Include="Resources\Values\" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\BambuMan.Shared\BambuMan.Shared.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Compile Update="UI\Logs\LogsPage.xaml.cs">
-	    <DependentUpon>LogsPage.xaml</DependentUpon>
-	  </Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <MauiXaml Update="Resources\Styles\Override.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="UI\Logs\LogsPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="UI\Settings\SettingsPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	</ItemGroup>
 	
 	<Target Name="ReplaceManifest" BeforeTargets="PreBuildEvent" Condition=" '$(GITHUB_CI)' == '1' ">
 		<XmlPoke XmlInputPath="Platforms\Android\AndroidManifest.xml" Namespaces="&lt;Namespace Prefix='android' Uri='http://schemas.android.com/apk/res/android' /&gt;" Query="manifest/@android:versionCode" Value="$(GITHUB_VERSION_CODE)" />

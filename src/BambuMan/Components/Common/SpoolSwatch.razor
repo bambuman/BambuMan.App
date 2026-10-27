@@ -1,0 +1,39 @@
+@using SpoolMan.Api.Model
+
+@if (Info is { HasColor: true })
+{
+    <div class="swatch @Class" style="background: @Background"></div>
+}
+
+@code {
+    [Parameter] public SpoolDisplayInfo? Info { get; set; }
+
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Paints a spool's colours the same way the bambuman.ee ColorSwatch component does: <c>Longitudinal</c> is a
+    /// smooth left-to-right blend (a gradient filament), <c>Coaxial</c> is hard stacked bands (two filaments extruded
+    /// side by side), and a single colour is flat.
+    /// </summary>
+    private string Background
+    {
+        get
+        {
+            var colors = Info!.ColorHexes.Select(ToCss).ToArray();
+
+            if (colors.Length == 1) return colors[0];
+
+            if (Info.MultiColorDirection == SpoolmanExternaldbMultiColorDirection.Longitudinal)
+                return $"linear-gradient(to right, {string.Join(", ", colors)})";
+
+            // Coaxial, and an unmatched tag whose direction the catalog never told us: equal bands top to bottom.
+            // Two stops per colour at the band edges is what makes the boundary hard instead of a fade.
+            var stops = colors.Select((color, i) => FormattableString.Invariant($"{color} {i * 100.0 / colors.Length:0.##}% {(i + 1) * 100.0 / colors.Length:0.##}%"));
+
+            return $"linear-gradient(to bottom, {string.Join(", ", stops)})";
+        }
+    }
+
+    /// <summary>The ui model carries <c>#AARRGGBB</c>; CSS wants <c>#RRGGBBAA</c>.</summary>
+    public static string ToCss(string argbHex) => argbHex.Length == 9 ? $"#{argbHex[3..]}{argbHex[1..3]}" : argbHex;
+}
