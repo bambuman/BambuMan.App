@@ -30,9 +30,9 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
 
  - **Android** application (your phone has to support `NFC`)
 
-   | Main | Settings | Logs | Research Data Contribution |
-   |:---:|:---:|:---:|:---:|
-   | <img src="screens/android_main.jpg" alt="Main page" width="200" /> | <img src="screens/android_settings_spoolman.png" alt="Settings page" width="200" /> | <img src="screens/android_logs.jpg" alt="Logs page" width="200" /> | <img src="screens/android_condribution_popup.jpg" alt="Research Data Contribution" width="200" /> |
+   | Main | Settings | Stored spools | Logs | Research Data Contribution |
+   |:---:|:---:|:---:|:---:|:---:|
+   | <img src="screens/android_main.jpg" alt="Main page" width="200" /> | <img src="screens/android_settings.png" alt="Settings page" width="200" /> | <img src="screens/android_stored_spools.png" alt="Stored spools page" width="200" /> | <img src="screens/android_logs.png" alt="Logs page" width="200" /> | <img src="screens/android_contribution_popup.png" alt="Research Data Contribution" width="200" /> |
 
  - **Windows** desktop application (a `PCSC` compatible `NFC` reader like [ACR122U](https://www.acs.com.hk/en/products/3/acr122u-usb-nfc-reader/) or [ACR1252U](https://www.acs.com.hk/en/products/342/acr1252u-usb-nfc-reader-iii-nfc-forum-certified-reader/) is needed)
 
@@ -56,7 +56,7 @@ The Android app can inventory into [bambuddy](https://bambuddy.cool). Pick the b
 
 3. In BambuMan settings, switch the backend to **bambuddy**, enter the bambuddy address (for example `http://host:8000`), then scan or paste the API key.
 
-	 <img src="screens/android_setting_bambuddy.png" alt="BambuMan bambuddy settings" width="200" />
+	 <img src="screens/android_setting_bambuddy.png" alt="BambuMan bambuddy settings" width="200" /> <img src="screens/android_settings_defaults.png" alt="BambuMan bambuddy scanning options and import defaults" width="200" />
 
 4. Go back to the main window. Once `Settings`, `bambuddy` and `NFC` are green, you can start reading `NFC` tags.
 
