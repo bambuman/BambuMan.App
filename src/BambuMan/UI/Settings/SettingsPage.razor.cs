@@ -30,6 +30,9 @@ public partial class SettingsPage
     public const string KeyBambuddyApiKey = "bambuddy_api_key";
     public const string KeyStoreSpoolsLocally = "store_spools_locally";
 
+    /// <summary>Raised after a setting is stored, for parts of the ui outside this page that depend on it (the menu).</summary>
+    public static event Action? SettingsChanged;
+
     private IHost? apiHost;
     private string? apiHostUrl;
 
@@ -149,6 +152,8 @@ public partial class SettingsPage
         Preferences.Default.Set(KeyStoreSpoolsLocally, Vm.StoreSpoolsLocally);
 
         foreach (var manager in Backends.All) manager.OverrideLocationOnRead = Vm.OverrideLocationOnRead;
+
+        SettingsChanged?.Invoke();
     }
 
     /// <summary>Applies a change made outside a bound input (switch, clear button) and stores it.</summary>
@@ -168,6 +173,7 @@ public partial class SettingsPage
 
         Vm.InventoryBackend = backend;
         Preferences.Default.Set(KeyInventoryBackend, backend.ToString());
+        SettingsChanged?.Invoke();
 
         _ = LoadLocationsAsync();
     }
@@ -226,8 +232,14 @@ public partial class SettingsPage
     {
         try
         {
-            // "No backend" promises nothing is sent to an inventory server, so don't fetch the Spoolman locations either.
-            if (Vm.IsNoBackend || !EnsureApiHost()) return;
+            // "No backend" promises nothing is sent to an inventory server, so its suggestions are the stored spools' locations.
+            if (Vm.IsNoBackend)
+            {
+                Vm.ExistingLocations = Backends.Resolve(InventoryBackend.NoBackend).ExistingLocations;
+                return;
+            }
+
+            if (!EnsureApiHost()) return;
 
             await FetchLocationsAsync();
         }

@@ -105,81 +105,14 @@
                 </div>
             </div>
 
-            <form class="form-grid" @onsubmit="SaveAsync" @onsubmit:preventDefault>
-                <FormField Label="Weight (g)" Icon="Lucide.Weight" Error="@Vm.SpoolWeightError">
-                    <input type="number" inputmode="decimal" step="any" min="0" @ref="weightInput" @bind="Vm.SpoolWeight" />
-                </FormField>
-
-                <FormField Label="Empty weight (g)" Icon="Lucide.Cylinder" Error="@Vm.SpoolEmptyWeightError">
-                    <input type="number" inputmode="decimal" step="any" min="0" @bind="Vm.SpoolEmptyWeight" />
-                </FormField>
-
-                <FormField Label="Price" Icon="Lucide.Tag" Error="@Vm.SpoolPriceError" HasValue="Vm.SpoolPrice != null" OnClear="() => Vm.SpoolPrice = null">
-                    <input type="number" inputmode="decimal" step="any" min="0" @bind="Vm.SpoolPrice" />
-                </FormField>
-
-                @if (Vm.ShowBuyDate)
-                {
-                    <FormField Label="Buy date" Icon="Lucide.Calendar">
-                        <input type="date" @bind="Vm.SpoolBuyDate" />
-                    </FormField>
-                }
-
-                @if (Vm.ShowLotNr)
-                {
-                    <FormField Label="Lot nr" Icon="Lucide.Hash" HasValue="!string.IsNullOrEmpty(Vm.SpoolLotNr)" OnClear="() => Vm.SpoolLotNr = null">
-                        <input type="text" @bind="Vm.SpoolLotNr" />
-                    </FormField>
-                }
-
-                <FormField Label="Location" Icon="Lucide.MapPin" HasValue="!string.IsNullOrEmpty(Vm.SpoolLocation)" OnClear="() => Vm.SpoolLocation = null">
-                    <input type="text" list="spool-locations" autocomplete="off" @bind="Vm.SpoolLocation" />
-                    <datalist id="spool-locations">
-                        @foreach (var location in Vm.ExistingLocations)
-                        {
-                            <option value="@location"></option>
-                        }
-                    </datalist>
-                </FormField>
-
-                <div class="form-actions span-2">
-                    <button type="button" class="btn btn-tertiary" @onclick="Scanner.CloseSpool">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><Blazicon Svg="Lucide.Save" /> Save changes</button>
-                </div>
-            </form>
+            <SpoolEditForm @ref="spoolEditForm" Model="Vm.SpoolEdit" Fields="Vm.EditFields" Locations="Vm.ExistingLocations" OnSave="SaveAsync" OnCancel="Scanner.CloseSpool" />
         </div>
     }
 
-    @* Read-only counterpart of the card above, shown when the backend has nothing to write to. *@
+    @* Read-only counterpart of the card above, shown when the backend can't save edits. *@
     @if (Vm.ShowSpoolInfo && Vm.SpoolInfo != null)
     {
-        <div class="card spool-card">
-            <div class="section-title">Spool info</div>
-
-            <div class="spool-head">
-                <SpoolSwatch Info="Vm.SpoolInfo" />
-                <div class="spool-head-text">
-                    <div class="spool-title">@(Vm.SpoolInfo.Rows.FirstOrDefault(x => x.Label == "Material")?.Value ?? "Spool")</div>
-                    @if (!Vm.SpoolInfo.Matched)
-                    {
-                        <div class="small subtle">Not found in the filament catalog — showing tag data only.</div>
-                    }
-                </div>
-            </div>
-
-            @* Rows are built in SpoolDisplayInfo.From, which omits anything the tag didn't carry. *@
-            <dl class="info-rows">
-                @foreach (var row in Vm.SpoolInfo.Rows)
-                {
-                    <dt>@row.Label</dt>
-                    <dd>@row.Value</dd>
-                }
-            </dl>
-
-            <div class="form-actions">
-                <button class="btn btn-tertiary" @onclick="Scanner.CloseSpool">Close</button>
-            </div>
-        </div>
+        <SpoolInfoCard Info="Vm.SpoolInfo" OnClose="Scanner.CloseSpool" />
     }
 
     @if (!Vm.SpoolmanConnecting && !Vm.ShowSpoolEdit && !Vm.ShowSpoolInfo)

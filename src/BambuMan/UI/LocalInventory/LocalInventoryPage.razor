@@ -53,11 +53,13 @@
                         var spool = group.Spools[0];
 
                         <div class="list-row" @key="group.Key">
-                            <div class="swatch round" style="background: @SpoolSwatch.ToCss(spool.Color)"></div>
-                            <div class="list-row-text">
-                                <div class="list-row-title">@spool.Title</div>
-                                <div class="list-row-sub">@spool.Subtitle</div>
-                            </div>
+                            <a class="list-row-main" href="spools/@spool.Key">
+                                <div class="swatch round" style="background: @SpoolSwatch.ToCss(spool.Color)"></div>
+                                <div class="list-row-text">
+                                    <div class="list-row-title">@spool.Title</div>
+                                    <div class="list-row-sub">@spool.Subtitle</div>
+                                </div>
+                            </a>
                             <button class="btn btn-secondary btn-sm" aria-label="Delete @spool.Title" @onclick="() => DeleteAsync(spool.Key)"><Blazicon Svg="Lucide.Trash" /></button>
                         </div>
                     }
@@ -81,10 +83,12 @@
                                     @foreach (var spool in group.Spools)
                                     {
                                         <div class="list-row" @key="spool.Key">
-                                            <div class="list-row-text">
-                                                <div class="small">@(spool.Location ?? "No location") · @spool.Spool.LastScanned.ToString("yyyy-MM-dd")</div>
-                                                <div class="list-row-sub mono">@(spool.Spool.Info.TrayUid ?? spool.Spool.Info.SerialNumber)</div>
-                                            </div>
+                                            <a class="list-row-main" href="spools/@spool.Key">
+                                                <div class="list-row-text">
+                                                    <div class="small">@(spool.Location ?? "No location") · @spool.Spool.LastScanned.ToString("yyyy-MM-dd")</div>
+                                                    <div class="list-row-sub mono">@(spool.Spool.Info.TrayUid ?? spool.Spool.Info.SerialNumber)</div>
+                                                </div>
+                                            </a>
                                             <button class="btn btn-secondary btn-sm" aria-label="Delete @spool.Title" @onclick="() => DeleteAsync(spool.Key)"><Blazicon Svg="Lucide.Trash" /></button>
                                         </div>
                                     }

@@ -1,4 +1,6 @@
 @using BambuMan.UI.Settings
+@implements IDisposable
+@inject NavigationManager Navigation
 
 <aside class="sidebar">
     <div class="sidebar-inner">
@@ -36,6 +38,23 @@
 </aside>
 
 @code {
+    protected override void OnInitialized()
+    {
+        // The Spools item depends on settings; show or hide it as soon as they change, not on the next start.
+        SettingsPage.SettingsChanged += OnSettingsChanged;
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnSettingsChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        SettingsPage.SettingsChanged -= OnSettingsChanged;
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
     private static bool ShowLocalSpools =>
         SettingsPage.GetInventoryBackend() == InventoryBackend.NoBackend && Preferences.Default.Get(SettingsPage.KeyStoreSpoolsLocally, false);
 }

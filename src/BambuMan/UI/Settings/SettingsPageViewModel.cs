@@ -13,6 +13,8 @@ namespace BambuMan.UI.Settings
         [NotifyPropertyChangedFor(nameof(IsNoBackend))]
         [NotifyPropertyChangedFor(nameof(ShowServerUrl))]
         [NotifyPropertyChangedFor(nameof(ShowInventoryOptions))]
+        [NotifyPropertyChangedFor(nameof(CanEditSpools))]
+        [NotifyPropertyChangedFor(nameof(ShowBuyDateAndLotNr))]
         [NotifyPropertyChangedFor(nameof(ServerUrl))]
         private InventoryBackend inventoryBackend = InventoryBackend.Bambuddy;
 
@@ -44,7 +46,10 @@ namespace BambuMan.UI.Settings
         [ObservableProperty] private bool showLogsOnMainPage;
         [ObservableProperty] private bool showKeyboardOnSpoolRead;
         [ObservableProperty] private bool fullTagScanAndUpload;
-        [ObservableProperty] private bool storeSpoolsLocally;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanEditSpools))]
+        [NotifyPropertyChangedFor(nameof(ShowBuyDateAndLotNr))]
+        private bool storeSpoolsLocally;
         [ObservableProperty] private bool overrideLocationOnRead;
         [ObservableProperty] private IEnumerable<string> existingLocations = [];
 
@@ -63,10 +68,18 @@ namespace BambuMan.UI.Settings
 
         /// <summary>
         /// Toggles that only mean anything when a spool is being written to a server — the unknown-filament import,
-        /// the edit-panel conveniences and the server's location list. Meaningless with no backend, where the tag is
-        /// only displayed. Default price and location still apply there: they go into the csv export.
+        /// and the server's location list. Meaningless with no backend.
         /// </summary>
         public bool ShowInventoryOptions => !IsNoBackend;
+
+        /// <summary>
+        /// Read spools are saved somewhere and can be edited: on a server, or on the device with no backend and "store
+        /// spools locally". Only then do the edit conveniences and the defaults for read spools mean anything.
+        /// </summary>
+        public bool CanEditSpools => !IsNoBackend || StoreSpoolsLocally;
+
+        /// <summary>The backends that keep a buy date and lot nr: Spoolman, and the device store.</summary>
+        public bool ShowBuyDateAndLotNr => IsSpoolman || (IsNoBackend && StoreSpoolsLocally);
 
         /// <summary>Re-checks the fields that have rules, setting each one's message. True when the url is fine to store.</summary>
         public bool ValidateServerUrl()

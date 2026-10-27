@@ -31,6 +31,16 @@ namespace BambuMan.Shared.Models
 
         public string? Location { get; set; }
 
+        /// <summary>Measured weight of the whole spool (filament + empty spool) in grams, as entered in the edit card. Null until weighed.</summary>
+        public decimal? Weight { get; set; }
+
+        /// <summary>Weight of the empty spool in grams. Null means the standard Bambu spool core.</summary>
+        public decimal? EmptyWeight { get; set; }
+
+        public DateTime? BuyDate { get; set; }
+
+        public string? LotNr { get; set; }
+
         public DateTime FirstScanned { get; set; }
 
         public DateTime LastScanned { get; set; }

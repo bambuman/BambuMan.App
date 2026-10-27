@@ -1,0 +1,51 @@
+@page "/spools/{Key}"
+
+@if (loading)
+{
+    <div class="card connecting">
+        <div class="spinner"></div>
+    </div>
+}
+else if (spool == null)
+{
+    <PageHeader Title="Spool not found" Icon="Lucide.Package" />
+
+    <div class="card empty">
+        This spool is no longer stored on this device.
+        <div><a class="btn btn-outline btn-sm" href="spools">Stored spools</a></div>
+    </div>
+}
+else
+{
+    <PageHeader Title="@Title" Icon="Lucide.Package">
+        <Subtitle><span class="mono small">@Key</span></Subtitle>
+    </PageHeader>
+
+    <div class="stack">
+
+        @if (canEdit && edit != null)
+        {
+            <div class="card spool-card">
+                <div class="section-title">Spool</div>
+
+                <div class="spool-head">
+                    <SpoolSwatch Info="info" />
+                    <div class="spool-head-text">
+                        <div class="spool-title">@Title</div>
+                        <div class="small subtle">Last scanned @spool.LastScanned.ToString("yyyy-MM-dd HH:mm")</div>
+                    </div>
+                </div>
+
+                <SpoolEditForm Model="edit" Fields="Manager.EditFields" Locations="Manager.ExistingLocations" CancelText="Back" OnSave="SaveAsync" OnCancel="GoBack" />
+            </div>
+        }
+
+        @if (info != null)
+        {
+            <SpoolInfoCard Info="info" />
+        }
+
+        <button class="btn btn-tertiary btn-block" @onclick="DeleteAsync"><Blazicon Svg="Lucide.Trash" /> Delete spool</button>
+
+    </div>
+}

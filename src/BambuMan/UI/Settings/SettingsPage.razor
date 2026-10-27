@@ -30,7 +30,7 @@
                     @:Read spools are added to, or updated in, your Spoolman server.
                     break;
                 default:
-                    @:Scanned tags are shown read-only and can be exported to CSV. Nothing is sent to an inventory server, and it works offline.
+                    @:Nothing is sent to an inventory server, and it works offline. Read spools are shown and can be exported to CSV — or, stored on this device, edited too.
                     break;
             }
         </p>
@@ -80,7 +80,7 @@
 
             @if (Vm.IsNoBackend)
             {
-                <ToggleRow Title="Store spools locally" Description="Keeps scanned spools on this device between app starts, so they can be listed, exported and imported later. Off, only this session's scans are exported." Value="Vm.StoreSpoolsLocally" ValueChanged="v => Set(() => Vm.StoreSpoolsLocally = v)" />
+                <ToggleRow Title="Store spools locally" Description="Keeps read spools on this device between app starts, so they can be edited, listed, exported and imported. Off, read spools are only shown, and only this session's scans are exported." Value="Vm.StoreSpoolsLocally" ValueChanged="v => Set(() => Vm.StoreSpoolsLocally = v)" />
             }
 
             @if (Vm.ShowInventoryOptions)
@@ -90,7 +90,7 @@
 
             <ToggleRow Title="Show logs on main page" Value="Vm.ShowLogsOnMainPage" ValueChanged="v => Set(() => Vm.ShowLogsOnMainPage = v)" />
 
-            @if (Vm.ShowInventoryOptions)
+            @if (Vm.CanEditSpools)
             {
                 <ToggleRow Title="Show keyboard on spool read" Description="Focuses the weight field when a spool is read, ready to type its weight." Value="Vm.ShowKeyboardOnSpoolRead" ValueChanged="v => Set(() => Vm.ShowKeyboardOnSpoolRead = v)" />
 
@@ -99,49 +99,51 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="section-title">Defaults for read spools</div>
+    @* Read spools that are only shown, not kept, have nothing to put the defaults on. *@
+    @if (Vm.CanEditSpools)
+    {
+        <div class="card">
+            <div class="section-title">Defaults for read spools</div>
 
-        <div class="form-grid collapse">
-            @if (Vm.IsSpoolman)
-            {
-                <FormField Label="Buy date" Icon="Lucide.Calendar" HasValue="Vm.BuyDate != null" OnClear="() => Set(() => Vm.BuyDate = null)">
-                    <input type="date" @bind="Vm.BuyDate" @bind:after="Persist" />
-                </FormField>
-            }
-
-            <FormField Label="Price" Icon="Lucide.Tag" Error="@Vm.DefaultPriceError" HasValue="Vm.DefaultPrice != null" OnClear="() => Set(() => Vm.DefaultPrice = null)">
-                <input type="number" inputmode="decimal" step="any" min="0" @bind="Vm.DefaultPrice" @bind:after="Persist" />
-            </FormField>
-
-            @if (Vm.IsSpoolman)
-            {
-                <FormField Label="Lot nr" Icon="Lucide.Hash" HasValue="!string.IsNullOrEmpty(Vm.DefaultLotNr)" OnClear="() => Set(() => Vm.DefaultLotNr = null)">
-                    <input type="text" @bind="Vm.DefaultLotNr" @bind:after="Persist" />
-                </FormField>
-            }
-
-            <div class="field-row @(Vm.IsSpoolman ? null : "span-2")">
-                <FormField Label="Location" Icon="Lucide.MapPin" HasValue="!string.IsNullOrEmpty(Vm.DefaultLocation)" OnClear="() => Set(() => Vm.DefaultLocation = null)">
-                    <input type="text" list="default-locations" autocomplete="off" @bind="Vm.DefaultLocation" @bind:after="Persist" />
-                    <datalist id="default-locations">
-                        @foreach (var location in Vm.ExistingLocations)
-                        {
-                            <option value="@location"></option>
-                        }
-                    </datalist>
-                </FormField>
-                @if (Vm.ShowInventoryOptions)
+            <div class="form-grid collapse">
+                @if (Vm.ShowBuyDateAndLotNr)
                 {
-                    <button type="button" class="btn btn-accent-outline" aria-label="Refresh locations" @onclick="RefreshLocationsAsync"><Blazicon Svg="Lucide.RefreshCw" /></button>
+                    <FormField Label="Buy date" Icon="Lucide.Calendar" HasValue="Vm.BuyDate != null" OnClear="() => Set(() => Vm.BuyDate = null)">
+                        <input type="date" @bind="Vm.BuyDate" @bind:after="Persist" />
+                    </FormField>
                 }
+
+                <FormField Label="Price" Icon="Lucide.Tag" Error="@Vm.DefaultPriceError" HasValue="Vm.DefaultPrice != null" OnClear="() => Set(() => Vm.DefaultPrice = null)">
+                    <input type="number" inputmode="decimal" step="any" min="0" @bind="Vm.DefaultPrice" @bind:after="Persist" />
+                </FormField>
+
+                @if (Vm.ShowBuyDateAndLotNr)
+                {
+                    <FormField Label="Lot nr" Icon="Lucide.Hash" HasValue="!string.IsNullOrEmpty(Vm.DefaultLotNr)" OnClear="() => Set(() => Vm.DefaultLotNr = null)">
+                        <input type="text" @bind="Vm.DefaultLotNr" @bind:after="Persist" />
+                    </FormField>
+                }
+
+                <div class="field-row @(Vm.ShowBuyDateAndLotNr ? null : "span-2")">
+                    <FormField Label="Location" Icon="Lucide.MapPin" HasValue="!string.IsNullOrEmpty(Vm.DefaultLocation)" OnClear="() => Set(() => Vm.DefaultLocation = null)">
+                        <input type="text" list="default-locations" autocomplete="off" @bind="Vm.DefaultLocation" @bind:after="Persist" />
+                        <datalist id="default-locations">
+                            @foreach (var location in Vm.ExistingLocations)
+                            {
+                                <option value="@location"></option>
+                            }
+                        </datalist>
+                    </FormField>
+                    @if (Vm.ShowInventoryOptions)
+                    {
+                        <button type="button" class="btn btn-accent-outline" aria-label="Refresh locations" @onclick="RefreshLocationsAsync"><Blazicon Svg="Lucide.RefreshCw" /></button>
+                    }
+                </div>
             </div>
         </div>
-    </div>
+    }
 
-    <div>
-        <a class="btn btn-primary" href=""><Blazicon Svg="Lucide.Nfc" /> Back to scanner</a>
-    </div>
+    <a class="btn btn-primary btn-block" href=""><Blazicon Svg="Lucide.Nfc" /> Back to scanner</a>
 
 </div>
 

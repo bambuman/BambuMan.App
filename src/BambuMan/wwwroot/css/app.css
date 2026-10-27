@@ -29,8 +29,8 @@
     --tertiary-btn: #E0E0E0;
     --on-tertiary-btn: #1C1B1F;
 
-    --spool-card: #F5EDE0;
-    --spool-card-stroke: #7E570E;
+    --spool-card: #F7F1E6;
+    --spool-card-stroke: #DCC9A6;
 
     --success: #2E7D32;
     --success-bg: #E8F5E9;
@@ -395,6 +395,13 @@ svg[blazicon] {
     margin-bottom: 20px;
 }
 
+/* Phones: the header's subtitle line already adds height, so a smaller margin reads as the same gap as between cards. */
+@media (max-width: 520px) {
+    .page-header {
+        margin-bottom: 10px;
+    }
+}
+
 .page-title {
     display: flex;
     align-items: center;
@@ -504,6 +511,19 @@ svg[blazicon] {
 .spool-card {
     background: var(--spool-card);
     border-color: var(--spool-card-stroke);
+    scroll-margin-top: 16px;
+}
+
+/* While the edit card has the keyboard: room below it, so it can scroll to the top whatever follows it. */
+body.editing .content {
+    padding-bottom: 70vh;
+}
+
+@media (max-width: 900px) {
+    /* Clear the sticky top bar when the card is scrolled to the top. */
+    .spool-card {
+        scroll-margin-top: 68px;
+    }
 }
 
 /* ---------- Stat tiles ---------- */
@@ -1201,6 +1221,16 @@ svg[blazicon] {
 
 .list > * + * {
     border-top: 1px solid var(--border);
+}
+
+.list-row-main {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
 }
 
 .list-row-text {

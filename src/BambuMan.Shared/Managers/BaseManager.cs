@@ -90,6 +90,12 @@ namespace BambuMan.Shared.Managers
         /// </summary>
         public virtual bool IsReadOnly => false;
 
+        /// <summary>
+        /// Whether a read spool can be edited and saved (the ui shows the edit form rather than the read-only card).
+        /// Every server backend can; a backend without a server can only when it keeps spools somewhere.
+        /// </summary>
+        public virtual bool CanEditSpools => !IsReadOnly;
+
         public bool IsInitialized => isInitialized;
 
         public ManagerStatusType Status { get; private set; } = ManagerStatusType.Initializing;

@@ -42,7 +42,7 @@ namespace BambuMan.Shared.Services
             "manufacturer", "filament_name", "filament_code", "variant_id", "material_id", "filament_type",
             "detailed_filament_type", "diameter", "spool_width", "filament_length", "drying_temperature", "drying_time",
             "bed_temperature", "nozzle_diameter", "production_date", "color_count", "second_color", "price",
-            "first_scanned", "last_scanned"
+            "first_scanned", "last_scanned", "weight", "buy_date", "lot_nr"
         ];
 
         public static readonly string[] Columns = [.. BambuddyColumns, .. TagColumns, .. BambuManColumns];
@@ -99,6 +99,10 @@ namespace BambuMan.Shared.Services
             var labelWeight = BambuddyManager.LabelWeight(info);
             var rgba = NormalizeHex(info.Color);
 
+            // A weighed spool: what is left is the measured weight minus the empty spool, and the rest is used.
+            var coreWeight = spool.EmptyWeight ?? BambuddyManager.CoreWeight;
+            var remaining = spool.Weight is { } weight ? Math.Clamp(weight - coreWeight, 0, labelWeight) : labelWeight;
+
             return new Dictionary<string, string?>
             {
                 // Same values a direct scan into Bambuddy produces — see BambuddyManager.BuildSpoolCreate.
@@ -110,8 +114,8 @@ namespace BambuMan.Shared.Services
                 ["extra_colors"] = ExtraColors(spool),
                 ["effect_type"] = EffectType(subtype),
                 ["label_weight"] = Format(labelWeight),
-                ["weight_used"] = "0",
-                ["remaining"] = Format(labelWeight),
+                ["weight_used"] = Format(labelWeight - remaining),
+                ["remaining"] = Format(remaining),
                 ["cost_per_kg"] = Format(BambuddyManager.CostPerKg(spool.Price, labelWeight) is { } costPerKg ? Math.Round(costPerKg, 2) : null),
                 ["nozzle_temp_min"] = Format(info.MinTemperatureForHotend),
                 ["nozzle_temp_max"] = Format(info.MaxTemperatureForHotend),
@@ -121,7 +125,7 @@ namespace BambuMan.Shared.Services
                 ["tray_uuid"] = info.TrayUid,
                 ["slicer_filament"] = slicerFilament,
                 ["slicer_filament_name"] = slicerFilamentName,
-                ["core_weight"] = Format(BambuddyManager.CoreWeight),
+                ["core_weight"] = Format(coreWeight),
                 ["data_origin"] = "nfc_scan",
                 ["tag_type"] = "bambu_rfid",
 
@@ -144,7 +148,10 @@ namespace BambuMan.Shared.Services
                 ["second_color"] = NormalizeHex(info.SecondColor),
                 ["price"] = Format(spool.Price),
                 ["first_scanned"] = spool.FirstScanned.ToString(DateFormat, CultureInfo.InvariantCulture),
-                ["last_scanned"] = spool.LastScanned.ToString(DateFormat, CultureInfo.InvariantCulture)
+                ["last_scanned"] = spool.LastScanned.ToString(DateFormat, CultureInfo.InvariantCulture),
+                ["weight"] = Format(spool.Weight),
+                ["buy_date"] = spool.BuyDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                ["lot_nr"] = spool.LotNr
             };
         }
 
@@ -279,6 +286,8 @@ namespace BambuMan.Shared.Services
 
             var price = ParseDecimal(cell, "price");
             var costPerKg = ParseDecimal(cell, "cost_per_kg");
+            var coreWeight = ParseDecimal(cell, "core_weight");
+            var weightUsed = ParseDecimal(cell, "weight_used");
             var extraColors = cell("extra_colors")?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
             var now = DateTime.Now;
 
@@ -291,6 +300,11 @@ namespace BambuMan.Shared.Services
                 ColorHexes = extraColors.Length > 1 ? extraColors.Select(x => x.TrimStart('#').ToUpperInvariant()).ToList() : [],
                 Price = price ?? (costPerKg * BambuddyManager.LabelWeight(info) / 1000m),
                 Location = cell("storage_location"),
+                // BambuMan's own weight column when there is one; a Bambuddy file only says how much was used.
+                Weight = ParseDecimal(cell, "weight") ?? (weightUsed > 0 ? BambuddyManager.LabelWeight(info) + (coreWeight ?? BambuddyManager.CoreWeight) - weightUsed : null),
+                EmptyWeight = coreWeight,
+                BuyDate = ParseDate(cell, "buy_date"),
+                LotNr = cell("lot_nr"),
                 FirstScanned = ParseDate(cell, "first_scanned") ?? now,
                 LastScanned = ParseDate(cell, "last_scanned") ?? now
             };

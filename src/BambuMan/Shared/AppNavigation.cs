@@ -15,12 +15,18 @@ namespace BambuMan
         /// <summary>True on the scan page, or before the web view has rendered anything.</summary>
         public bool IsAtHome => navigationManager == null || CurrentPath(navigationManager) == string.Empty;
 
-        /// <summary>Navigates to the scan page; false when already there.</summary>
-        public bool TryGoHome()
+        /// <summary>
+        /// Goes one level up — a stored spool back to the spool list, any other page to the scan page. False when
+        /// already on the scan page.
+        /// </summary>
+        public bool TryGoBack()
         {
             if (IsAtHome) return false;
 
-            navigationManager!.NavigateTo("/");
+            var path = CurrentPath(navigationManager!);
+            var parent = path.Contains('/') ? path[..path.LastIndexOf('/')] : string.Empty;
+
+            navigationManager!.NavigateTo(parent.Length == 0 ? "/" : parent);
             return true;
         }
 
