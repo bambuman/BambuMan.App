@@ -5,6 +5,7 @@
              xmlns:local="clr-namespace:BambuMan"
              xmlns:components="clr-namespace:BambuMan.Components"
              x:Class="BambuMan.HostPage"
+             SafeAreaEdges="All"
              BackgroundColor="{AppThemeBinding Light={StaticResource StatusBar}, Dark={StaticResource StatusBarDark}}">
 
     <ContentPage.Behaviors>
