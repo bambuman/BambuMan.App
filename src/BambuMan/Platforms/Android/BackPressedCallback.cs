@@ -4,25 +4,24 @@ namespace BambuMan;
 
 /// <summary>
 /// Modern back-press handler using OnBackPressedDispatcher (replaces deprecated OnBackPressed).
-/// When the user is on MainPage, minimizes the app instead of finishing the Activity.
-/// This prevents Activity destruction and avoids the Glide/FontImageSource crash (dotnet/maui#12513).
+/// Closes the QR scanner when it is open, returns to the scan page from any other Blazor page, and on the scan page
+/// minimizes the app instead of finishing the Activity, so NFC listening resumes where it left off.
 /// </summary>
 public class BackPressedCallback(ComponentActivity activity) : OnBackPressedCallback(true)
 {
     public override void HandleOnBackPressed()
     {
-        var location = Shell.Current?.CurrentState?.Location?.OriginalString;
+        var navigation = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page?.Navigation;
 
-        if (location == "//MainPage")
+        if (navigation?.ModalStack.Count > 0)
         {
-            // Minimize instead of closing to keep the Activity alive
-            activity.MoveTaskToBack(true);
+            _ = navigation.PopModalAsync();
             return;
         }
 
-        // For other pages, let MAUI handle normal back navigation
-        Enabled = false;
-        activity.OnBackPressedDispatcher.OnBackPressed();
-        Enabled = true;
+        if (AppContainer.Services?.GetService<AppNavigation>()?.TryGoHome() == true) return;
+
+        // Minimize instead of closing to keep the Activity alive
+        activity.MoveTaskToBack(true);
     }
 }

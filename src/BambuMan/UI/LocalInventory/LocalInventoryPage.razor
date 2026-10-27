@@ -1,0 +1,34 @@
+@page "/spools"
+@inherits ObservingComponentBase
+
+<PageHeader Title="Stored spools" Icon="Lucide.Boxes">
+    <Subtitle>@Vm.CountText</Subtitle>
+    <Actions>
+        <button class="btn btn-secondary" @onclick="Scanner.ImportCsvAsync"><Blazicon Svg="Lucide.FileUp" /> Import CSV</button>
+        <button class="btn btn-secondary" @onclick="Scanner.ExportCsvAsync"><Blazicon Svg="Lucide.FileDown" /> Export CSV</button>
+        <button class="btn btn-tertiary" disabled="@(Vm.Spools.Count == 0)" @onclick="DeleteAllAsync"><Blazicon Svg="Lucide.Trash" /> Delete all</button>
+    </Actions>
+</PageHeader>
+
+<div class="card">
+    @if (Vm.Spools.Count == 0)
+    {
+        <div class="empty">No spools stored yet. Scan a spool to add it.</div>
+    }
+    else
+    {
+        <div class="list">
+            @foreach (var spool in Vm.Spools)
+            {
+                <div class="list-row" @key="spool.Key">
+                    <div class="swatch round" style="background: @spool.Color"></div>
+                    <div class="list-row-text">
+                        <div class="list-row-title">@spool.Title</div>
+                        <div class="list-row-sub">@spool.Subtitle</div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" aria-label="Delete @spool.Title" @onclick="() => DeleteAsync(spool.Key)"><Blazicon Svg="Lucide.Trash" /></button>
+                </div>
+            }
+        </div>
+    }
+</div>

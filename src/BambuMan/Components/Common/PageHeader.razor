@@ -1,0 +1,29 @@
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            @if (Icon != null)
+            {
+                <Blazicon Svg="Icon" />
+            }
+            @Title
+        </h1>
+        @if (Subtitle != null)
+        {
+            <div class="page-subtitle">@Subtitle</div>
+        }
+    </div>
+    @if (Actions != null)
+    {
+        <div class="page-actions">@Actions</div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+
+    [Parameter] public SvgIcon? Icon { get; set; }
+
+    [Parameter] public RenderFragment? Subtitle { get; set; }
+
+    [Parameter] public RenderFragment? Actions { get; set; }
+}

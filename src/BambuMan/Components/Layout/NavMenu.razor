@@ -1,0 +1,39 @@
+@using BambuMan.UI.Settings
+
+<aside class="sidebar">
+    <a class="brand" href="">
+        <img src="img/logo.svg" alt="" />
+        <span class="brand-name">BambuMan</span>
+    </a>
+
+    <nav class="nav">
+        <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
+            <Blazicon Svg="Lucide.Nfc" /> Scanner
+        </NavLink>
+
+        @* The device store is the only spool list the app keeps itself; the servers have their own UIs. *@
+        @if (ShowLocalSpools)
+        {
+            <NavLink class="nav-item" href="spools">
+                <Blazicon Svg="Lucide.Boxes" /> Spools
+            </NavLink>
+        }
+
+        <NavLink class="nav-item" href="settings">
+            <Blazicon Svg="Lucide.Settings" /> Settings
+        </NavLink>
+
+        <NavLink class="nav-item" href="logs">
+            <Blazicon Svg="Lucide.ScrollText" /> Logs
+        </NavLink>
+    </nav>
+
+    <div class="sidebar-footer">
+        @(string.IsNullOrEmpty(BuildVersionModel.CurrentBuildVersion) ? "BambuMan" : $"v{BuildVersionModel.CurrentBuildVersion}")
+    </div>
+</aside>
+
+@code {
+    private static bool ShowLocalSpools =>
+        SettingsPage.GetInventoryBackend() == InventoryBackend.NoBackend && Preferences.Default.Get(SettingsPage.KeyStoreSpoolsLocally, false);
+}

@@ -5,22 +5,15 @@ using Microsoft.Extensions.Logging;
 
 namespace BambuMan.UI.Scan
 {
-    public partial class ScanPage : IQueryAttributable
+    /// <summary>
+    /// Native camera page, pushed modally over the Blazor host by <see cref="QrScanService"/>. The scanned value (or
+    /// null when the user backs out) is handed back through <see cref="Result"/>.
+    /// </summary>
+    public partial class ScanPage
     {
         private readonly ILogger<ScanPage> logger;
+        private readonly TaskCompletionSource<string?> result = new();
         private bool isPageVisible;
-        private string scanTarget = "spoolman_url";
-        private bool requireUrl = true;
-
-        public void ApplyQueryAttributes(IDictionary<string, object> query)
-        {
-            if (query.TryGetValue("target", out var t) && t is string target)
-            {
-                scanTarget = target;
-                // URLs are validated against the URL regex; API keys (and other free text) are not.
-                requireUrl = target.EndsWith("url", StringComparison.OrdinalIgnoreCase);
-            }
-        }
 
         public ScanPage(ILogger<ScanPage> logger)
         {
@@ -28,6 +21,11 @@ namespace BambuMan.UI.Scan
             InitializeComponent();
             BackButton.Text = "<";
         }
+
+        /// <summary>URLs are validated against the URL regex; API keys (and other free text) are not.</summary>
+        public bool RequireUrl { get; set; } = true;
+
+        public Task<string?> Result => result.Task;
 
         protected override async void OnAppearing()
         {
@@ -47,14 +45,14 @@ namespace BambuMan.UI.Scan
                 if (!granted)
                 {
                     logger.LogWarning("Camera permission not granted, navigating back");
-                    await Shell.Current.GoToAsync("..");
+                    await CloseAsync(null);
                     return;
                 }
 
                 if (!MediaPicker.Default.IsCaptureSupported)
                 {
                     logger.LogWarning("Camera capture not supported on this device, navigating back");
-                    await Shell.Current.GoToAsync("..");
+                    await CloseAsync(null);
                     return;
                 }
 
@@ -82,6 +80,9 @@ namespace BambuMan.UI.Scan
                 isPageVisible = false;
                 base.OnDisappearing();
                 Barcode.CameraEnabled = false;
+
+                // Hardware back pops the modal without going through CloseAsync.
+                result.TrySetResult(null);
             }
             catch (Exception ex)
             {
@@ -97,13 +98,13 @@ namespace BambuMan.UI.Scan
 
                 // A combined Bambuddy config QR (url + key) is accepted whichever field was being scanned.
                 var combined = e.BarcodeResults.FirstOrDefault(x => BambuddyConfigUri.IsConfigUri(x.RawValue))?.RawValue;
-                var value = combined ?? (requireUrl
+                var value = combined ?? (RequireUrl
                     ? e.BarcodeResults.FirstOrDefault(x => Regex.IsMatch(x.RawValue, Constants.UrlValidation))?.RawValue ?? string.Empty
                     : e.BarcodeResults.FirstOrDefault()?.RawValue ?? string.Empty);
                 if (string.IsNullOrEmpty(value)) return;
 
                 Barcode.PauseScanning = true;
-                await Shell.Current.GoToAsync("..", new Dictionary<string, object> { { "scan_target", scanTarget }, { "scan_value", value } });
+                await CloseAsync(value);
             }
             catch (Exception ex)
             {
@@ -115,12 +116,19 @@ namespace BambuMan.UI.Scan
         {
             try
             {
-                await Shell.Current.GoToAsync($"..");
+                await CloseAsync(null);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error in BackButton_Clicked ");
             }
+        }
+
+        private async Task CloseAsync(string? value)
+        {
+            if (!result.TrySetResult(value)) return;
+
+            await Navigation.PopModalAsync();
         }
     }
 }

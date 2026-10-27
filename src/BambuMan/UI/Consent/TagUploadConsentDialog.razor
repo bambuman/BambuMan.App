@@ -1,0 +1,76 @@
+@inject ILogger<TagUploadConsentDialog> Logger
+@using Microsoft.Extensions.Logging
+
+@if (Visible)
+{
+    <div class="dialog-backdrop" @onclick="OnBackdropClick">
+        <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="consent-title" @onclick:stopPropagation>
+
+            <div class="dialog-title" id="consent-title">
+                <Blazicon Svg="Lucide.FlaskConical" /> Research Data Contribution
+            </div>
+
+            <p>
+                Help improve Bambu Lab filament research by uploading NFC tag data to the
+                <a href="" @onclick='() => OpenAsync("https://github.com/queengooborg/Bambu-Lab-RFID-Library")' @onclick:preventDefault>Bambu-Lab-RFID-Library</a>.
+            </p>
+
+            <p>
+                The uploaded data will also be available at
+                <a href="" @onclick='() => OpenAsync("https://bambuman.ee")' @onclick:preventDefault>bambuman.ee</a>
+                as a downloadable archive.
+            </p>
+
+            <div class="banner">
+                <div>What is uploaded: <strong>Full NFC tag data with keys</strong>.</div>
+            </div>
+
+            <div class="banner error">
+                <Blazicon Svg="Lucide.TriangleAlert" />
+                <div>The uploaded data will be PUBLIC and freely available without restrictions.</div>
+            </div>
+
+            <div class="banner caution">
+                <Blazicon Svg="Lucide.Info" />
+                <ul>
+                    <li>Please scan both sides of the spool — each tag contains unique data.</li>
+                    <li>Limited to 1000 tag uploads per day.</li>
+                </ul>
+            </div>
+
+            <div class="dialog-note">
+                <Blazicon Svg="Lucide.Settings" /> You can opt out anytime in Settings.
+            </div>
+
+            <div class="dialog-actions">
+                <button type="button" class="btn btn-tertiary" @onclick="() => OnResult.InvokeAsync(false)">No Thanks</button>
+                <button type="button" class="btn btn-primary" @onclick="() => OnResult.InvokeAsync(true)">Participate</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+
+    /// <summary>Whether tapping outside closes the dialog without an answer. Off for the first-run prompt.</summary>
+    [Parameter] public bool Dismissible { get; set; }
+
+    [Parameter] public EventCallback<bool> OnResult { get; set; }
+
+    [Parameter] public EventCallback OnDismissed { get; set; }
+
+    private Task OnBackdropClick() => Dismissible ? OnDismissed.InvokeAsync() : Task.CompletedTask;
+
+    private async Task OpenAsync(string url)
+    {
+        try
+        {
+            await Launcher.OpenAsync(url);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error opening {Url}", url);
+        }
+    }
+}

@@ -1,4 +1,4 @@
-﻿using Android.App;
+using Android.App;
 using Android.Runtime;
 using BambuMan.Implementations;
 using BambuMan.Interfaces;
@@ -17,6 +17,7 @@ namespace BambuMan
         {
             services.AddSingleton<IToneGenerator, AndroidToneGenerator>();
             services.AddTransient<IInvokeIndent, AndroidInvokeIndent>();
+            services.AddSingleton<ISoftKeyboard, AndroidSoftKeyboard>();
         }
 
         public static void InitBuildVersion()

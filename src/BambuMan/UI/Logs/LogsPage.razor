@@ -1,0 +1,29 @@
+@page "/logs"
+@inherits ObservingComponentBase
+@using Microsoft.Extensions.Logging
+@inject LogsPageViewModel Vm
+@inject IInvokeIndent InvokeIndent
+@inject ILogger<LogsPage> Logger
+
+<PageHeader Title="Logs" Icon="Lucide.ScrollText">
+    <Subtitle>@Vm.Logs.Count @(Vm.Logs.Count == 1 ? "message" : "messages"), newest first</Subtitle>
+</PageHeader>
+
+<LogPanel Logs="Vm.Logs" Full="true" OnClear="Vm.Logs.Clear" OnEmail="EmailLogsAsync" />
+
+@code {
+    protected override void OnInitialized() => ObserveCollection(Vm.Logs);
+
+    private async Task EmailLogsAsync()
+    {
+        try
+        {
+            var logs = $"{string.Join("\r\n", Vm.Logs.Select(x => x.Content))}\r\n\r\n";
+            await InvokeIndent.SendEmail("bambuman.app@gmail.com", "Bambu logs", logs);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in EmailLogsAsync");
+        }
+    }
+}

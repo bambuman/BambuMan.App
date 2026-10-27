@@ -1,0 +1,28 @@
+<div class="toggle-row">
+    <div class="toggle-text">
+        <div class="toggle-title">@Title @TitleExtra</div>
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <div class="toggle-desc">@Description</div>
+        }
+    </div>
+    <label class="switch">
+        <input type="checkbox" role="switch" aria-label="@Title" checked="@Value" @onchange="OnChangedAsync" />
+        <span class="switch-track"></span>
+    </label>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>Extra content after the title, e.g. an info button.</summary>
+    [Parameter] public RenderFragment? TitleExtra { get; set; }
+
+    [Parameter] public bool Value { get; set; }
+
+    [Parameter] public EventCallback<bool> ValueChanged { get; set; }
+
+    private Task OnChangedAsync(ChangeEventArgs e) => ValueChanged.InvokeAsync(e.Value is true);
+}

@@ -1,0 +1,31 @@
+@implements IDisposable
+@inject ToastService Toasts
+
+<div class="toasts">
+    @foreach (var toast in Toasts.Toasts)
+    {
+        <div class="toast @toast.Kind.ToString().ToLowerInvariant()" @key="toast.Id" @onclick="() => Toasts.Dismiss(toast.Id)">
+            @switch (toast.Kind)
+            {
+                case ToastKind.Success:
+                    <Blazicon Svg="Lucide.CircleCheck" />
+                    break;
+                case ToastKind.Error:
+                    <Blazicon Svg="Lucide.CircleAlert" />
+                    break;
+                default:
+                    <Blazicon Svg="Lucide.Info" />
+                    break;
+            }
+            <span>@toast.Text</span>
+        </div>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized() => Toasts.Changed += OnChanged;
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Toasts.Changed -= OnChanged;
+}

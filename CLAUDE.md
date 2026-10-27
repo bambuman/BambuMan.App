@@ -5,11 +5,11 @@
 - Nullable is set to **enable**
 
 ## Technology Stack
-- **MAUI 10.0** — Cross-platform mobile framework (Android primary, iOS configured)
+- **MAUI 10.0 Blazor Hybrid** — Cross-platform mobile framework (Android primary, iOS configured); the UI is Razor components in a `BlazorWebView`
 - **Windows Forms** — Desktop companion app
 - **CommunityToolkit.Mvvm** — MVVM pattern with `[ObservableProperty]`, `ObservableObject`
-- **CommunityToolkit.Maui** + **Markup** — MAUI extensions and C# markup
-- **UraniumUI** — Material design components (FontAwesome, MaterialSymbols icons)
+- **CommunityToolkit.Maui** — MAUI extensions (status bar colour)
+- **Blazicons.Lucide** — Lucide icons as Blazor components (`<Blazicon Svg="Lucide.Nfc" />`)
 - **RestSharp** — HTTP client (BambuMan.Shared)
 - **Newtonsoft.Json** — JSON serialization
 - **Serilog** — Structured logging (with Sentry and Xamarin sinks)
@@ -24,7 +24,7 @@ Solution file: `src/BambuMan.sln`
 
 | Project | Type | Description |
 |---|---|---|
-| `BambuMan` | MAUI App (Android) | Mobile application — Pages, ViewModels, platform code |
+| `BambuMan` | MAUI Blazor Hybrid App (Android) | Mobile application — Razor pages, ViewModels, platform code |
 | `BambuMan.Desktop` | WinForms App | Windows desktop companion with PCSC/NFC support |
 | `BambuMan.Shared` | Class Library | Shared business logic, services, models, NFC utilities |
 | `SpoolMan.Api` | Class Library | OpenAPI-generated REST client for Spoolman API |
@@ -32,8 +32,10 @@ Solution file: `src/BambuMan.sln`
 | `SpoolMan.Api.Test` | xUnit Test | Tests for SpoolMan.Api |
 
 ### Key Directories
-- `BambuMan/UI/` — Pages and ViewModels organized by feature (Main, Settings, Logs, Scan, Consent)
-- `BambuMan/Shared/` — Cross-platform services (LogService, InventoryService, AppContainer)
+- `BambuMan/UI/` — Razor pages (`*.razor` + `*.razor.cs`) and ViewModels organized by feature (Main, Settings, Logs, LocalInventory, Consent). `Scan/` is the one native MAUI page (camera QR scanner), pushed modally over the web view
+- `BambuMan/Components/` — Blazor shell (`Routes`, `Layout/`) and reusable components (`Common/`)
+- `BambuMan/wwwroot/` — Web view host page, `css/app.css` (all styling; colour tokens mirror `Resources/Styles/Colors.xaml`, light + dark), `js/app.js`
+- `BambuMan/Shared/` — Cross-platform services (ScannerService, LogService, InventoryService, ToastService, QrScanService, AppNavigation, AppContainer)
 - `BambuMan/Platforms/` — Platform-specific implementations (Android, iOS)
 - `BambuMan.Shared/Nfc/` — NFC abstractions and utilities
 - `BambuMan.Shared/Models/` — Shared data models
@@ -41,7 +43,8 @@ Solution file: `src/BambuMan.sln`
 - `SpoolMan.Api/Model/` — Generated API models
 
 ### Architecture
-- **MVVM** with CommunityToolkit.Mvvm (`ObservableObject`, `[ObservableProperty]`)
+- **MVVM** with CommunityToolkit.Mvvm (`ObservableObject`, `[ObservableProperty]`). Razor pages derive from `ObservingComponentBase` and `Observe(viewModel)` to re-render on property / collection changes
+- **ScannerService** (singleton) owns NFC and the inventory backends; Blazor pages are rebuilt on every navigation, so page code must not hold long-lived subscriptions
 - **Dependency Injection** via `MauiProgram.cs` — singletons for stateful services, transients for pages/viewmodels
 - **Event-driven** communication between `SpoolmanManager` and UI via delegates
 - **Global service locator** via `AppContainer.Services` for runtime access

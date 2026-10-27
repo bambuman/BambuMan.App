@@ -1,0 +1,36 @@
+@using System.Collections.ObjectModel
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><Blazicon Svg="Lucide.ScrollText" /> Logs</div>
+        <div class="card-actions">
+            <button class="btn btn-tertiary btn-sm" @onclick="OnClear"><Blazicon Svg="Lucide.Eraser" /> Clear logs</button>
+            <button class="btn btn-secondary btn-sm" @onclick="OnEmail"><Blazicon Svg="Lucide.Mail" /> Email logs</button>
+        </div>
+    </div>
+
+    @if (Logs.Count == 0)
+    {
+        <div class="empty">No log messages yet.</div>
+    }
+    else
+    {
+        <div class="logs mono @(Full ? "full" : null)">
+            @foreach (var log in Logs)
+            {
+                <p class="log-line @log.Level.ToString().ToLowerInvariant()">@log.Content</p>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ObservableCollection<LogModel> Logs { get; set; } = [];
+
+    /// <summary>Let the list grow with the page instead of scrolling inside the card.</summary>
+    [Parameter] public bool Full { get; set; }
+
+    [Parameter] public EventCallback OnClear { get; set; }
+
+    [Parameter] public EventCallback OnEmail { get; set; }
+}

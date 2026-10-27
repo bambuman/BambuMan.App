@@ -1,0 +1,27 @@
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="banner @Kind">
+        @if (Icon != null)
+        {
+            <Blazicon Svg="Icon" />
+        }
+        <div>
+            @if (!string.IsNullOrEmpty(Label))
+            {
+                <strong class="banner-label">@Label</strong>
+            }
+            @Message
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>error, success, info, caution or version — the banner colours from the app scheme.</summary>
+    [Parameter] public string Kind { get; set; } = "info";
+
+    [Parameter] public string? Label { get; set; }
+
+    [Parameter] public string? Message { get; set; }
+
+    [Parameter] public SvgIcon? Icon { get; set; }
+}
