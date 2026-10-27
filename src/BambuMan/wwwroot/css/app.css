@@ -1478,10 +1478,16 @@ svg[blazicon].group-chevron {
     font-size: calc(13px * var(--text-scale));
 }
 
+/* Pinned to the bottom of the dialog, so the answer buttons stay in view when larger text makes the dialog scroll. */
 .dialog-actions {
+    position: sticky;
+    bottom: -20px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+    margin: 0 -20px -20px;
+    padding: 12px 20px 20px;
+    background: var(--surface);
 }
 
 /* ---------- Larger text sizes ---------- */
