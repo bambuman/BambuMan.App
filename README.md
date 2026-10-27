@@ -32,7 +32,7 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
 
    | Main | Settings | Stored spools | Logs | Research Data Contribution |
    |:---:|:---:|:---:|:---:|:---:|
-   | <img src="screens/android_main.jpg" alt="Main page" width="200" /> | <img src="screens/android_settings.png" alt="Settings page" width="200" /> | <img src="screens/android_stored_spools.png" alt="Stored spools page" width="200" /> | <img src="screens/android_logs.png" alt="Logs page" width="200" /> | <img src="screens/android_contribution_popup.png" alt="Research Data Contribution" width="200" /> |
+   | <img src="screens/android_main.png" alt="Main page" width="160" /> | <img src="screens/android_settings.png" alt="Settings page" width="160" /> | <img src="screens/android_stored_spools.png" alt="Stored spools page" width="160" /> | <img src="screens/android_logs.png" alt="Logs page" width="160" /> | <img src="screens/android_contribution_popup.png" alt="Research Data Contribution" width="160" /> |
 
  - **Windows** desktop application (a `PCSC` compatible `NFC` reader like [ACR122U](https://www.acs.com.hk/en/products/3/acr122u-usb-nfc-reader/) or [ACR1252U](https://www.acs.com.hk/en/products/342/acr1252u-usb-nfc-reader-iii-nfc-forum-certified-reader/) is needed)
 
