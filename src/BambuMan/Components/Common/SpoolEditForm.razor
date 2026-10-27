@@ -1,0 +1,69 @@
+@inject IJSRuntime Js
+
+<form class="form-grid" @onsubmit="OnSave" @onsubmit:preventDefault>
+    <FormField Label="Weight (g)" Icon="Lucide.Weight" Error="@Model.WeightError">
+        <input type="number" inputmode="decimal" step="any" min="0" @ref="weightInput" @bind="Model.Weight" />
+    </FormField>
+
+    <FormField Label="Empty weight (g)" Icon="Lucide.Cylinder" Error="@Model.EmptyWeightError">
+        <input type="number" inputmode="decimal" step="any" min="0" @bind="Model.EmptyWeight" />
+    </FormField>
+
+    <FormField Label="Price" Icon="Lucide.Tag" Error="@Model.PriceError" HasValue="Model.Price != null" OnClear="() => Model.Price = null">
+        <input type="number" inputmode="decimal" step="any" min="0" @bind="Model.Price" />
+    </FormField>
+
+    @if (Fields.BuyDate)
+    {
+        <FormField Label="Buy date" Icon="Lucide.Calendar">
+            <input type="date" @bind="Model.BuyDate" />
+        </FormField>
+    }
+
+    @if (Fields.LotNr)
+    {
+        <FormField Label="Lot nr" Icon="Lucide.Hash" HasValue="!string.IsNullOrEmpty(Model.LotNr)" OnClear="() => Model.LotNr = null">
+            <input type="text" @bind="Model.LotNr" />
+        </FormField>
+    }
+
+    <FormField Label="Location" Icon="Lucide.MapPin" HasValue="!string.IsNullOrEmpty(Model.Location)" OnClear="() => Model.Location = null">
+        <input type="text" list="@locationListId" autocomplete="off" @bind="Model.Location" />
+        <datalist id="@locationListId">
+            @foreach (var location in Locations)
+            {
+                <option value="@location"></option>
+            }
+        </datalist>
+    </FormField>
+
+    <div class="form-actions span-2">
+        <button type="button" class="btn btn-tertiary" @onclick="OnCancel">@CancelText</button>
+        <button type="submit" class="btn btn-primary"><Blazicon Svg="Lucide.Save" /> Save changes</button>
+    </div>
+</form>
+
+@code {
+    private readonly string locationListId = $"locations-{Guid.NewGuid():N}";
+
+    private ElementReference weightInput;
+
+    [Parameter, EditorRequired] public SpoolEditModel Model { get; set; } = null!;
+
+    /// <summary>Which optional fields the backend keeps (Buy date / Lot nr).</summary>
+    [Parameter] public SpoolEditFields Fields { get; set; } = new(BuyDate: true, LotNr: true);
+
+    [Parameter] public IEnumerable<string> Locations { get; set; } = [];
+
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+
+    [Parameter] public EventCallback OnSave { get; set; }
+
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    /// <summary>
+    /// Focuses the weight field with its value selected, and scrolls the card to the top of the screen so the
+    /// keyboard that opens next doesn't cover it.
+    /// </summary>
+    public ValueTask FocusWeightAsync() => Js.InvokeVoidAsync("bambuman.focusSpoolEdit", weightInput);
+}

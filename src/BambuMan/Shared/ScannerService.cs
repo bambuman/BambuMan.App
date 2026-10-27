@@ -136,8 +136,8 @@ namespace BambuMan
                 {
                     viewModel.InventorySpool(found, info);
 
-                    // A read-only backend shows the info card from OnSpoolInfoRead instead; there is nothing to edit.
-                    if (ActiveManager.IsReadOnly) return;
+                    // A backend that can't save edits shows the info card from OnSpoolInfoRead instead.
+                    if (!ActiveManager.CanEditSpools) return;
 
                     viewModel.ShowSpool(found, info);
 
@@ -154,6 +154,9 @@ namespace BambuMan
         {
             try
             {
+                // Where the spool can be edited, the edit card from OnSpoolFound takes its place.
+                if (ActiveManager.CanEditSpools) return;
+
                 viewModel.ShowReadOnlySpool(info);
             }
             catch (Exception e)
@@ -247,9 +250,7 @@ namespace BambuMan
                 viewModel.Backend = active.Backend;
                 viewModel.BackendLabel = active.Backend.DisplayName();
                 viewModel.BackendStatus = active.Status;
-                viewModel.ShowInventoryOptions = !active.IsReadOnly;
-                viewModel.ShowBuyDate = active.EditFields.BuyDate;
-                viewModel.ShowLotNr = active.EditFields.LotNr;
+                UpdateEditCapabilities(active);
                 viewModel.ShowLocalSpools = active.Backend == InventoryBackend.NoBackend;
 
                 // Only show connecting animation if the active backend's config changed or it's not yet initialized
@@ -338,7 +339,30 @@ namespace BambuMan
 
             _ = active.RefreshLocationsAsync();
 
+            // The device store only loads during Init, and whether spools can be edited depends on it.
+            UpdateEditCapabilities(active);
             UpdateLocalSpools();
+        }
+
+        private void UpdateEditCapabilities(BaseManager active)
+        {
+            viewModel.ShowInventoryOptions = active.CanEditSpools;
+            viewModel.EditFields = active.EditFields;
+            viewModel.ExistingLocations = active.ExistingLocations;
+        }
+
+        /// <summary>
+        /// Makes sure the no-backend spools reflect the "store spools locally" setting, for the spool pages, which can
+        /// be opened straight from settings before the scan page has re-applied it.
+        /// </summary>
+        public async Task PrepareLocalInventoryAsync()
+        {
+            var noBackend = NoBackend;
+            var storeLocally = Preferences.Default.Get(SettingsPage.KeyStoreSpoolsLocally, false);
+
+            noBackend.StoreSpoolsLocally = storeLocally;
+
+            if (!noBackend.IsInitialized || noBackend.IsStoreLoaded != storeLocally) await noBackend.Init();
         }
 
         #endregion
@@ -549,12 +573,23 @@ namespace BambuMan
         {
             var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
             var defaultPrice = decimal.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? (decimal?)result : null;
-            var defaultLotNr = Preferences.Default.Get(SettingsPage.KeyDefaultLotNr, string.Empty);
-            var defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
+            string? defaultLotNr = Preferences.Default.Get(SettingsPage.KeyDefaultLotNr, string.Empty);
+            string? defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
 
             await viewModel.ClearMessages();
 
             var active = ActiveManager;
+
+            // Settings hides the defaults when read spools are only shown (no backend, not stored), so they must not
+            // apply unseen either.
+            if (active is NoBackendManager { CanEditSpools: false })
+            {
+                buyDate = null;
+                defaultPrice = null;
+                defaultLotNr = null;
+                defaultLocation = null;
+            }
+
             SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
             await active.InventorySpool(info, buyDate, defaultPrice, defaultLotNr, defaultLocation);
 
@@ -685,17 +720,9 @@ namespace BambuMan
             {
                 await viewModel.ClearMessages();
 
-                if (!viewModel.ValidateSpoolEdit()) return false;
+                if (!viewModel.SpoolEdit.Validate()) return false;
 
-                var input = new SpoolEditInput(
-                    viewModel.SpoolWeight,
-                    viewModel.SpoolEmptyWeight,
-                    viewModel.SpoolPrice,
-                    viewModel.SpoolBuyDate,
-                    viewModel.SpoolLotNr,
-                    viewModel.SpoolLocation);
-
-                await ActiveManager.UpdateCurrentSpoolAsync(input);
+                await ActiveManager.UpdateCurrentSpoolAsync(viewModel.SpoolEdit.ToInput());
 
                 CloseSpool();
                 return true;

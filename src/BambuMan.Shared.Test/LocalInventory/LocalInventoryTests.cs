@@ -185,6 +185,87 @@ namespace BambuMan.Shared.Test.LocalInventory
             Assert.Equal("Imported", (await Store().LoadAsync()).Single(x => x.Key == "5E755D3AE0FD409F913D5A89F817A248").Location);
         }
 
+        [Fact(DisplayName = "Edits to a stored spool are saved and survive a restart")]
+        public async Task StoreLocally_UpdateSpool()
+        {
+            var manager = await Manager(storeLocally: true);
+            await manager.InventorySpool(Tag(SampleTags.AbsBlack), null, null, null, null);
+
+            Assert.True(manager.CanEditSpools);
+            Assert.Equal(new SpoolEditFields(BuyDate: true, LotNr: true), manager.EditFields);
+
+            var saved = await manager.UpdateSpoolAsync("5E755D3AE0FD409F913D5A89F817A248",
+                new SpoolEditInput(812m, 245m, 21.5m, new DateTime(2026, 10, 1), " L-2410 ", "  "));
+
+            Assert.True(saved);
+
+            var spool = Assert.Single((await Manager(storeLocally: true)).Spools);
+
+            Assert.Equal(812m, spool.Weight);
+            Assert.Equal(245m, spool.EmptyWeight);
+            Assert.Equal(21.5m, spool.Price);
+            Assert.Equal(new DateTime(2026, 10, 1), spool.BuyDate);
+            Assert.Equal("L-2410", spool.LotNr);
+            Assert.Null(spool.Location);
+
+            Assert.False(await manager.UpdateSpoolAsync("00000000", new SpoolEditInput(1m, null, null, null, null, null)));
+        }
+
+        [Fact(DisplayName = "This session's scans alone are shown, not edited")]
+        public async Task SessionOnly_IsNotEditable()
+        {
+            var manager = await Manager(storeLocally: false);
+            await manager.InventorySpool(Tag(SampleTags.AbsBlack), null, null, null, null);
+
+            Assert.False(manager.CanEditSpools);
+            Assert.Equal(new SpoolEditFields(BuyDate: false, LotNr: false), manager.EditFields);
+            Assert.False(await manager.UpdateSpoolAsync("5E755D3AE0FD409F913D5A89F817A248", new SpoolEditInput(812m, null, null, null, null, null)));
+
+            await manager.UpdateCurrentSpoolAsync(new SpoolEditInput(812m, null, null, null, null, null));
+            Assert.Null(Assert.Single(manager.Spools).Weight);
+        }
+
+        [Fact(DisplayName = "A scan prefills the edit card from the stored spool, or as a full spool when never weighed")]
+        public async Task Scan_PrefillsEditCard()
+        {
+            var manager = await Manager(storeLocally: true);
+
+            var found = new List<SpoolFound>();
+            manager.OnSpoolFound += (spool, _) => found.Add(spool);
+
+            await manager.InventorySpool(Tag(SampleTags.AbsBlack), new DateTime(2026, 10, 27), 19.99m, "L-1", "Shelf A");
+
+            // Never weighed: label weight (1000) plus the standard core (250).
+            Assert.Equal(1250m, found[0].Weight);
+            Assert.Equal(250m, found[0].EmptyWeight);
+            Assert.Equal(19.99m, found[0].Price);
+            Assert.Equal(new DateTime(2026, 10, 27), found[0].BuyDate);
+            Assert.Equal("L-1", found[0].LotNr);
+            Assert.Equal("Shelf A", found[0].Location);
+
+            await manager.UpdateCurrentSpoolAsync(new SpoolEditInput(900m, 240m, 19.99m, null, "L-1", "Dry box"));
+            await manager.InventorySpool(Tag(SampleTags.AbsBlack), null, null, null, "Shelf B");
+
+            Assert.Equal(900m, found[1].Weight);
+            Assert.Equal(240m, found[1].EmptyWeight);
+            Assert.Equal("Dry box", found[1].Location);
+        }
+
+        [Fact(DisplayName = "Override location on read moves an already stored spool to the default location")]
+        public async Task Scan_OverrideLocationOnRead()
+        {
+            var manager = await Manager(storeLocally: true);
+            await manager.InventorySpool(Tag(SampleTags.AbsBlack), null, null, null, "Shelf A");
+
+            await manager.InventorySpool(Tag(SampleTags.AbsBlack), null, null, null, "Shelf B");
+            Assert.Equal("Shelf A", Assert.Single(manager.Spools).Location);
+
+            manager.OverrideLocationOnRead = true;
+            await manager.InventorySpool(Tag(SampleTags.AbsBlack), null, null, null, "Shelf B");
+            Assert.Equal("Shelf B", Assert.Single(manager.Spools).Location);
+            Assert.Equal(["Shelf B"], manager.ExistingLocations);
+        }
+
         #endregion
 
         #region Csv
@@ -317,6 +398,43 @@ namespace BambuMan.Shared.Test.LocalInventory
             Assert.Equal(a.ColorCount, b.ColorCount);
             Assert.Equal(a.SecondColor, b.SecondColor);
             Assert.Equal(a.SkuStart, b.SkuStart);
+        }
+
+        [Fact(DisplayName = "A weighed spool exports what is left, and its weight, buy date and lot nr come back on import")]
+        public void Csv_RoundTripsEditedFields()
+        {
+            var original = new LocalSpool { Info = Tag(SampleTags.PlaWood), Weight = 845m, EmptyWeight = 245m, BuyDate = new DateTime(2026, 10, 1), LotNr = "L-2410" };
+
+            var row = ExportRow(original);
+
+            Assert.Equal("600", row["remaining"]);
+            Assert.Equal("400", row["weight_used"]);
+            Assert.Equal("245", row["core_weight"]);
+            Assert.Equal("845", row["weight"]);
+            Assert.Equal("2026-10-01", row["buy_date"]);
+            Assert.Equal("L-2410", row["lot_nr"]);
+
+            using var stream = new MemoryStream();
+            LocalSpoolCsv.Write(stream, [original]);
+            stream.Position = 0;
+
+            var spool = Assert.Single(LocalSpoolCsv.Read(stream).Spools);
+
+            Assert.Equal(845m, spool.Weight);
+            Assert.Equal(245m, spool.EmptyWeight);
+            Assert.Equal(new DateTime(2026, 10, 1), spool.BuyDate);
+            Assert.Equal("L-2410", spool.LotNr);
+        }
+
+        [Fact(DisplayName = "A Bambuddy file's weight_used becomes the spool weight")]
+        public void Csv_WeightFromWeightUsed()
+        {
+            var spool = Assert.Single(Import("tray_uuid,label_weight,weight_used,core_weight\nAAAABBBBCCCCDDDDEEEEFFFF00001111,1000,300,250\n").Spools);
+
+            Assert.Equal(950m, spool.Weight);
+            Assert.Equal(250m, spool.EmptyWeight);
+
+            Assert.Null(Assert.Single(Import("tray_uuid,label_weight,weight_used\nAAAABBBBCCCCDDDDEEEEFFFF00001111,1000,0\n").Spools).Weight);
         }
 
         [Fact(DisplayName = "A formula-looking cell is quoted on export")]

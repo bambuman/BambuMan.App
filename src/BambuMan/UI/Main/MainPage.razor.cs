@@ -1,3 +1,4 @@
+using BambuMan.Components.Common;
 using BambuMan.Interfaces;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
@@ -13,7 +14,7 @@ namespace BambuMan.UI.Main
         /// <summary>The first visit redirects to settings when the server url is missing; later visits don't nag.</summary>
         private static bool startupChecked;
 
-        private ElementReference weightInput;
+        private SpoolEditForm? spoolEditForm;
 
         [Inject] private ScannerService Scanner { get; set; } = null!;
         [Inject] private InventoryService InventoryService { get; set; } = null!;
@@ -103,7 +104,9 @@ namespace BambuMan.UI.Main
                         // Render first, so the card (and the weight field) exists before it is focused.
                         StateHasChanged();
 
-                        await Js.InvokeVoidAsync("bambuman.focusSelect", weightInput);
+                        if (spoolEditForm == null) return;
+
+                        await spoolEditForm.FocusWeightAsync();
                         SoftKeyboard.Show();
                     }
                     else

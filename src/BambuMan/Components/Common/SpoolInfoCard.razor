@@ -1,0 +1,37 @@
+<div class="card spool-card">
+    <div class="section-title">Spool info</div>
+
+    <div class="spool-head">
+        <SpoolSwatch Info="Info" />
+        <div class="spool-head-text">
+            <div class="spool-title">@(Info.Rows.FirstOrDefault(x => x.Label == "Material")?.Value ?? "Spool")</div>
+            @if (!Info.Matched)
+            {
+                <div class="small subtle">Not found in the filament catalog — showing tag data only.</div>
+            }
+        </div>
+    </div>
+
+    @* Rows are built in SpoolDisplayInfo.From, which omits anything the tag didn't carry. *@
+    <dl class="info-rows">
+        @foreach (var row in Info.Rows)
+        {
+            <dt>@row.Label</dt>
+            <dd>@row.Value</dd>
+        }
+    </dl>
+
+    @if (OnClose.HasDelegate)
+    {
+        <div class="form-actions">
+            <button class="btn btn-tertiary" @onclick="OnClose">Close</button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SpoolDisplayInfo Info { get; set; } = null!;
+
+    /// <summary>Shows a Close button when set.</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+}

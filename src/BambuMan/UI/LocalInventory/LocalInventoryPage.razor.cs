@@ -19,14 +19,24 @@ public partial class LocalInventoryPage
     [Inject] private IInventoryBackendResolver Backends { get; set; } = null!;
     [Inject] private ScannerService Scanner { get; set; } = null!;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        manager = (NoBackendManager)Backends.Resolve(InventoryBackend.NoBackend);
+        try
+        {
+            manager = (NoBackendManager)Backends.Resolve(InventoryBackend.NoBackend);
 
-        Observe(Vm);
-        manager.OnSpoolsChanged += OnSpoolsChanged;
+            Observe(Vm);
+            manager.OnSpoolsChanged += OnSpoolsChanged;
 
-        Vm.Load(manager.Spools);
+            // Opened straight from settings, the store may not be loaded yet.
+            await Scanner.PrepareLocalInventoryAsync();
+
+            Vm.Load(manager.Spools);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error loading stored spools");
+        }
     }
 
     // An import changes the store; reload the list from it.
@@ -74,7 +84,8 @@ public partial class LocalInventoryPage
 
     public override void Dispose()
     {
-        manager.OnSpoolsChanged -= OnSpoolsChanged;
+        // Null when the page is torn down before it initialized (an error during the first render).
+        if (manager != null) manager.OnSpoolsChanged -= OnSpoolsChanged;
         base.Dispose();
     }
 }

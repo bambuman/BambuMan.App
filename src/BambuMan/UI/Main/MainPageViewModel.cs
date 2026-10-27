@@ -1,3 +1,4 @@
+﻿using BambuMan.Components.Common;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
@@ -32,7 +33,8 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private bool showSpoolInfo;
         [ObservableProperty] private SpoolDisplayInfo? spoolInfo;
 
-        // False for a read-only backend, which hides the controls that only make sense when writing to a server.
+        // False when read spools can't be edited (no backend without the device store), which hides the controls
+        // that only make sense when a spool is saved somewhere.
         [ObservableProperty] private bool showInventoryOptions = true;
 
         // The no-backend spool bar: export always, list + import only while spools are stored on the device.
@@ -45,17 +47,7 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private SpoolFound? spool;
         [ObservableProperty] private BambuFilamentInfo? spoolTag;
 
-        [ObservableProperty] private decimal? spoolWeight;
-        [ObservableProperty] private decimal? spoolEmptyWeight = 250;
-        [ObservableProperty] private decimal? spoolInitialWeight;
-        [ObservableProperty] private decimal? spoolPrice;
-        [ObservableProperty] private DateTime? spoolBuyDate;
-        [ObservableProperty] private string? spoolLotNr;
-        [ObservableProperty] private string? spoolLocation;
-
-        [ObservableProperty] private string? spoolWeightError;
-        [ObservableProperty] private string? spoolEmptyWeightError;
-        [ObservableProperty] private string? spoolPriceError;
+        [ObservableProperty] private SpoolEditModel spoolEdit = new();
 
         [ObservableProperty] private bool settingsOk;
         [ObservableProperty] private bool spoolmanOk;
@@ -67,8 +59,7 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private ManagerStatusType backendStatus = ManagerStatusType.Initializing;
 
         // Edit-panel field visibility, driven by the active backend's BaseManager.EditFields.
-        [ObservableProperty] private bool showBuyDate = true;
-        [ObservableProperty] private bool showLotNr = true;
+        [ObservableProperty] private SpoolEditFields editFields = new(BuyDate: true, LotNr: true);
 
         [ObservableProperty] private string nfcText = "Enabled";
 
@@ -132,15 +123,7 @@ namespace BambuMan.UI.Main
         {
             Spool = found;
             SpoolTag = info;
-            SpoolWeightError = null;
-            SpoolEmptyWeightError = null;
-            SpoolPriceError = null;
-            SpoolWeight = found.Weight;
-            SpoolEmptyWeight = found.EmptyWeight;
-            SpoolPrice = found.Price;
-            SpoolBuyDate = found.BuyDate;
-            SpoolLotNr = found.LotNr;
-            SpoolLocation = found.Location;
+            SpoolEdit = SpoolEditModel.From(found);
             ShowSpoolEdit = true;
         }
 
@@ -148,16 +131,6 @@ namespace BambuMan.UI.Main
         {
             SpoolInfo = info;
             ShowSpoolInfo = true;
-        }
-
-        /// <summary>Checks the edit card before it is written back; each failing field gets its message.</summary>
-        public bool ValidateSpoolEdit()
-        {
-            SpoolWeightError = SpoolWeight < 0 ? "Weight can't be negative." : null;
-            SpoolEmptyWeightError = SpoolEmptyWeight < 0 ? "Empty weight can't be negative." : null;
-            SpoolPriceError = SpoolPrice < 0 ? "Price can't be negative." : null;
-
-            return SpoolWeightError == null && SpoolEmptyWeightError == null && SpoolPriceError == null;
         }
 
         public async Task Validate(BaseManager manager)

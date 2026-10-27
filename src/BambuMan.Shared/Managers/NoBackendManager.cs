@@ -11,7 +11,7 @@ namespace BambuMan.Shared.Managers
 {
     /// <summary>
     /// The "no inventory server" option: a scanned tag is matched against the embedded Bambu Lab catalog and
-    /// shown read-only. Nothing leaves the device, so the whole flow works offline. Tag upload to bambuman.ee is
+    /// shown — read-only, unless the spools are stored on the device, where they can be edited too. Nothing leaves the device, so the whole flow works offline. Tag upload to bambuman.ee is
     /// unaffected — it is governed by its own consent setting and runs independently of the inventory backend.
     /// <para>
     /// Every scanned spool is kept in <see cref="Spools"/> for a csv export. By default that is only this session's
@@ -36,6 +36,9 @@ namespace BambuMan.Shared.Managers
 
         private List<ExternalFilament> bambuLabFilaments = [];
         private bool catalogLoaded;
+
+        // The spool the last scan surfaced, which UpdateCurrentSpoolAsync writes to.
+        private string? currentKey;
 
         /// <summary>
         /// Keep scanned spools on the device (see <see cref="ILocalInventoryStore"/>). Takes effect on the next
@@ -62,8 +65,11 @@ namespace BambuMan.Shared.Managers
 
         public override bool IsReadOnly => true;
 
-        /// <summary>Nothing is editable, so neither optional edit field applies.</summary>
-        public override SpoolEditFields EditFields => new(BuyDate: false, LotNr: false);
+        /// <summary>Spools kept on the device can be edited; this session's scans alone are only shown.</summary>
+        public override bool CanEditSpools => IsStoreLoaded;
+
+        /// <summary>The device store keeps every field of the edit card; without it nothing is editable.</summary>
+        public override SpoolEditFields EditFields => IsStoreLoaded ? new(BuyDate: true, LotNr: true) : new(BuyDate: false, LotNr: false);
 
         /// <summary>Unreachable — <see cref="BaseManager.Init"/> short-circuits for a read-only backend.</summary>
         protected override IHost CreateApiHost(string normalizedApiUrl) => throw new NotSupportedException($"{nameof(NoBackendManager)} has no api");
@@ -90,8 +96,8 @@ namespace BambuMan.Shared.Managers
         #region Inventory
 
         /// <summary>
-        /// Show the tag and keep it in <see cref="Spools"/>. Buy date and lot nr are ignored — there is nowhere to show
-        /// them; price and location are kept for the csv export (Bambuddy's cost_per_kg and storage_location).
+        /// Show the tag and keep it in <see cref="Spools"/>, with the defaults passed in. Price and location also go into
+        /// the csv export (Bambuddy's cost_per_kg and storage_location); with the store on, all of them can be edited.
         /// </summary>
         public override async Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
@@ -110,24 +116,30 @@ namespace BambuMan.Shared.Managers
 
             RaiseSpoolInfoRead(SpoolDisplayInfo.From(info, matched, Overrides));
 
-            await KeepSpoolAsync(info, matched, price, location);
+            var key = await KeepSpoolAsync(info, matched, buyDate, price, lotNr, location);
 
-            // Also raised so the on-screen inventory counter keeps working — it only needs material + tray uid.
+            currentKey = key;
+
+            // Raised for the on-screen inventory counter (material + tray uid) and, with the store on, to prefill the
+            // edit card with what the spool has. An unweighed spool reads as full: its label weight plus the core.
+            var kept = key == null ? null : FindSpool(key);
+            var emptyWeight = kept?.EmptyWeight ?? BambuddyManager.CoreWeight;
+
             RaiseSpoolFound(new SpoolFound(
                 Material: matched?.Material ?? info.FilamentType,
                 TrayUid: info.TrayUid,
-                Weight: info.SpoolWeight,
-                EmptyWeight: null,
-                Price: null,
-                BuyDate: null,
-                LotNr: null,
-                Location: null), info);
+                Weight: kept?.Weight ?? BambuddyManager.LabelWeight(info) + emptyWeight,
+                EmptyWeight: emptyWeight,
+                Price: kept?.Price,
+                BuyDate: kept?.BuyDate,
+                LotNr: kept?.LotNr,
+                Location: kept?.Location), info);
 
             return matched != null;
         }
 
-        /// <summary>No-op — the spool is shown read-only, so there are no edits to save.</summary>
-        public override Task UpdateCurrentSpoolAsync(SpoolEditInput input) => Task.CompletedTask;
+        /// <summary>Saves the edit card to the spool the last scan surfaced. Does nothing while only this session's scans are kept.</summary>
+        public override Task UpdateCurrentSpoolAsync(SpoolEditInput input) => currentKey == null || !CanEditSpools ? Task.CompletedTask : UpdateSpoolAsync(currentKey, input);
 
         #endregion
 
@@ -171,6 +183,61 @@ namespace BambuMan.Shared.Managers
             return (added, updated);
         }
 
+        /// <summary>The kept spool with this <see cref="LocalSpool.Key"/>, or null.</summary>
+        public LocalSpool? FindSpool(string key)
+        {
+            lock (spoolLock) return (storedSpools ?? sessionSpools).FirstOrDefault(x => x.Key == key);
+        }
+
+        /// <summary>
+        /// Writes the edit card's fields to a kept spool and saves the store. Only while the store is loaded — this
+        /// session's scans alone are not editable. Returns false when there is no such spool.
+        /// </summary>
+        public async Task<bool> UpdateSpoolAsync(string key, SpoolEditInput input)
+        {
+            LocalSpool? spool;
+
+            lock (spoolLock)
+            {
+                spool = storedSpools?.FirstOrDefault(x => x.Key == key);
+
+                if (spool != null)
+                {
+                    spool.Weight = input.Weight;
+                    spool.EmptyWeight = input.EmptyWeight;
+                    spool.Price = input.Price;
+                    spool.BuyDate = input.BuyDate;
+                    spool.LotNr = string.IsNullOrWhiteSpace(input.LotNr) ? null : input.LotNr.Trim();
+                    spool.Location = string.IsNullOrWhiteSpace(input.Location) ? null : input.Location.Trim();
+                }
+            }
+
+            if (spool == null) return false;
+
+            await SaveAndNotifyAsync();
+
+            var name = string.Join(" ", new[] { spool.Info.DetailedFilamentType ?? spool.Info.FilamentType, spool.Name }.Where(x => !string.IsNullOrEmpty(x)));
+
+            await Log(LogLevel.Success, $"Spool {name} updated");
+            ShowMessage(false, $"Spool {name} updated.");
+
+            return true;
+        }
+
+        /// <summary>The read-only card for a kept spool, matched against the catalog again so it shows what a scan shows.</summary>
+        public async Task<SpoolDisplayInfo> DescribeAsync(LocalSpool spool)
+        {
+            if (!catalogLoaded)
+            {
+                bambuLabFilaments = ExternalFilamentMatcher.LoadEmbeddedFilaments();
+                catalogLoaded = true;
+            }
+
+            var candidates = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, spool.Info, Overrides);
+
+            return SpoolDisplayInfo.From(spool.Info, candidates.Count == 1 ? candidates[0] : null, Overrides);
+        }
+
         /// <summary>Remove one spool from <see cref="Spools"/> (and from the device, when stored locally).</summary>
         public async Task RemoveSpoolAsync(string key)
         {
@@ -195,11 +262,15 @@ namespace BambuMan.Shared.Managers
             await SaveAndNotifyAsync();
         }
 
-        private async Task KeepSpoolAsync(BambuFilamentInfo info, ExternalFilament? matched, decimal? price, string? location)
+        /// <summary>Adds or refreshes the scanned spool; returns its key, or null when the tag has nothing to key it by.</summary>
+        private async Task<string?> KeepSpoolAsync(BambuFilamentInfo info, ExternalFilament? matched, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
             var key = LocalSpool.KeyOf(info);
 
-            if (key == null) return;
+            if (key == null) return null;
+
+            location = string.IsNullOrWhiteSpace(location) ? null : location;
+            lotNr = string.IsNullOrWhiteSpace(lotNr) ? null : lotNr;
 
             var now = DateTime.Now;
 
@@ -210,6 +281,8 @@ namespace BambuMan.Shared.Managers
             }
 
             await SaveAndNotifyAsync();
+
+            return key;
 
             void Upsert(List<LocalSpool> spools)
             {
@@ -225,7 +298,9 @@ namespace BambuMan.Shared.Managers
                         FilamentCode = ExternalFilamentMatcher.FindFilamentCode(info, Overrides),
                         ColorHexes = matched?.ColorHexes?.Select(x => x.TrimStart('#').ToUpperInvariant()).ToList() ?? [],
                         Price = price,
-                        Location = string.IsNullOrWhiteSpace(location) ? null : location,
+                        Location = location,
+                        BuyDate = buyDate,
+                        LotNr = lotNr,
                         FirstScanned = now,
                         LastScanned = now
                     });
@@ -233,14 +308,19 @@ namespace BambuMan.Shared.Managers
                     return;
                 }
 
-                // A re-scan refreshes the tag and catalog data, but keeps the price and location the spool already
-                // has — they may have come from an import, and the defaults a re-scan passes would overwrite them.
+                // A re-scan refreshes the tag and catalog data, but keeps the price, location, buy date and lot nr the
+                // spool already has — they may have been edited or imported, and the defaults a re-scan passes would
+                // overwrite them. The one exception is "override location on read", which asks for exactly that.
                 existing.Info = info;
                 existing.Manufacturer = matched?.Manufacturer ?? existing.Manufacturer;
                 existing.Name = matched?.Name ?? existing.Name;
                 existing.FilamentCode = ExternalFilamentMatcher.FindFilamentCode(info, Overrides) ?? existing.FilamentCode;
                 existing.Price ??= price;
-                existing.Location ??= string.IsNullOrWhiteSpace(location) ? null : location;
+                existing.BuyDate ??= buyDate;
+                existing.LotNr ??= lotNr;
+
+                if (OverrideLocationOnRead && location != null) existing.Location = location;
+                else existing.Location ??= location;
                 existing.LastScanned = now;
             }
         }
@@ -258,7 +338,7 @@ namespace BambuMan.Shared.Managers
                     storedSpools = null;
                 }
 
-                if (wasLoaded) OnSpoolsChanged?.Invoke();
+                if (wasLoaded) NotifySpoolsChanged();
 
                 return;
             }
@@ -300,7 +380,7 @@ namespace BambuMan.Shared.Managers
             await Log(LogLevel.Information, $"Loaded locally stored spools: {stored.Count}");
 
             if (merged > 0) await SaveAndNotifyAsync();
-            else OnSpoolsChanged?.Invoke();
+            else NotifySpoolsChanged();
         }
 
         private async Task SaveAndNotifyAsync()
@@ -322,6 +402,23 @@ namespace BambuMan.Shared.Managers
                 }
             }
 
+            NotifySpoolsChanged();
+        }
+
+        /// <summary>Publishes the kept spools' locations as <see cref="BaseManager.ExistingLocations"/> and raises <see cref="OnSpoolsChanged"/>.</summary>
+        private void NotifySpoolsChanged()
+        {
+            lock (spoolLock)
+            {
+                ExistingLocations = (storedSpools ?? sessionSpools)
+                    .Select(x => x.Location)
+                    .OfType<string>()
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Order(StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+            }
+
+            RaiseLocationsLoaded();
             OnSpoolsChanged?.Invoke();
         }
 
