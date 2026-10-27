@@ -89,8 +89,8 @@
         --tertiary-btn: #3A3A3A;
         --on-tertiary-btn: #E6E1E5;
 
-        --spool-card: #2C2520;
-        --spool-card-stroke: #D4A96A;
+        --spool-card: #2A2633;
+        --spool-card-stroke: #4A4458;
 
         --success: #66BB6A;
         --success-bg: #1B2E1B;
@@ -547,6 +547,11 @@ svg[blazicon] {
     text-overflow: ellipsis;
 }
 
+/* Phones show the short form of a value; the label above already says what it is. */
+.stat-short {
+    display: none;
+}
+
 .stat-success { --stat-color: var(--success); }
 .stat-error { --stat-color: var(--error); }
 .stat-info { --stat-color: var(--info); }
@@ -584,8 +589,13 @@ svg[blazicon] {
     }
 
     .stats .stat-label svg[blazicon],
-    .stats .pill {
+    .stats .pill,
+    .stats .stat-long {
         display: none;
+    }
+
+    .stats .stat-short {
+        display: inline;
     }
 
     .stats .stat-value {

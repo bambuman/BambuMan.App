@@ -20,7 +20,7 @@
     <div class="stats">
         <div class="card stat stat-@(Vm.SettingsOk ? "success" : "error")">
             <div class="stat-label"><Blazicon Svg="Lucide.Settings2" /> Settings</div>
-            <div class="stat-value">@(Vm.SettingsOk ? "Configured" : "Incomplete")</div>
+            <div class="stat-value"><span class="stat-long">@(Vm.SettingsOk ? "Configured" : "Incomplete")</span><span class="stat-short">@(Vm.SettingsOk ? "OK" : "Missing")</span></div>
             @if (Vm.SettingsOk)
             {
                 <span class="pill success"><Blazicon Svg="Lucide.CircleCheck" /> OK</span>
@@ -33,7 +33,7 @@
 
         <div class="card stat stat-@BackendPill.Kind">
             <div class="stat-label"><Blazicon Svg="Lucide.Server" /> Inventory</div>
-            <div class="stat-value">@Vm.BackendLabel</div>
+            <div class="stat-value"><span class="stat-long">@Vm.BackendLabel</span><span class="stat-short">@(Vm.Backend == InventoryBackend.NoBackend ? "Local" : Vm.BackendLabel)</span></div>
             <span class="pill @BackendPill.Kind">@BackendPill.Text</span>
         </div>
 
@@ -56,14 +56,10 @@
 
         <div class="card stat stat-primary">
             <div class="stat-label"><Blazicon Svg="Lucide.Package" /> This session</div>
-            <div class="stat-value">@SessionSpoolCount @(SessionSpoolCount == 1 ? "spool" : "spools")</div>
+            <div class="stat-value">@SessionSpoolCount<span class="stat-long">&nbsp;@(SessionSpoolCount == 1 ? "spool" : "spools")</span></div>
             <span class="pill primary">@InventoryService.Inventory.Count @(InventoryService.Inventory.Count == 1 ? "material" : "materials")</span>
         </div>
     </div>
-
-    <Banner Kind="error" Label="Error:" Icon="Lucide.CircleAlert" Message="@Vm.ErrorMessage" />
-    <Banner Kind="success" Label="Success:" Icon="Lucide.CircleCheck" Message="@Vm.SuccessMessage" />
-    <Banner Kind="info" Label="Info:" Icon="Lucide.Info" Message="@Vm.InfoMessage" />
 
     @if (Vm.SpoolmanConnecting)
     {
@@ -88,6 +84,10 @@
             </div>
         </div>
     }
+
+    <Banner Kind="error" Label="Error:" Icon="Lucide.CircleAlert" Message="@Vm.ErrorMessage" />
+    <Banner Kind="success" Label="Success:" Icon="Lucide.CircleCheck" Message="@Vm.SuccessMessage" />
+    <Banner Kind="info" Label="Info:" Icon="Lucide.Info" Message="@Vm.InfoMessage" />
 
     @if (Vm.ShowSpoolEdit)
     {
