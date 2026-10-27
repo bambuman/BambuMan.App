@@ -825,6 +825,21 @@ svg[blazicon] {
     min-width: 0;
 }
 
+/* Phones: tighter spacing in the spool edit card, which otherwise fills most of the screen. */
+@media (max-width: 520px) {
+    .spool-card .form-grid {
+        row-gap: 6px;
+    }
+
+    .spool-card .field {
+        gap: 2px;
+    }
+
+    .spool-card .form-actions {
+        margin-top: 6px;
+    }
+}
+
 /* Narrow phones: the two-column spool form drops its decorative input icons so dates and locations aren't cut off. */
 @media (max-width: 400px) {
     .form-grid:not(.collapse) svg[blazicon].input-icon {
