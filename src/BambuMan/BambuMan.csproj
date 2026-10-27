@@ -82,6 +82,8 @@
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#EADFDF" BaseSize="128,128" />
+		<!-- The same logo without the splash colour baked in, for the Android splash drawables (Platforms\Android\Resources\drawable*\maui_splash.xml) so dark mode shows no light square behind it -->
+		<MauiImage Include="Resources\Splash\splash.svg" Link="splash_logo.svg" BaseSize="128,128" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />

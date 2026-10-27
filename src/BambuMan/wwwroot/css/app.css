@@ -10,6 +10,8 @@
     --sidebar: #FFFBFE;
     --border: #E7E0EC;
     --border-strong: #C4C7C5;
+    /* The status bar and splash colour (StatusBar / StatusBarDark in Colors.xaml, maui_splash_color on Android). */
+    --splash: #EADFDF;
 
     --text: #1C1B1F;
     --text-muted: #49454E;
@@ -70,6 +72,7 @@
         --sidebar: #1C1B1F;
         --border: #3A383E;
         --border-strong: #49454F;
+        --splash: #1C1B1F;
 
         --text: #E6E1E5;
         --text-muted: #CAC4D0;
@@ -183,12 +186,13 @@ svg[blazicon] {
     align-items: center;
     justify-content: center;
     height: 100vh;
+    background: var(--splash);
 }
 
+/* Continues the native splash screen: same logo, same size on screen. */
 .app-loading img {
-    width: 96px;
-    height: 96px;
-    opacity: 0.85;
+    width: 195px;
+    height: 195px;
 }
 
 #blazor-error-ui {
