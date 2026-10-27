@@ -1,7 +1,6 @@
 using BambuMan.Shared;
 using BambuMan.Shared.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Text.RegularExpressions;
 
 namespace BambuMan.UI.Settings
 {
@@ -85,7 +84,7 @@ namespace BambuMan.UI.Settings
         public bool ValidateServerUrl()
         {
             if (string.IsNullOrWhiteSpace(ServerUrl)) ServerUrlError = "Server url is required.";
-            else if (!Regex.IsMatch(ServerUrl, Constants.UrlValidation)) ServerUrlError = "Invalid url, must start with http:// or https://";
+            else if (!ServerUrl.IsHttpUrl()) ServerUrlError = "Invalid url, must start with http:// or https://";
             else ServerUrlError = null;
 
             return ServerUrlError == null;

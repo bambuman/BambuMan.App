@@ -142,6 +142,13 @@ namespace BambuMan.Shared
         /// Null-safe truncation for log/telemetry values (e.g. API response bodies), so a long or
         /// data-bearing server response doesn't bloat or leak into Sentry. Returns "" for null/empty.
         /// </summary>
+        /// <summary>
+        /// True for an absolute http(s) url. A bare "host:port" parses as a uri whose scheme is the host name, and
+        /// HttpClient then throws NotSupportedException, so the scheme has to be checked explicitly.
+        /// </summary>
+        public static bool IsHttpUrl(this string? url) =>
+            Uri.TryCreate(url?.Trim(), UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+
         public static string Truncated(this string? s, int max = 500) =>
             string.IsNullOrEmpty(s) ? string.Empty : s.TrimTo(max, "…");
 

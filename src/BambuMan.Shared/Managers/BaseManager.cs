@@ -134,6 +134,13 @@ namespace BambuMan.Shared.Managers
                 return;
             }
 
+            // Urls stored before settings validation required a scheme (e.g. "nas.example.com:7912") can't be called.
+            if (!ApiUrl.IsHttpUrl())
+            {
+                await LogAndSetStatus(ManagerStatusType.CantConnectToApi, LogLevel.Warning, $"Invalid {BackendName} URL, it must start with http:// or https://. Please check the URL in Settings.");
+                return;
+            }
+
             // Fast path: already initialized with the same URL — just verify health
             if (isInitialized && initializedApiUrl == ApiUrl)
             {
