@@ -18,7 +18,7 @@
     <Banner Kind="version" Icon="Lucide.Download" Message="@(Vm.NewVersionAvailable ? Vm.NewVersionText : null)" />
 
     <div class="stats">
-        <div class="card stat">
+        <div class="card stat stat-@(Vm.SettingsOk ? "success" : "error")">
             <div class="stat-label"><Blazicon Svg="Lucide.Settings2" /> Settings</div>
             <div class="stat-value">@(Vm.SettingsOk ? "Configured" : "Incomplete")</div>
             @if (Vm.SettingsOk)
@@ -31,13 +31,13 @@
             }
         </div>
 
-        <div class="card stat">
+        <div class="card stat stat-@BackendPill.Kind">
             <div class="stat-label"><Blazicon Svg="Lucide.Server" /> Inventory</div>
             <div class="stat-value">@Vm.BackendLabel</div>
             <span class="pill @BackendPill.Kind">@BackendPill.Text</span>
         </div>
 
-        <div class="card stat">
+        <div class="card stat stat-@NfcStatus">
             <div class="stat-label"><Blazicon Svg="Lucide.Nfc" /> NFC</div>
             <div class="stat-value">@Vm.NfcText</div>
             @if (!Vm.NfcIsEnabled)
@@ -54,7 +54,7 @@
             }
         </div>
 
-        <div class="card stat">
+        <div class="card stat stat-primary">
             <div class="stat-label"><Blazicon Svg="Lucide.Package" /> This session</div>
             <div class="stat-value">@SessionSpoolCount @(SessionSpoolCount == 1 ? "spool" : "spools")</div>
             <span class="pill primary">@InventoryService.Inventory.Count @(InventoryService.Inventory.Count == 1 ? "material" : "materials")</span>
@@ -70,6 +70,22 @@
         <div class="card connecting">
             <div class="spinner"></div>
             Connecting, please wait ...
+        </div>
+    }
+
+    @if (Vm.HasInventoryItems)
+    {
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><Blazicon Svg="Lucide.Package" /> Inventory</div>
+                <button class="btn btn-secondary btn-sm" @onclick="Scanner.ClearInventoryAsync"><Blazicon Svg="Lucide.Eraser" /> Clear inventory</button>
+            </div>
+            <div class="chips">
+                @foreach (var item in InventoryService.Inventory)
+                {
+                    <span class="chip" style="background: @item.Color">@item.Material <span class="chip-count">× @item.Quantity</span></span>
+                }
+            </div>
         </div>
     }
 
@@ -177,22 +193,6 @@
                         ? "Bambu Lab spools carry a tag on each side of the reel. The read spool shows up here."
                         : "Turn on NFC in your phone settings to read spool tags.")
                 </div>
-            </div>
-        </div>
-    }
-
-    @if (Vm.HasInventoryItems)
-    {
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title"><Blazicon Svg="Lucide.Package" /> Inventory</div>
-                <button class="btn btn-secondary btn-sm" @onclick="Scanner.ClearInventoryAsync"><Blazicon Svg="Lucide.Eraser" /> Clear inventory</button>
-            </div>
-            <div class="chips">
-                @foreach (var item in InventoryService.Inventory)
-                {
-                    <span class="chip" style="background: @item.Color">@item.Material <span class="chip-count">× @item.Quantity</span></span>
-                }
             </div>
         </div>
     }

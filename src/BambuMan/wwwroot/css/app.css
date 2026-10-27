@@ -216,15 +216,19 @@ svg[blazicon] {
 }
 
 .sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+}
+
+/* The sidebar's background runs the full page height; its content stays in view while the page scrolls. */
+.sidebar-inner {
     position: sticky;
     top: 0;
     display: flex;
     flex-direction: column;
-    width: var(--sidebar-width);
     height: 100vh;
-    flex-shrink: 0;
-    background: var(--sidebar);
-    border-right: 1px solid var(--border);
 }
 
 .brand {
@@ -510,11 +514,6 @@ svg[blazicon] {
     gap: 12px;
 }
 
-@media (max-width: 520px) {
-    .stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
 
 .stat {
     display: flex;
@@ -548,6 +547,65 @@ svg[blazicon] {
     text-overflow: ellipsis;
 }
 
+.stat-success { --stat-color: var(--success); }
+.stat-error { --stat-color: var(--error); }
+.stat-info { --stat-color: var(--info); }
+.stat-primary { --stat-color: var(--primary); }
+
+/* Phones: the four tiles collapse into one strip — label, then the value behind a status dot instead of a pill. */
+@media (max-width: 520px) {
+    .stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .stats .stat {
+        align-items: center;
+        gap: 2px;
+        padding: 8px 4px;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        text-align: center;
+    }
+
+    .stats .stat + .stat {
+        border-left: 1px solid var(--border);
+    }
+
+    .stats .stat-label {
+        font-size: 9.5px;
+        letter-spacing: 0.04em;
+    }
+
+    .stats .stat-label svg[blazicon],
+    .stats .pill {
+        display: none;
+    }
+
+    .stats .stat-value {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        max-width: 100%;
+        font-size: 12px;
+    }
+
+    .stats .stat-value::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: var(--stat-color, var(--text-subtle));
+    }
+}
+
 /* ---------- Pills & chips ---------- */
 
 .pill {
@@ -579,22 +637,23 @@ svg[blazicon] {
 .chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
 }
 
 .chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
+    gap: 5px;
+    padding: 3px 4px 3px 9px;
     border-radius: 999px;
     color: #FFFFFF;
     font-size: 12px;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .chip-count {
-    padding: 0 6px;
+    padding: 0 5px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.25);
 }
@@ -1106,11 +1165,10 @@ svg[blazicon] {
     align-items: center;
     gap: 12px;
     padding: 10px 0;
-    border-bottom: 1px solid var(--border);
 }
 
-.list-row:last-child {
-    border-bottom: none;
+.list > * + * {
+    border-top: 1px solid var(--border);
 }
 
 .list-row-text {
@@ -1134,6 +1192,66 @@ svg[blazicon] {
     padding: 24px 8px;
     color: var(--text-subtle);
     text-align: center;
+}
+
+.empty .btn {
+    margin-top: 10px;
+}
+
+/* Spool list filters and grouped (accordion) rows. */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-search {
+    flex: 2 1 220px;
+}
+
+.filter-location {
+    flex: 1 1 160px;
+}
+
+.group-head {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.list-row-title .pill {
+    margin-left: 4px;
+    vertical-align: 1px;
+}
+
+svg[blazicon].group-chevron {
+    width: 20px;
+    height: 20px;
+    color: var(--text-subtle);
+    transition: transform 0.15s;
+}
+
+.group.open svg[blazicon].group-chevron {
+    transform: rotate(180deg);
+}
+
+.group-items {
+    margin: 0 0 8px 40px;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+}
+
+.group-items .list-row {
+    padding: 8px 0;
+}
+
+.group-items .list-row + .list-row {
+    border-top: 1px solid var(--border);
 }
 
 /* ---------- Logs ---------- */

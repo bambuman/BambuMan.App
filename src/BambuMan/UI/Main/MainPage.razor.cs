@@ -45,6 +45,13 @@ namespace BambuMan.UI.Main
             _ => "Ready to read spools"
         };
 
+        private string NfcStatus => Vm switch
+        {
+            { NfcIsEnabled: false } => "error",
+            { DeviceIsListening: true } => "success",
+            _ => "idle"
+        };
+
         private (string Kind, string Text) BackendPill => Vm switch
         {
             { Backend: InventoryBackend.NoBackend } => ("primary", "On this device"),
