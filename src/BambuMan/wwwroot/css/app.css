@@ -825,6 +825,13 @@ svg[blazicon] {
     min-width: 0;
 }
 
+/* Narrow phones: the two-column spool form drops its decorative input icons so dates and locations aren't cut off. */
+@media (max-width: 400px) {
+    .form-grid:not(.collapse) svg[blazicon].input-icon {
+        display: none;
+    }
+}
+
 .field-label {
     color: var(--text-muted);
     font-size: 12px;
