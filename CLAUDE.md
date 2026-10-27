@@ -93,6 +93,8 @@ Per-SKU matching exceptions are data, not code branches: `src/BambuMan.Shared/Fi
 
 ## Git
 - Commit messages must **not** include `Co-Authored-By` lines
+- Branch names are `<type>/<short-description>`: a type prefix, then a few lowercase words joined by hyphens that say what the change does — e.g. `feature/text-scaling-setting`, `fix/bambuddy-location-sync`. Types: `feature`, `fix`, `refactor`, `docs`, `chore`
+- Never use generated, random or meaningless branch names (e.g. `claude/magical-goodall-q48miu`, `patch-1`, `test`) — the name must describe the change
 
 ## Error Handling Philosophy
 - Always investigate and fix the **root cause** of errors — do not suppress, hide, or filter them

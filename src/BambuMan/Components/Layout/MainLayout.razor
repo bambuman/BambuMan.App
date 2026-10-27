@@ -2,8 +2,10 @@
 @implements IDisposable
 @inject NavigationManager Navigation
 @inject AppNavigation AppNavigation
+@using BambuMan.UI.Settings
 
-<div class="app-shell @(menuOpen ? "menu-open" : null)">
+@* The text size is a css variable on the shell, so every page, dialog and toast scales with it from the first render. *@
+<div class="app-shell @(menuOpen ? "menu-open" : null)" data-text-scale="@textScale" style="--text-scale: @textScale.Factor().ToString(CultureInfo.InvariantCulture)">
 
     <header class="topbar">
         <button class="btn-icon" aria-label="Menu" @onclick="ToggleMenu"><Blazicon Svg="Lucide.Menu" /></button>
@@ -28,11 +30,15 @@
 
 @code {
     private bool menuOpen;
+    private TextScale textScale;
 
     protected override void OnInitialized()
     {
+        textScale = SettingsPage.GetTextScale();
+
         AppNavigation.Attach(Navigation);
         Navigation.LocationChanged += OnLocationChanged;
+        SettingsPage.SettingsChanged += OnSettingsChanged;
     }
 
     private void ToggleMenu() => menuOpen = !menuOpen;
@@ -45,5 +51,19 @@
         StateHasChanged();
     }
 
-    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+    private void OnSettingsChanged()
+    {
+        var scale = SettingsPage.GetTextScale();
+
+        if (scale == textScale) return;
+
+        textScale = scale;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        SettingsPage.SettingsChanged -= OnSettingsChanged;
+    }
 }

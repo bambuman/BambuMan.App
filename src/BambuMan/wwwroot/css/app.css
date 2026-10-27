@@ -62,6 +62,10 @@
     --radius: 12px;
     --radius-sm: 8px;
     --sidebar-width: 232px;
+
+    /* The text size chosen in Settings; MainLayout sets it on .app-shell. Font sizes, and the icons in a line of
+       text, are multiplied by it — spacing and layout stay as they are. */
+    --text-scale: 1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -174,7 +178,7 @@ svg[blazicon] {
 }
 
 .small {
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale));
 }
 
 .mono {
@@ -223,10 +227,12 @@ svg[blazicon] {
 .app-shell {
     display: flex;
     min-height: 100vh;
+    font-size: calc(14px * var(--text-scale));
 }
 
+/* Wider for larger text, so the menu items stay on one line — but never most of a phone's width as a drawer. */
 .sidebar {
-    width: var(--sidebar-width);
+    width: min(calc(var(--sidebar-width) * var(--text-scale)), 85vw);
     flex-shrink: 0;
     background: var(--sidebar);
     border-right: 1px solid var(--border);
@@ -259,7 +265,7 @@ svg[blazicon] {
 }
 
 .brand-name {
-    font-size: 20px;
+    font-size: calc(20px * var(--text-scale));
     font-weight: 700;
     letter-spacing: 0.02em;
     color: var(--primary);
@@ -281,14 +287,14 @@ svg[blazicon] {
     padding: 10px 14px;
     border-radius: var(--radius-sm);
     color: var(--text);
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale));
     text-decoration: none;
     transition: background-color 0.15s;
 }
 
 .nav-item svg[blazicon] {
-    width: 20px;
-    height: 20px;
+    width: calc(20px * var(--text-scale));
+    height: calc(20px * var(--text-scale));
     color: var(--text-muted);
 }
 
@@ -310,7 +316,7 @@ svg[blazicon] {
     padding: 12px 20px 16px;
     border-top: 1px solid var(--border);
     color: var(--text-subtle);
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale));
     text-align: center;
 }
 
@@ -362,7 +368,7 @@ svg[blazicon] {
     }
 
     .topbar .brand-name {
-        font-size: 18px;
+        font-size: calc(18px * var(--text-scale));
     }
 
     .sidebar {
@@ -416,13 +422,13 @@ svg[blazicon] {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 22px;
+    font-size: calc(22px * var(--text-scale));
     font-weight: 700;
 }
 
 .page-title svg[blazicon] {
-    width: 26px;
-    height: 26px;
+    width: calc(26px * var(--text-scale));
+    height: calc(26px * var(--text-scale));
     color: var(--primary);
 }
 
@@ -432,7 +438,7 @@ svg[blazicon] {
     gap: 6px;
     margin-top: 4px;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: calc(14px * var(--text-scale));
 }
 
 .page-actions {
@@ -483,13 +489,13 @@ svg[blazicon] {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale));
     font-weight: 600;
 }
 
 .card-title svg[blazicon] {
-    width: 18px;
-    height: 18px;
+    width: calc(18px * var(--text-scale));
+    height: calc(18px * var(--text-scale));
     color: var(--primary);
 }
 
@@ -505,7 +511,7 @@ svg[blazicon] {
     gap: 10px;
     margin: 4px 0 10px;
     color: var(--text-muted);
-    font-size: 11px;
+    font-size: calc(11px * var(--text-scale));
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -546,7 +552,8 @@ body.editing .content {
 
 .stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    /* Wider tiles for larger text, capped so a tablet still fits all four in a row. */
+    grid-template-columns: repeat(auto-fit, minmax(min(calc(150px * var(--text-scale)), 200px), 1fr));
     gap: 12px;
 }
 
@@ -563,20 +570,20 @@ body.editing .content {
     align-items: center;
     gap: 6px;
     color: var(--text-muted);
-    font-size: 11px;
+    font-size: calc(11px * var(--text-scale));
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
 
 .stat-label svg[blazicon] {
-    width: 15px;
-    height: 15px;
+    width: calc(15px * var(--text-scale));
+    height: calc(15px * var(--text-scale));
     color: var(--primary);
 }
 
 .stat-value {
-    font-size: 20px;
+    font-size: calc(20px * var(--text-scale));
     font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
@@ -620,7 +627,7 @@ body.editing .content {
     }
 
     .stats .stat-label {
-        font-size: 9.5px;
+        font-size: calc(9.5px * var(--text-scale));
         letter-spacing: 0.04em;
     }
 
@@ -639,7 +646,7 @@ body.editing .content {
         align-items: center;
         gap: 4px;
         max-width: 100%;
-        font-size: 12px;
+        font-size: calc(12px * var(--text-scale));
     }
 
     .stats .stat-value::before {
@@ -662,7 +669,7 @@ body.editing .content {
     border-radius: 999px;
     background: var(--surface-2);
     color: var(--text-muted);
-    font-size: 11px;
+    font-size: calc(11px * var(--text-scale));
     font-weight: 500;
     white-space: nowrap;
     text-decoration: none;
@@ -670,8 +677,8 @@ body.editing .content {
 }
 
 .pill svg[blazicon] {
-    width: 12px;
-    height: 12px;
+    width: calc(12px * var(--text-scale));
+    height: calc(12px * var(--text-scale));
 }
 
 .pill.success { background: var(--success-bg); color: var(--success-text); }
@@ -693,7 +700,7 @@ body.editing .content {
     padding: 3px 4px 3px 9px;
     border-radius: 999px;
     color: #FFFFFF;
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale));
     font-weight: 600;
     white-space: nowrap;
 }
@@ -713,12 +720,12 @@ body.editing .content {
     padding: 10px 14px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale));
 }
 
 .banner svg[blazicon] {
-    width: 18px;
-    height: 18px;
+    width: calc(18px * var(--text-scale));
+    height: calc(18px * var(--text-scale));
     margin-top: 1px;
 }
 
@@ -746,7 +753,7 @@ body.editing .content {
     border-radius: var(--radius-sm);
     background: var(--surface-2);
     color: var(--text);
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale));
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
@@ -755,8 +762,8 @@ body.editing .content {
 }
 
 .btn svg[blazicon] {
-    width: 16px;
-    height: 16px;
+    width: calc(16px * var(--text-scale));
+    height: calc(16px * var(--text-scale));
 }
 
 .btn:disabled {
@@ -767,7 +774,7 @@ body.editing .content {
 .btn-sm {
     min-height: 30px;
     padding: 4px 10px;
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale));
 }
 
 .btn-primary {
@@ -885,7 +892,7 @@ body.editing .content {
 
 .field-label {
     color: var(--text-muted);
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale));
     font-weight: 500;
 }
 
@@ -899,8 +906,9 @@ body.editing .content {
     flex: 1;
 }
 
+/* Lines the button up with the input, below the field label (whose height follows the text size). */
 .field-row > .btn {
-    margin-top: 22px;
+    margin-top: calc(18px * var(--text-scale) + 4px);
     min-height: 40px;
 }
 
@@ -930,8 +938,8 @@ body.editing .content {
 }
 
 .input-wrap svg[blazicon].input-icon {
-    width: 17px;
-    height: 17px;
+    width: calc(17px * var(--text-scale));
+    height: calc(17px * var(--text-scale));
 }
 
 .input-wrap input,
@@ -945,7 +953,7 @@ body.editing .content {
     background: transparent;
     color: var(--text);
     font: inherit;
-    font-size: 15px;
+    font-size: calc(15px * var(--text-scale));
     color-scheme: light dark;
 }
 
@@ -965,12 +973,12 @@ body.editing .content {
 
 .field-error {
     color: var(--error-text);
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale));
 }
 
 .field-help {
     color: var(--text-subtle);
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale));
 }
 
 .form-actions {
@@ -1002,7 +1010,7 @@ body.editing .content {
     border-radius: 7px;
     background: transparent;
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale));
     font-weight: 600;
     cursor: pointer;
 }
@@ -1051,7 +1059,7 @@ body.editing .content {
 .toggle-desc {
     margin-top: 2px;
     color: var(--text-subtle);
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale));
 }
 
 .switch {
@@ -1114,8 +1122,8 @@ body.editing .content {
 }
 
 .info-button svg[blazicon] {
-    width: 17px;
-    height: 17px;
+    width: calc(17px * var(--text-scale));
+    height: calc(17px * var(--text-scale));
 }
 
 /* ---------- Scanner page ---------- */
@@ -1144,7 +1152,7 @@ body.editing .content {
 }
 
 .ready-title {
-    font-size: 16px;
+    font-size: calc(16px * var(--text-scale));
     font-weight: 600;
 }
 
@@ -1185,7 +1193,7 @@ body.editing .content {
 }
 
 .spool-title {
-    font-size: 16px;
+    font-size: calc(16px * var(--text-scale));
     font-weight: 700;
 }
 
@@ -1206,9 +1214,9 @@ body.editing .content {
 
 .info-rows {
     display: grid;
-    grid-template-columns: minmax(120px, max-content) 1fr;
+    grid-template-columns: minmax(calc(120px * var(--text-scale)), max-content) 1fr;
     gap: 4px 16px;
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale));
 }
 
 .info-rows dt {
@@ -1260,7 +1268,7 @@ body.editing .content {
 
 .list-row-sub {
     color: var(--text-subtle);
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale));
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1307,8 +1315,8 @@ body.editing .content {
 }
 
 svg[blazicon].group-chevron {
-    width: 20px;
-    height: 20px;
+    width: calc(20px * var(--text-scale));
+    height: calc(20px * var(--text-scale));
     color: var(--text-subtle);
     transition: transform 0.15s;
 }
@@ -1341,7 +1349,7 @@ svg[blazicon].group-chevron {
     padding: 10px 12px;
     border-radius: var(--radius-sm);
     background: var(--surface-2);
-    font-size: 12px;
+    font-size: calc(12px * var(--text-scale));
 }
 
 .logs.full {
@@ -1385,14 +1393,14 @@ svg[blazicon].group-chevron {
     background: var(--text);
     color: var(--bg);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale));
     pointer-events: auto;
     animation: toast-in 0.15s ease-out;
 }
 
 .toast svg[blazicon] {
-    width: 16px;
-    height: 16px;
+    width: calc(16px * var(--text-scale));
+    height: calc(16px * var(--text-scale));
 }
 
 .toast.success svg[blazicon] { color: var(--success); }
@@ -1420,7 +1428,7 @@ svg[blazicon].group-chevron {
 
 .dialog {
     width: 100%;
-    max-width: 440px;
+    max-width: calc(440px * var(--text-scale));
     max-height: calc(100vh - 32px);
     overflow-y: auto;
     padding: 20px;
@@ -1435,24 +1443,24 @@ svg[blazicon].group-chevron {
     gap: 10px;
     margin-bottom: 14px;
     color: var(--primary);
-    font-size: 19px;
+    font-size: calc(19px * var(--text-scale));
     font-weight: 700;
 }
 
 .dialog-title svg[blazicon] {
-    width: 30px;
-    height: 30px;
+    width: calc(30px * var(--text-scale));
+    height: calc(30px * var(--text-scale));
 }
 
 .dialog p {
     margin: 0 0 12px;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: calc(14px * var(--text-scale));
 }
 
 .dialog .banner {
     margin-bottom: 12px;
-    font-size: 14px;
+    font-size: calc(14px * var(--text-scale));
 }
 
 .dialog ul {
@@ -1467,11 +1475,84 @@ svg[blazicon].group-chevron {
     gap: 6px;
     margin: 4px 0 16px;
     color: var(--text-subtle);
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale));
 }
 
+/* Pinned to the bottom of the dialog, so the answer buttons stay in view when larger text makes the dialog scroll. */
 .dialog-actions {
+    position: sticky;
+    bottom: -20px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+    margin: 0 -20px -20px;
+    padding: 12px 20px 20px;
+    background: var(--surface);
+}
+
+/* ---------- Larger text sizes ---------- */
+
+/* Button labels wrap instead of running out of a button that has no more room. */
+[data-text-scale="Larger"] .btn,
+[data-text-scale="Largest"] .btn {
+    white-space: normal;
+}
+
+/* Tablets in portrait with larger text: four status tiles don't fit a row, so they go 2 × 2 instead of 3 + 1. */
+@media (min-width: 521px) and (max-width: 900px) {
+    [data-text-scale="Larger"] .stats,
+    [data-text-scale="Largest"] .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Phones with larger text: the layout trades columns for rows, so nothing is cut off or squeezed. */
+@media (max-width: 520px) {
+    /* The four status tiles become a 2 × 2 grid. */
+    [data-text-scale="Larger"] .stats,
+    [data-text-scale="Largest"] .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    [data-text-scale="Larger"] .stats .stat + .stat,
+    [data-text-scale="Largest"] .stats .stat + .stat {
+        border-left: none;
+    }
+
+    [data-text-scale="Larger"] .stats .stat:nth-child(even),
+    [data-text-scale="Largest"] .stats .stat:nth-child(even) {
+        border-left: 1px solid var(--border);
+    }
+
+    [data-text-scale="Larger"] .stats .stat:nth-child(n + 3),
+    [data-text-scale="Largest"] .stats .stat:nth-child(n + 3) {
+        border-top: 1px solid var(--border);
+    }
+
+    /* The spool edit form goes to one column. */
+    [data-text-scale="Larger"] .form-grid,
+    [data-text-scale="Largest"] .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    [data-text-scale="Larger"] .form-grid .span-2,
+    [data-text-scale="Largest"] .form-grid .span-2 {
+        grid-column: auto;
+    }
+
+    /* Segmented choices with long labels (the inventory backend) stack; the short text size labels stay side by side. */
+    [data-text-scale="Larger"] .segmented:not(.compact),
+    [data-text-scale="Largest"] .segmented:not(.compact) {
+        grid-auto-flow: row;
+    }
+
+    [data-text-scale="Larger"] .segmented.compact button,
+    [data-text-scale="Largest"] .segmented.compact button {
+        padding: 6px 2px;
+    }
+
+    [data-text-scale="Larger"] .dialog-actions,
+    [data-text-scale="Largest"] .dialog-actions {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

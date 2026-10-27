@@ -69,6 +69,21 @@
     }
 
     <div class="card">
+        <div class="section-title">Text size</div>
+
+        <div class="segmented compact" role="radiogroup" aria-label="Text size">
+            @foreach (var scale in Enum.GetValues<TextScale>())
+            {
+                <button type="button" role="radio" aria-checked="@(Vm.TextScale == scale)" class="@(Vm.TextScale == scale ? "selected" : null)" @onclick="() => SelectTextScale(scale)">
+                    @scale.DisplayName()
+                </button>
+            }
+        </div>
+
+        <p class="small subtle">Makes the text larger on every page. The change shows right away.</p>
+    </div>
+
+    <div class="card">
         <div class="section-title">Scanning</div>
 
         <div class="toggle-list">
