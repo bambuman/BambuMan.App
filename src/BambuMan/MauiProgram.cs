@@ -63,6 +63,9 @@ namespace BambuMan
                         evt.User.Email = null;
                         evt.User.IpAddress = null;
 
+                        // On Android this is the SDK's generated installation id.
+                        evt.Contexts.Device.DeviceUniqueIdentifier = null;
+
                         if (evt.Message is { } message)
                         {
                             message.Formatted = Redact(message.Formatted);
@@ -75,6 +78,16 @@ namespace BambuMan
 
                         return evt;
                     });
+#if ANDROID
+                    // Native crashes are reported by the embedded Android SDK, which fills user.id and device.id with
+                    // its installation id. Run them through the BeforeSend above too, so they're scrubbed the same way.
+                    options.Native.EnableBeforeSend = true;
+
+                    // Mono raises SIGSEGV for a managed null dereference and turns it into a NullReferenceException.
+                    // By default Sentry's native handler sees the signal first and reports it as a fatal crash, even
+                    // when the exception is then caught. Let the runtime handle its signals first.
+                    options.Native.ExperimentalOptions.SignalHandlerStrategy = Sentry.Android.SignalHandlerStrategy.ChainAtStart;
+#endif
 #if DEBUG
                     options.Debug = true;
 #endif
