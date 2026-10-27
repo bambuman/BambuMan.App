@@ -106,8 +106,9 @@ namespace BambuMan.UI.Main
 
                         if (spoolEditForm == null) return;
 
-                        await spoolEditForm.FocusWeightAsync();
+                        // Native focus first: the field can only take the keyboard once the web view holds focus.
                         SoftKeyboard.Show();
+                        await spoolEditForm.FocusWeightAsync();
                     }
                     else
                     {

@@ -117,6 +117,12 @@
         --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
         --overlay: rgba(0, 0, 0, 0.6);
     }
+
+    /* Selected text — like a read spool's weight, selected to type over — white on the scheme's purple container. */
+    ::selection {
+        background: #6443B7;
+        color: #FFFFFF;
+    }
 }
 
 /* ---------- Base ---------- */
@@ -511,6 +517,11 @@ svg[blazicon] {
 .spool-card {
     background: var(--spool-card);
     border-color: var(--spool-card-stroke);
+}
+
+/* Where a read scrolls to: the card, or the message about the read above it. */
+.spool-card,
+.banner {
     scroll-margin-top: 16px;
 }
 
@@ -521,7 +532,8 @@ body.editing .content {
 
 @media (max-width: 900px) {
     /* Clear the sticky top bar when the card is scrolled to the top. */
-    .spool-card {
+    .spool-card,
+    .banner {
         scroll-margin-top: 68px;
     }
 }
