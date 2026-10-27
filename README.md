@@ -1,6 +1,6 @@
 # <img alt="logo" src="branding/appiconv2.png" height="36" /> BambuMan
 
-BambuMan imports `Bambu Lab` filament spools into your inventory by reading their `NFC` tag. It supports two inventory backends — [bambuddy](https://bambuddy.cool) and [Spoolman](https://github.com/Donkie/Spoolman) — selectable in the app settings (Android) or the `Options` menu (Windows).
+BambuMan imports `Bambu Lab` filament spools into your inventory by reading their `NFC` tag. It supports two inventory backends — [bambuddy](https://bambuddy.cool) and [Spoolman](https://github.com/Donkie/Spoolman) — selectable in the app settings (Android) or the `Options` menu (Windows). With **No backend** it works fully offline: read spools stay on the device and can be exported to a CSV file that bambuddy imports.
 
 The app tries to match the tag info with the existing [SpoolmanDB](https://github.com/Donkie/SpoolmanDB) entry. When a match is found, the app creates the filament and spool. Imported spools will have the same `tray_uuid` as the `AMS` reports over `MQTT`.
 
@@ -18,8 +18,12 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
 
  - **NFC tag reading** on Android (built-in NFC) and Windows desktop (PCSC compatible reader)
  - **Two inventory backends** — choose [bambuddy](https://bambuddy.cool) or [Spoolman](https://github.com/Donkie/Spoolman) in the settings
- - **Automatic filament matching** with SpoolmanDB — covers most Bambu Lab filaments
+ - **No backend mode** — works offline, no inventory server needed
+ - **Stored spools** — keep read spools on the device, search and filter them by name, tag or location, edit or delete them
+ - **CSV export / import** — the export uses bambuddy's CSV columns, so it imports straight into bambuddy (`Inventory` → `Import CSV`)
+ - **Automatic filament matching** with SpoolmanDB — covers most Bambu Lab filaments; unmatched spools can optionally be added as an unknown filament
  - **Inventory tracking** — groups scanned spools by material with AMS tray UID tracking
+ - **Quick weighing** — optionally focuses the weight field when a spool is read, and can move already known spools to the default location
  - **Research Data Contribution** — opt-in NFC tag data upload to the [bambuman.ee](https://bambuman.ee) tag library
  - **QR code scanner** for quick backend URL and API key setup
  - **Configurable import defaults** — buy date, price, lot number, location
@@ -58,7 +62,7 @@ The Android app can inventory into [bambuddy](https://bambuddy.cool). Pick the b
 
 	 <img src="screens/android_setting_bambuddy.png" alt="BambuMan bambuddy settings" width="200" /> <img src="screens/android_settings_defaults.png" alt="BambuMan bambuddy scanning options and import defaults" width="200" />
 
-4. Go back to the main window. Once `Settings`, `bambuddy` and `NFC` are green, you can start reading `NFC` tags.
+4. Go back to the scanner. Once the `Settings`, `Inventory` and `NFC` status tiles are green, you can start reading `NFC` tags.
 
 > **Tip:** The API key is long and awkward to type on a phone. On your computer, turn the URL or key into a QR code with a free, no-signup generator like [QRCode Monkey](https://www.qrcode-monkey.com/#text), then scan it with the in-app **scan** button. The API key is a secret, so only paste it into a generator you trust.
 
@@ -70,7 +74,14 @@ The Android app can inventory into [bambuddy](https://bambuddy.cool). Pick the b
 	 - BambuMan supports basic authentication, URL format `http[s]://username:password@host[:port]/`
 	 - If the password contains special characters (like `@` `:`) it must be URL encoded
  3. Go back to main window. BambuMan will connect to Spoolman and create the necessary extra fields and default vendor.
- 4. Once all three status indicators `Settings`, `Spoolman` and `NFC` are green, you can start reading `NFC` tags.
+ 4. Once the `Settings`, `Inventory` and `NFC` status tiles are green, you can start reading `NFC` tags.
+
+### Android — No backend
+
+ 1. In BambuMan settings, switch the backend to **No backend**. Nothing is sent to an inventory server.
+ 2. Turn on **Store spools locally** to keep read spools between app starts. Off, read spools are only shown, and only the current session's scans are exported.
+ 3. Read `NFC` tags. Stored spools are listed on the **Stored spools** page, where they can be edited, deleted, and exported or imported as CSV.
+ 4. To move them into bambuddy, use **Export CSV** and import the file in bambuddy's `Inventory` → `Import CSV`.
 
 ### Windows
 
