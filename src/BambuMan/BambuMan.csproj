@@ -44,6 +44,12 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
 	  <DebugSymbols>False</DebugSymbols>
 	</PropertyGroup>
+
+	<!-- R8 shrinking + obfuscation of private Java members (Google Play "DEX code optimization", Microsoft.Android.Sdk 36.1.118+) -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<AndroidLinkTool>r8</AndroidLinkTool>
+		<AndroidR8ObfuscationMode>private-members</AndroidR8ObfuscationMode>
+	</PropertyGroup>
 	
 	<ItemGroup>
 		<PackageReference Include="BarcodeScanning.Native.Maui" Version="3.1.0" />
