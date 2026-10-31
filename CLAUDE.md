@@ -93,6 +93,7 @@ Per-SKU matching exceptions are data, not code branches: `src/BambuMan.Shared/Fi
 
 ## Git
 - Commit messages must **not** include `Co-Authored-By` lines
+- Branch names: `feature/<short-kebab-description>` for features and improvements, `fix/<short-kebab-description>` for bug fixes (e.g. `feature/text-scaling-setting`, `fix/nfc-scan-crash`). Branch from `main`; never use random or auto-generated names
 
 ## Error Handling Philosophy
 - Always investigate and fix the **root cause** of errors — do not suppress, hide, or filter them
