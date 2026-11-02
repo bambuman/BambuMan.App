@@ -50,6 +50,13 @@
 		<AndroidLinkTool>r8</AndroidLinkTool>
 		<AndroidR8ObfuscationMode>private-members</AndroidR8ObfuscationMode>
 	</PropertyGroup>
+
+	<!-- Upload the R8 mapping file to Sentry so Java stack traces are readable (CI only; sentry-cli reads SENTRY_AUTH_TOKEN from the environment) -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Release' AND '$(GITHUB_CI)' == '1'">
+		<SentryOrg>none-ttd</SentryOrg>
+		<SentryProject>bambu-man-maui</SentryProject>
+		<SentryUploadAndroidProGuardMapping>true</SentryUploadAndroidProGuardMapping>
+	</PropertyGroup>
 	
 	<ItemGroup>
 		<PackageReference Include="BarcodeScanning.Native.Maui" Version="3.1.0" />
