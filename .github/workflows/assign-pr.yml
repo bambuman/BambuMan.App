@@ -1,7 +1,10 @@
 name: 'Auto Author Assign'
 
+# pull_request (not pull_request_target): GitHub restricts pull_request_target on
+# public repositories. PRs from forks get a read-only token, so only PRs from
+# branches in this repository are auto-assigned.
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, reopened]
 
 # The repository's default GITHUB_TOKEN is read-only, so assigning the author
@@ -11,6 +14,8 @@ permissions:
 
 jobs:
   assign-author:
+    # Skip fork PRs: their token can't assign, so the job would only fail
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: toshimaru/auto-author-assign@v3.1.0
