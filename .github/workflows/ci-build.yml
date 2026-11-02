@@ -32,7 +32,6 @@ jobs:
         run: |
           echo "GITHUB_VERSION_CODE=$((${{ github.run_number }}+100))" >> $Env:GITHUB_ENV
           echo "GITHUB_VERSION=$env:GITHUB_VERSION_BASE$((${{ github.run_number }}+100))" >> $Env:GITHUB_ENV
-          echo "SENTRY_PROGUARD_UUID=$([guid]::NewGuid())" >> $Env:GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v5

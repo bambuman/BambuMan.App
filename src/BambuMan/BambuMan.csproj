@@ -56,8 +56,6 @@
 		<SentryOrg>none-ttd</SentryOrg>
 		<SentryProject>bambu-man-maui</SentryProject>
 		<SentryUploadAndroidProGuardMapping>true</SentryUploadAndroidProGuardMapping>
-		<!-- The APK and AAB builds produce the same mapping; share one UUID per CI run so Sentry links both to it -->
-		<SentryProGuardUUID Condition="'$(SENTRY_PROGUARD_UUID)' != ''">$(SENTRY_PROGUARD_UUID)</SentryProGuardUUID>
 	</PropertyGroup>
 	
 	<ItemGroup>
