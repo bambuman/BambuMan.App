@@ -375,11 +375,14 @@ namespace BambuMan
             subscribed = true;
 
             // For the app's lifetime: this service is a singleton.
-            Adapter.DeviceConnectionLost += OnDeviceConnectionLost;
+            Adapter.DeviceConnectionLost += OnDeviceDisconnected;
+            // A scale that ends the connection itself (GATT status 19: it powers off on its own, or a body scale done
+            // sending its measurement) is reported by Plugin.BLE as a disconnect, not as a lost connection.
+            Adapter.DeviceDisconnected += OnDeviceDisconnected;
             Ble.StateChanged += OnBluetoothStateChanged;
         }
 
-        private void OnDeviceConnectionLost(object? sender, DeviceErrorEventArgs e)
+        private void OnDeviceDisconnected(object? sender, DeviceEventArgs e)
         {
             if (e.Device != null && e.Device.Id == DeviceId) connectionLost?.TrySetResult();
         }
