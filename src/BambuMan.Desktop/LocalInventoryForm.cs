@@ -176,6 +176,9 @@ public class LocalInventoryForm : Form
 
     private List<string> SelectedKeys => dgvSpools.SelectedRows.Cast<DataGridViewRow>().Select(x => x.Tag).OfType<string>().ToList();
 
+    /// <summary>The spools the search and location filter show, in list order.</summary>
+    private List<string> ShownKeys => dgvSpools.Rows.Cast<DataGridViewRow>().Select(x => x.Tag).OfType<string>().ToList();
+
     /// <summary>Reads the store again and rebuilds the location filter, keeping the chosen location while a spool still has it.</summary>
     private void LoadSpools()
     {
@@ -257,7 +260,11 @@ public class LocalInventoryForm : Form
         }
 
         var selected = dgvSpools.SelectedRows.Count;
-        btnSend.Text = selected > 0 ? $"Send {selected} selected to {ServerName}" : $"Send all to {ServerName}";
+        var shown = dgvSpools.Rows.Count;
+
+        btnSend.Text = selected > 0 ? $"Send {selected} selected to {ServerName}"
+            : shown < allSpools.Count ? $"Send {shown} shown to {ServerName}"
+            : $"Send all to {ServerName}";
     }
 
     protected override void OnLoad(EventArgs e)
@@ -283,7 +290,7 @@ public class LocalInventoryForm : Form
         base.OnFormClosing(e);
     }
 
-    /// <summary>Sends the selected spools (all of them when none is selected) to the selected server; a second click stops it.</summary>
+    /// <summary>Sends the selected spools (the ones the filters show when none is selected) to the selected server; a second click stops it.</summary>
     private async void btnSend_Click(object? sender, EventArgs e)
     {
         try
@@ -298,7 +305,8 @@ public class LocalInventoryForm : Form
             if (server is not ISpoolUploadTarget target) return;
 
             var selected = SelectedKeys;
-            var keys = selected.Count > 0 ? selected : manager.Spools.Select(x => x.Key).OfType<string>().ToList();
+            // A search or location filter narrows what is sent, as on the Android page.
+            var keys = selected.Count > 0 ? selected : ShownKeys;
 
             if (keys.Count == 0) return;
 

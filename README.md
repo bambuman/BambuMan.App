@@ -117,7 +117,7 @@ The Windows desktop app has no Bluetooth scale support.
  7. No backend: scanned tags are only shown in the log. `Options` → `Store spools locally` keeps them on the computer, and `File` → `Export CSV...` writes them to a file that bambuddy can import.
 	 - With spools stored locally, `File` → `Stored spools...` lists them: search by name or tag, filter by location, edit a spool (double-click it: weight, empty weight, price, buy date, lot nr, location), delete spools, and import or export CSV
 	 - `File` → `Import CSV...` adds the spools of a BambuMan export to the stored spools; a spool already stored is replaced
-	 - After switching to Bambuddy or Spoolman, `File` → `Stored spools...` can send them there (all, or the selected rows)
+	 - After switching to Bambuddy or Spoolman, `File` → `Stored spools...` can send them there (the ones the search and location filter show, or the selected rows)
 
 ## F-Droid repository
 
