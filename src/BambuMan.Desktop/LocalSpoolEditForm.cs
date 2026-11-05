@@ -22,6 +22,7 @@ public class LocalSpoolEditForm : Form
     private readonly ComboBox cmbLocation = new();
     private readonly TextBox txtInfo = new();
     private readonly ErrorProvider errors = new();
+    private readonly Font titleFont;
 
     public LocalSpoolEditForm(NoBackendManager manager, LocalSpool spool)
     {
@@ -44,7 +45,9 @@ public class LocalSpoolEditForm : Form
 
         #region Header
 
-        var lblTitle = new Label { Text = title, AutoSize = true, Font = new Font(Font.FontFamily, 11, FontStyle.Bold), Margin = new Padding(3, 3, 3, 0) };
+        titleFont = new Font(Font.FontFamily, 11, FontStyle.Bold);
+
+        var lblTitle = new Label { Text = title, AutoSize = true, Font = titleFont, Margin = new Padding(3, 3, 3, 0) };
         var lblSub = new Label { Text = $"{key} · Last scanned {spool.LastScanned:yyyy-MM-dd HH:mm}", AutoSize = true, ForeColor = SystemColors.GrayText };
 
         var header = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Padding = new Padding(6) };
@@ -143,6 +146,18 @@ public class LocalSpoolEditForm : Form
         {
             if (!IsDisposed) txtInfo.Text = $"Could not read the spool info: {ex.Message}";
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        // Neither belongs to a control, so disposing the form wouldn't dispose them.
+        if (disposing)
+        {
+            errors.Dispose();
+            titleFont.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
     #region Methods
