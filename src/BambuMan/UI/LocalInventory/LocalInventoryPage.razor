@@ -175,7 +175,7 @@
                                             <a class="list-row-main" href="spools/@spool.Key">
                                                 <div class="list-row-text">
                                                     <div class="small">@(spool.Location ?? "No location") · @spool.Spool.LastScanned.ToString("yyyy-MM-dd") @if (Vm.IsSent(spool.Spool)) { <span class="pill success">Sent</span> }</div>
-                                                    <div class="list-row-sub mono">@(spool.Spool.Info.TrayUid ?? spool.Spool.Info.SerialNumber)</div>
+                                                    <div class="list-row-sub @(spool.Spool.IsManual ? null : "mono")">@spool.Tag</div>
                                                 </div>
                                             </a>
                                             <button class="btn btn-secondary btn-sm" aria-label="Delete @spool.Title" @onclick="() => DeleteAsync(spool.Key)"><Blazicon Svg="Lucide.Trash" /></button>

@@ -15,6 +15,10 @@ namespace BambuMan.Shared.Test.PendingScans
         public record SentScan(BambuFilamentInfo Info, DateTime? BuyDate, decimal? Price, string? LotNr, string? Location);
 
         /// <summary>Whether the server answers — both the health check and the inventory calls.</summary>
+        public override IReadOnlyList<SpoolMan.Api.Model.ExternalFilament> KnownFilaments => [];
+
+        protected override Task<bool> AddManualSpoolCoreAsync(ManualSpool spool, SpoolEditInput input) => Task.FromResult(false);
+
         public bool Reachable { get; set; } = true;
 
         /// <summary>

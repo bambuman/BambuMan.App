@@ -425,6 +425,10 @@ namespace BambuMan.Shared.Test.LocalInventory
         /// <summary>A server-backed manager without a server: its scan path behaves like Spoolman's / Bambuddy's against an in-memory spool list.</summary>
         private class FakeServerManager() : BaseManager(null)
         {
+            public override IReadOnlyList<SpoolMan.Api.Model.ExternalFilament> KnownFilaments => [];
+
+            protected override Task<bool> AddManualSpoolCoreAsync(ManualSpool spool, SpoolEditInput input) => Task.FromResult(false);
+
             public Dictionary<string, SpoolFound> ServerSpools { get; } = [];
 
             public List<(BambuFilamentInfo Info, DateTime? BuyDate, decimal? Price, string? LotNr, string? Location)> Inventoried { get; } = [];

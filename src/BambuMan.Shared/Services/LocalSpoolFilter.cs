@@ -3,7 +3,13 @@ using BambuMan.Shared.Models;
 namespace BambuMan.Shared.Services
 {
     /// <summary>One stored spool, as a row of the list.</summary>
-    public record LocalSpoolItem(string Key, string Title, string Subtitle, string Color, string? Location, LocalSpool Spool);
+    public record LocalSpoolItem(string Key, string Title, string Subtitle, string Color, string? Location, LocalSpool Spool)
+    {
+        /// <summary>The tag the spool is known by — its tray uid, else tag uid — or that it was added by hand without one.</summary>
+        public string Tag => TagOf(Spool);
+
+        public static string TagOf(LocalSpool spool) => spool.IsManual ? "Added manually" : spool.Info.TrayUid ?? spool.Info.SerialNumber;
+    }
 
     /// <summary>Spools of the same filament (material, colour name and colour), shown as one expandable row.</summary>
     public record LocalSpoolGroup(string Key, string Title, string Color, IReadOnlyList<LocalSpoolItem> Spools)
@@ -34,7 +40,7 @@ namespace BambuMan.Shared.Services
             var info = spool.Info;
             var material = info.DetailedFilamentType ?? info.FilamentType;
             var title = spool.Name == null ? material ?? "Unknown filament" : $"{material} {spool.Name}";
-            var subtitle = string.Join(" · ", new[] { spool.Location, info.TrayUid ?? info.SerialNumber, $"{spool.LastScanned:yyyy-MM-dd}" }.Where(x => !string.IsNullOrEmpty(x)));
+            var subtitle = string.Join(" · ", new[] { spool.Location, LocalSpoolItem.TagOf(spool), $"{spool.LastScanned:yyyy-MM-dd}" }.Where(x => !string.IsNullOrEmpty(x)));
 
             // Same colour the read-only card shows for this tag, as #AARRGGBB.
             var color = SpoolDisplayInfo.From(info, null).ColorHexes.FirstOrDefault() ?? "#00000000";

@@ -957,6 +957,21 @@ body.editing .content {
     color-scheme: light dark;
 }
 
+/* The colour picker (an unknown filament in add spool): a full-width swatch inside the field. */
+.input-wrap input[type="color"] {
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.input-wrap input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.input-wrap input[type="color"]::-webkit-color-swatch {
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+}
+
 .input-clear {
     display: inline-flex;
     align-items: center;
@@ -1328,7 +1343,9 @@ body.editing .content {
     white-space: normal;
 }
 
-.group-head {
+/* A whole list row as a button: an accordion head, or a filament in the add-spool picker. */
+.group-head,
+.pick-row {
     width: 100%;
     border: none;
     background: transparent;

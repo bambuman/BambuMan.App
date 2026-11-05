@@ -59,8 +59,24 @@ namespace BambuMan.Shared.Models
         /// <summary>When the spool was sent to <see cref="SentTo"/>.</summary>
         public DateTime? SentAt { get; set; }
 
-        /// <summary>Identity used to de-duplicate — see <see cref="KeyOf"/>.</summary>
-        public string? Key => KeyOf(Info);
+        /// <summary>
+        /// Identity of a spool added by hand (see <see cref="ManualSpool"/>), which has no tag to be keyed by. Null for a
+        /// scanned spool.
+        /// </summary>
+        public string? ManualId { get; set; }
+
+        /// <summary>
+        /// Catalog id of the filament a spool added by hand was picked as, e.g. <c>bambulab_pla_black_1000_175_n</c>. A
+        /// scanned spool is matched by its tag instead and leaves this null, as does a hand-added unknown filament.
+        /// </summary>
+        public string? FilamentId { get; set; }
+
+        /// <summary>True for a spool added by hand rather than scanned.</summary>
+        [JsonIgnore]
+        public bool IsManual => ManualId != null && !Info.HasTag;
+
+        /// <summary>Identity used to de-duplicate — see <see cref="KeyOf"/>, and <see cref="ManualId"/> for a spool added by hand.</summary>
+        public string? Key => KeyOf(Info) ?? ManualId?.ToUpperInvariant();
 
         /// <summary>The edit card's fields as this spool has them.</summary>
         [JsonIgnore]
@@ -81,6 +97,9 @@ namespace BambuMan.Shared.Models
         #endregion
 
         #region Methods
+
+        /// <summary>A new <see cref="ManualId"/>. Prefixed, so it can't be mistaken for (or collide with) a tag's hex uid.</summary>
+        public static string NewManualId() => $"MANUAL-{Guid.NewGuid():N}".ToUpperInvariant();
 
         /// <summary>
         /// The tray uid when the tag has one — both tags on a spool share it, so scanning either side finds the same

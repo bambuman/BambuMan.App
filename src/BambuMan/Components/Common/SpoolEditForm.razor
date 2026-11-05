@@ -1,6 +1,8 @@
 @inject IJSRuntime Js
 
 <form class="form-grid" @onsubmit="OnSave" @onsubmit:preventDefault>
+    @ChildContent
+
     <FormField Label="Weight (g)" Icon="Lucide.Weight" Error="@Model.WeightError">
         <input type="number" inputmode="decimal" step="any" min="0" @ref="weightInput" @bind="Model.Weight" />
     </FormField>
@@ -39,7 +41,7 @@
 
     <div class="form-actions span-2">
         <button type="button" class="btn btn-tertiary" @onclick="OnCancel">@CancelText</button>
-        <button type="submit" class="btn btn-primary"><Blazicon Svg="Lucide.Save" /> Save changes</button>
+        <button type="submit" class="btn btn-primary" disabled="@Saving"><Blazicon Svg="Lucide.Save" /> @SaveText</button>
     </div>
 </form>
 
@@ -56,6 +58,14 @@
     [Parameter] public IEnumerable<string> Locations { get; set; } = [];
 
     [Parameter] public string CancelText { get; set; } = "Cancel";
+
+    [Parameter] public string SaveText { get; set; } = "Save changes";
+
+    /// <summary>Disables the save button, e.g. while the spool is being sent to the server.</summary>
+    [Parameter] public bool Saving { get; set; }
+
+    /// <summary>Extra fields placed before the weight, inside the same form (e.g. an unknown filament's material).</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
 
     [Parameter] public EventCallback OnSave { get; set; }
 

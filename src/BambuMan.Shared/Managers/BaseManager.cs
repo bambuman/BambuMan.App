@@ -4,6 +4,7 @@ using BambuMan.Shared.Models;
 using BambuMan.Shared.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ExternalFilament = SpoolMan.Api.Model.ExternalFilament;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.Shared.Managers
@@ -338,6 +339,36 @@ namespace BambuMan.Shared.Managers
         /// <summary>Persist edits to the spool most recently surfaced via <see cref="OnSpoolFound"/>. Fields the backend doesn't model are ignored.</summary>
         public abstract Task UpdateCurrentSpoolAsync(SpoolEditInput input);
 
+        /// <summary>
+        /// Add a spool whose tag couldn't be read, with the edit card's fields filled in. It has no tag to look an
+        /// existing spool up by, so it is always created new, then surfaced via <see cref="OnSpoolFound"/> like a scan.
+        /// Only where <see cref="CanEditSpools"/>. Returns false when it couldn't be saved (the reason is shown/logged).
+        /// Runs one at a time with <see cref="SendScanAsync"/> and <see cref="UploadSpoolAsync"/>: it changes the current
+        /// spool, and a queued scan sent meanwhile would count it as its own.
+        /// </summary>
+        public async Task<bool> AddManualSpoolAsync(ManualSpool spool, SpoolEditInput input)
+        {
+            await sendLock.WaitAsync();
+
+            try
+            {
+                return await AddManualSpoolCoreAsync(spool, input);
+            }
+            finally
+            {
+                sendLock.Release();
+            }
+        }
+
+        /// <summary>The backend's part of <see cref="AddManualSpoolAsync"/>.</summary>
+        protected abstract Task<bool> AddManualSpoolCoreAsync(ManualSpool spool, SpoolEditInput input);
+
+        /// <summary>
+        /// The Bambu Lab filaments this backend matches tags against, for picking a filament by hand. Empty until
+        /// <see cref="Init"/> loaded them.
+        /// </summary>
+        public abstract IReadOnlyList<ExternalFilament> KnownFilaments { get; }
+
         /// <summary>Refresh known storage locations (backend-specific; base no-op).</summary>
         public virtual Task RefreshLocationsAsync() => Task.CompletedTask;
 
@@ -433,6 +464,9 @@ namespace BambuMan.Shared.Managers
         {
             if (IsReadOnly) return new(spool, SpoolUploadStatus.Failed, $"Spools can't be sent to {Backend.DisplayName()}");
             if (!IsInitialized) return new(spool, SpoolUploadStatus.Failed, $"Not connected to {BackendName}");
+
+            // Without a tag the server couldn't find the spool again, so every send would add another one.
+            if (spool.IsManual) return new(spool, SpoolUploadStatus.Failed, $"Added by hand without a tag, so {BackendName} can't tell it from a new spool. Add it there by hand.");
 
             // One at a time with queued scans: both go through the scan path, which keeps a single current spool and the counters
             // SendScanAsync reads.

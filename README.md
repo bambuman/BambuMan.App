@@ -24,6 +24,7 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
  - **CSV export / import** — the export uses bambuddy's CSV columns, so it imports straight into bambuddy (`Inventory` → `Import CSV`)
  - **Send stored spools to a server** — once bambuddy or Spoolman is set up, send the stored spools there; spools the server already has are updated instead of added twice
  - **Automatic filament matching** with SpoolmanDB — covers most Bambu Lab filaments; unmatched spools can optionally be added as an unknown filament
+ - **Add spool manually** — for a spool whose tag can't be read (foil bag, damaged tag): search the Bambu Lab filament list by material, name or colour, or enter it as an unknown filament, and save it with its weight, price and location
  - **Inventory tracking** — groups scanned spools by material with AMS tray UID tracking
  - **Quick weighing** — optionally focuses the weight field when a spool is read, and can move already known spools to the default location
  - **Research Data Contribution** — opt-in NFC tag data upload to the [bambuman.ee](https://bambuman.ee) tag library
@@ -117,7 +118,7 @@ To participate, enable **Research Data Contribution** in the app settings. Uploa
 
 ## Known limitations
 
- - You can't read filaments in foil bags! The foil blocks the NFC signal. You can still inventory them when you open the bag before use.
+ - You can't read filaments in foil bags! The foil blocks the NFC signal. Add them with **Add spool** on the scanner page (Android) or `File` → `Add spool manually...` (Windows) instead. A spool added this way has no tag, so scanning its tag later (once the bag is open) adds it again as a new spool rather than finding the one added by hand — link the tag to it in bambuddy or Spoolman, or delete the one added by hand. In **No backend** mode, adding by hand needs **Store spools locally**.
  - Most Bambu Lab filaments are supported including 
 	- PLA (Basic, Matte, Silk+, Wood, Glow, Aero, Sparkle, Tough+)
 	- PETG (HF, Transparent, Translucent), 

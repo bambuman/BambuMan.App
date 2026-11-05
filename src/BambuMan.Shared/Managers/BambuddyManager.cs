@@ -288,6 +288,41 @@ namespace BambuMan.Shared.Managers
             }
         }
 
+        public override IReadOnlyList<ExternalFilament> KnownFilaments => bambuLabFilaments;
+
+        /// <summary>
+        /// Creates a spool without a tag: no by-tag lookup first (there is nothing to look up by) and no tag link after,
+        /// so a later scan of its tag creates a separate spool unless the tag is linked to this one in Bambuddy.
+        /// </summary>
+        protected override async Task<bool> AddManualSpoolCoreAsync(ManualSpool spool, SpoolEditInput input)
+        {
+            if (ApiHost == null) return false;
+
+            try
+            {
+                var inventoryApi = ApiHost.Services.GetRequiredService<IInventoryApi>();
+                var createResult = await inventoryApi.CreateSpoolApiV1InventorySpoolsPostAsync(BuildManualSpoolCreate(spool, input));
+
+                if (!createResult.TryOk(out var created) || created == null)
+                {
+                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {createResult.RawContent.Truncated()}");
+                    return false;
+                }
+
+                AddToCache(created);
+                ShowMessage(false, $"Spool '{spool.Label}' added");
+                await Log(LogLevel.Success, $"Spool '{spool.Label}' added");
+                OnSpoolInventoried(created, spool.Info, created: true);
+
+                return true;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await HandleNetworkError(ex, "Add spool");
+                return false;
+            }
+        }
+
         /// <summary>Archive (soft-delete) a spool by id. Used for test cleanup; may be surfaced in the UI later.</summary>
         public async Task ArchiveSpoolAsync(int id)
         {
@@ -454,6 +489,41 @@ namespace BambuMan.Shared.Managers
                 dataOrigin: new Option<string?>("nfc_scan"),
                 tagType: new Option<string?>("bambu_rfid"),
                 storageLocation: new Option<string?>(location));
+        }
+
+        /// <summary>
+        /// Map a spool added by hand + its edit card to a Bambuddy spool-create body. Same taxonomy as a scan (see
+        /// <see cref="DeriveFilament"/>), plus the weight and empty weight the card already has. No tag uid, tray uuid,
+        /// tag type or data origin — there was no tag.
+        /// </summary>
+        public static SpoolCreate BuildManualSpoolCreate(ManualSpool spool, SpoolEditInput input)
+        {
+            var info = spool.Info;
+            var labelWeight = LabelWeight(info);
+            // core_weight is whole grams in Bambuddy; the used weight is worked out from the empty weight as entered.
+            var emptyWeight = input.EmptyWeight ?? CoreWeight;
+            var coreWeight = (int)emptyWeight;
+            decimal? weightUsed = input.Weight is { } weight ? Math.Max(emptyWeight + labelWeight - weight, 0) : null;
+            var (material, subtype, slicerFilament, slicerFilamentName) = DeriveFilament(info);
+
+            // A gradient / multi-colour catalog entry: every stop, as Bambuddy's RRGGBBAA list (same as the csv export).
+            var colorHexes = spool.Filament?.ColorHexes ?? [];
+            var extraColors = colorHexes.Count > 1 ? string.Join(",", colorHexes.Select(x => x.TrimStart('#').ToUpperInvariant() + "FF")) : null;
+
+            return new SpoolCreate(
+                material: material,
+                subtype: new Option<string?>(subtype),
+                colorName: new Option<string?>(spool.Filament?.Name ?? info.Color),
+                rgba: new Option<string?>(info.Color),
+                extraColors: extraColors == null ? default : new Option<string?>(extraColors),
+                brand: new Option<string?>("Bambu"),
+                labelWeight: new Option<int?>(labelWeight),
+                coreWeight: new Option<int?>(coreWeight),
+                weightUsed: weightUsed == null ? default : new Option<decimal?>(weightUsed),
+                slicerFilament: new Option<string?>(slicerFilament),
+                slicerFilamentName: new Option<string?>(slicerFilamentName),
+                costPerKg: new Option<decimal?>(CostPerKg(input.Price, labelWeight)),
+                storageLocation: new Option<string?>(string.IsNullOrWhiteSpace(input.Location) ? null : input.Location.Trim()));
         }
 
         /// <summary>

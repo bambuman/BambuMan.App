@@ -529,7 +529,7 @@ namespace BambuMan.Shared.Managers
                     }
                 }
 
-                if (spool == null) await AddSpool(info, buyDate, price, lotNr, location, filament, spoolApi);
+                if (spool == null) await AddSpool(info, new SpoolEditInput(null, null, price, buyDate, lotNr, location), filament, spoolApi, info.TrayUid?.TrimTo(14, "...") ?? string.Empty);
                 else
                 {
                     if (OverrideLocationOnRead && !string.IsNullOrWhiteSpace(location) && !string.Equals(spool.Location, location, StringComparison.OrdinalIgnoreCase))
@@ -612,10 +612,10 @@ namespace BambuMan.Shared.Managers
                         multiColorHexes: new Option<string?>(externalFilament.ColorHexes != null ? string.Join(",", externalFilament.ColorHexes) : null),
                         multiColorDirection: new Option<MultiColorDirectionInput?>((MultiColorDirectionInput?)externalFilament.MultiColorDirection),
                         externalId: new Option<string?>(externalFilament.Id),
-                        extra: new Option<Dictionary<string, string>?>(new Dictionary<string, string>
-                        {
-                            { "nozzle_temperature", $"[{info.MinTemperatureForHotend},{info.MaxTemperatureForHotend}]" }
-                        })
+                        // A spool added by hand carries no hotend range; leave the field at its default rather than send "[,]".
+                        extra: new Option<Dictionary<string, string>?>(info is { MinTemperatureForHotend: not null, MaxTemperatureForHotend: not null }
+                            ? new Dictionary<string, string> { { "nozzle_temperature", $"[{info.MinTemperatureForHotend},{info.MaxTemperatureForHotend}]" } }
+                            : [])
                     );
 
                     var filamentAddResult = await filamentApi.AddFilamentFilamentPostAsync(filamentPost);
@@ -636,30 +636,51 @@ namespace BambuMan.Shared.Managers
             }
         }
 
-        private async Task AddSpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location, Filament filament, ISpoolApi spoolApi)
+        /// <summary>
+        /// The extra fields of a new spool. A scanned spool always gets its tag (what OpenSpoolMan / Bambuddy match AMS
+        /// trays by) and production time — an unparsed production date as <c>""</c>; a spool added by hand gets neither.
+        /// </summary>
+        public static Dictionary<string, string> BuildNewSpoolExtra(BambuFilamentInfo info, DateTime? buyDate)
+        {
+            var extraValues = new Dictionary<string, string>();
+
+            if (info.HasTag)
+            {
+                extraValues[ExtraProductionDateTime] = $"\"{info.ProductionDateTime:yyyy-MM-ddZHH:mm:ss}\"";
+                extraValues[ExtraTag] = $"\"{info.TrayUid}\"";
+            }
+
+            if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
+
+            return extraValues;
+        }
+
+        /// <summary>
+        /// Create a spool of <paramref name="filament"/>. <paramref name="input"/> carries the scan defaults, or the whole
+        /// edit card for a spool added by hand (only then is a weight given). A spool without a tag gets no tag extra field,
+        /// so it can never be found by (or mistaken for) a scanned tag. Returns false when Spoolman refused it.
+        /// </summary>
+        private async Task<bool> AddSpool(BambuFilamentInfo info, SpoolEditInput input, Filament filament, ISpoolApi spoolApi, string label)
         {
             try
             {
-                var extraValues = new Dictionary<string, string>
-                {
-                    [ExtraProductionDateTime] = $"\"{info.ProductionDateTime:yyyy-MM-ddZHH:mm:ss}\"",
-                    [ExtraTag] = $"\"{info.TrayUid}\""
-                };
-
-                if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
+                var extraValues = BuildNewSpoolExtra(info, input.BuyDate);
 
                 var comment = filament.ExternalId == UnknownFilament.Id ? $"Filament: {info.DetailedFilamentType}, Color: #{info.Color}, Spool weight: {info.SpoolWeight:0.#}g" : "";
+
+                var emptyWeight = input.EmptyWeight ?? filament.SpoolWeight;
+                var usedWeight = input.Weight is { } weight ? Math.Max(emptyWeight.GetValueOrDefault() + info.SpoolWeight.GetValueOrDefault() - weight, 0) : (decimal?)null;
 
                 var spoolParams = new SpoolParameters(filament.Id,
                     //firstUsed: new Option<string?>(externalFilament.FirstUsed),
                     //lastUsed: new Option<string?>(externalFilament.LastUsed),
-                    price: new Option<decimal?>(price),
+                    price: new Option<decimal?>(input.Price),
                     initialWeight: new Option<decimal?>(info.SpoolWeight),
-                    spoolWeight: new Option<decimal?>(filament.SpoolWeight),
+                    spoolWeight: new Option<decimal?>(emptyWeight),
                     //remainingWeight: new Option<string?>(externalFilament.RemainingWeight),
-                    //usedWeight: new Option<string?>(externalFilament.UsedWeight),
-                    location: new Option<string?>(location),
-                    lotNr: new Option<string?>(lotNr),
+                    usedWeight: usedWeight == null ? default : new Option<decimal?>(usedWeight),
+                    location: new Option<string?>(input.Location),
+                    lotNr: new Option<string?>(input.LotNr),
                     comment: new Option<string?>(comment),
                     //archived: new Option<string?>(externalFilament.Archived),
                     extra: new Option<Dictionary<string, string>?>(extraValues)
@@ -672,19 +693,47 @@ namespace BambuMan.Shared.Managers
                 if (spoolAddResult.TryOk(out var addedSpool))
                 {
                     UpdateCachedSpool(addedSpool);
-                    TrackNewLocation(location);
-                    ShowMessage(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
-                    await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
+                    TrackNewLocation(input.Location);
+                    ShowMessage(false, $"Spool '{label}' added");
+                    await Log(LogLevel.Success, $"Spool '{label}' added");
                     OnSpoolInventoried(addedSpool, info, created: true);
+                    return true;
                 }
-                else
-                {
-                    await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {spoolAddResult.RawContent.Truncated()}");
-                }
+
+                await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add spool. Api response: {spoolAddResult.RawContent.Truncated()}");
+                return false;
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
                 await HandleNetworkError(ex, "Add spool");
+                return false;
+            }
+        }
+
+        public override IReadOnlyList<ExternalFilament> KnownFilaments => BambuLabExternalFilaments;
+
+        /// <summary>
+        /// Creates a spool of the picked catalog filament (created in Spoolman first when it isn't there yet), or of the
+        /// unknown filament with the entered material and colour in its comment. Never looks up an existing spool: without
+        /// a tag there is nothing to find it by.
+        /// </summary>
+        protected override async Task<bool> AddManualSpoolCoreAsync(ManualSpool spool, SpoolEditInput input)
+        {
+            if (ApiHost == null) return false;
+
+            try
+            {
+                var filament = await AddOrUpdateFilament(spool.Filament ?? UnknownFilament, input.Price, spool.Info);
+                if (filament == null) return false;
+
+                var spoolApi = ApiHost.Services.GetRequiredService<ISpoolApi>();
+
+                return await AddSpool(spool.Info, input, filament, spoolApi, spool.Label);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await HandleNetworkError(ex, "Add spool");
+                return false;
             }
         }
 
@@ -707,7 +756,8 @@ namespace BambuMan.Shared.Managers
 
                 extraValues[ExtraBuyDate] = buyDate == null ? "\"\"" : $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
 
-                extraValues[ExtraTag] = $"\"{trayUid}\"";
+                // A spool added by hand has no tag; an empty tag value would only look like one to match on.
+                if (!string.IsNullOrEmpty(trayUid)) extraValues[ExtraTag] = $"\"{trayUid}\"";
 
                 var spoolUpdateParams = new SpoolUpdateParameters(
                     price: new Option<decimal?>(price),
@@ -727,8 +777,10 @@ namespace BambuMan.Shared.Managers
                 {
                     UpdateCachedSpool(updatedSpool);
                     TrackNewLocation(location);
-                    ShowMessage(false, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
-                    await Log(LogLevel.Success, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
+                    var label = string.IsNullOrEmpty(trayUid) ? $"#{updatedSpool.Id}" : trayUid;
+
+                    ShowMessage(false, $"Spool '{label}' updated, used weight set to {usedWeight:0.#}g");
+                    await Log(LogLevel.Success, $"Spool '{label}' updated, used weight set to {usedWeight:0.#}g");
                 }
                 else
                 {
