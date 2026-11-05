@@ -1,4 +1,5 @@
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
 using BambuMan.Shared.Services;
@@ -203,12 +204,21 @@ namespace BambuMan.Shared.Managers
 
                 if (spool != null)
                 {
+                    var before = spool.EditInput;
+
                     spool.Weight = input.Weight;
                     spool.EmptyWeight = input.EmptyWeight;
                     spool.Price = input.Price;
                     spool.BuyDate = input.BuyDate;
                     spool.LotNr = string.IsNullOrWhiteSpace(input.LotNr) ? null : input.LotNr.Trim();
                     spool.Location = string.IsNullOrWhiteSpace(input.Location) ? null : input.Location.Trim();
+
+                    // The server's copy no longer has these values, so the spool reads as not sent until it is sent again.
+                    if (spool.EditInput != before)
+                    {
+                        spool.SentTo = null;
+                        spool.SentAt = null;
+                    }
                 }
             }
 
@@ -236,6 +246,72 @@ namespace BambuMan.Shared.Managers
             var candidates = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, spool.Info, Overrides);
 
             return SpoolDisplayInfo.From(spool.Info, candidates.Count == 1 ? candidates[0] : null, Overrides);
+        }
+
+        /// <summary>
+        /// Load (or drop) the stored inventory to match <see cref="StoreSpoolsLocally"/> without a full <see cref="BaseManager.Init"/>,
+        /// for when an inventory server is the selected backend: its spools stay listed, editable and sendable, while this manager
+        /// doesn't report itself ready to read tags.
+        /// </summary>
+        public Task LoadStoreAsync() => SyncLocalStoreAsync();
+
+        /// <summary>
+        /// Send stored spools to an inventory server, one after the other (see <see cref="ISpoolUploadTarget.UploadSpoolAsync"/>). A spool
+        /// the server took is marked with <see cref="LocalSpool.SentTo"/> and saved right away, so an interrupted batch keeps what was
+        /// sent; it stays on the device — sending it again updates the server's spool rather than adding another. A failed spool is
+        /// left as it was. Cancelling stops before the next spool.
+        /// </summary>
+        /// <param name="keys">The <see cref="LocalSpool.Key"/>s to send; keys no longer stored are skipped.</param>
+        public async Task<SpoolUploadSummary> SendSpoolsAsync(ISpoolUploadTarget target, IEnumerable<string> keys, IProgress<SpoolUploadProgress>? progress = null, CancellationToken cancellationToken = default)
+        {
+            List<LocalSpool> spools;
+
+            lock (spoolLock)
+            {
+                if (storedSpools == null) throw new InvalidOperationException("Spools can only be sent while they are stored locally");
+
+                var stored = storedSpools;
+                spools = keys.Distinct().Select(key => stored.FirstOrDefault(x => x.Key == key)).OfType<LocalSpool>().ToList();
+            }
+
+            var backendName = target.Backend.DisplayName();
+            var results = new List<SpoolUploadResult>();
+
+            await Log(LogLevel.Information, $"Sending {spools.Count} stored spools to {backendName}");
+
+            foreach (var spool in spools)
+            {
+                if (cancellationToken.IsCancellationRequested) break;
+
+                progress?.Report(new SpoolUploadProgress(results.Count, spools.Count, spool));
+
+                var result = await target.UploadSpoolAsync(spool);
+                results.Add(result);
+
+                if (result.Status == SpoolUploadStatus.Failed)
+                {
+                    await Log(LogLevel.Warning, $"Spool {spool.Title} ({spool.Key}) not sent: {result.Message}");
+                    continue;
+                }
+
+                lock (spoolLock)
+                {
+                    spool.SentTo = target.Backend;
+                    spool.SentAt = DateTime.Now;
+                }
+
+                await SaveAndNotifyAsync();
+
+                await Log(LogLevel.Information, $"Spool {spool.Title} ({spool.Key}) {(result.Status == SpoolUploadStatus.Created ? "added to" : "updated in")} {backendName}{(result.Message == null ? "" : $": {result.Message}")}");
+            }
+
+            progress?.Report(new SpoolUploadProgress(results.Count, spools.Count, null));
+
+            var summary = new SpoolUploadSummary(target.Backend, results, spools.Count, results.Count < spools.Count);
+
+            await Log(summary.Failed > 0 || summary.Cancelled ? LogLevel.Warning : LogLevel.Success, summary.Text);
+
+            return summary;
         }
 
         /// <summary>Remove one spool from <see cref="Spools"/> (and from the device, when stored locally).</summary>

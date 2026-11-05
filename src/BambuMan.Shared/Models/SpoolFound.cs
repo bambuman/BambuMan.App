@@ -12,5 +12,9 @@ namespace BambuMan.Shared.Models
         decimal? Price,
         DateTime? BuyDate,
         string? LotNr,
-        string? Location);
+        string? Location)
+    {
+        /// <summary>The spool as the edit card would submit it unchanged.</summary>
+        public SpoolEditInput ToEditInput() => new(Weight, EmptyWeight, Price, BuyDate, LotNr, Location);
+    }
 }

@@ -34,17 +34,47 @@ namespace BambuMan.Shared.Managers
 
         public event LocationsLoadedEventHandler? OnLocationsLoaded;
 
-        /// <summary>Raise <see cref="OnShowMessage"/> from a subclass (base events can only be invoked here).</summary>
-        protected void ShowMessage(bool isError, string message) => OnShowMessage?.Invoke(isError, message);
+        /// <summary>Raise <see cref="OnShowMessage"/> from a subclass (base events can only be invoked here). While a stored spool is sent, an error becomes that spool's result instead.</summary>
+        protected void ShowMessage(bool isError, string message)
+        {
+            if (upload.Value is { } capture)
+            {
+                if (isError) capture.Error ??= message;
+                return;
+            }
 
-        /// <summary>Raise <see cref="OnPlayErrorTone"/> from a subclass.</summary>
-        protected void PlayErrorTone() => OnPlayErrorTone?.Invoke();
+            OnShowMessage?.Invoke(isError, message);
+        }
 
-        /// <summary>Raise <see cref="OnSpoolFound"/> from a subclass. Pass the scanned <paramref name="info"/> so consumers can read raw tag fields without extending <see cref="SpoolFound"/>.</summary>
-        protected void RaiseSpoolFound(SpoolFound found, BambuFilamentInfo info) => OnSpoolFound?.Invoke(found, info);
+        /// <summary>Raise <see cref="OnPlayErrorTone"/> from a subclass. Silent while stored spools are sent — nobody is scanning.</summary>
+        protected void PlayErrorTone()
+        {
+            if (upload.Value == null) OnPlayErrorTone?.Invoke();
+        }
+
+        /// <summary>
+        /// Raise <see cref="OnSpoolFound"/> from a subclass. Pass the scanned <paramref name="info"/> so consumers can read raw tag fields
+        /// without extending <see cref="SpoolFound"/>, and whether the server's spool was just <paramref name="created"/> or already there.
+        /// While a stored spool is sent, the spool is kept for <see cref="UploadSpoolAsync"/> instead, so the scan page doesn't open an
+        /// edit card for every one.
+        /// </summary>
+        protected void RaiseSpoolFound(SpoolFound found, BambuFilamentInfo info, bool created = false)
+        {
+            if (upload.Value is { } capture)
+            {
+                capture.Found = found;
+                capture.Created = created;
+                return;
+            }
+
+            OnSpoolFound?.Invoke(found, info);
+        }
 
         /// <summary>Raise <see cref="OnSpoolInfoRead"/> from a subclass.</summary>
-        protected void RaiseSpoolInfoRead(SpoolDisplayInfo info) => OnSpoolInfoRead?.Invoke(info);
+        protected void RaiseSpoolInfoRead(SpoolDisplayInfo info)
+        {
+            if (upload.Value == null) OnSpoolInfoRead?.Invoke(info);
+        }
 
         /// <summary>Raise <see cref="OnLocationsLoaded"/> from a subclass.</summary>
         protected void RaiseLocationsLoaded() => OnLocationsLoaded?.Invoke();
@@ -296,6 +326,80 @@ namespace BambuMan.Shared.Managers
 
         #endregion
 
+        #region Sending stored spools
+
+        /// <summary>
+        /// What the scan path reported for the spool <see cref="UploadSpoolAsync"/> is sending. An <see cref="AsyncLocal{T}"/>, so only
+        /// that call's own flow is captured: a health check running meanwhile still reaches the ui as usual.
+        /// </summary>
+        private readonly AsyncLocal<UploadCapture?> upload = new();
+
+        private sealed class UploadCapture
+        {
+            public SpoolFound? Found { get; set; }
+
+            public bool Created { get; set; }
+
+            public string? Error { get; set; }
+
+            public string? Warning { get; set; }
+        }
+
+        /// <summary>
+        /// Send a spool kept on the device (see <see cref="NoBackendManager"/>) to this backend, through the same path a scan of its tag
+        /// takes: the filament is matched, and the server's spool is looked up by tray uid / tag and only created when it isn't there.
+        /// A new spool is created with the stored spool's price, location, buy date and lot nr; then every field the stored spool has a
+        /// value for — its weight too — is written to the server's spool the way saving the edit card would (see
+        /// <see cref="LocalSpool.ToEditInput"/>). Fields the backend doesn't model are ignored, as they are for the edit card.
+        /// <para>
+        /// Nothing reaches the scan page while this runs — no edit card, message, error tone or status change; the result says what
+        /// would have. Afterwards the sent spool is the one <see cref="UpdateCurrentSpoolAsync"/> writes to, so the caller closes any
+        /// open edit card first and doesn't run a scan alongside.
+        /// </para>
+        /// </summary>
+        public async Task<SpoolUploadResult> UploadSpoolAsync(LocalSpool spool)
+        {
+            if (IsReadOnly) return new(spool, SpoolUploadStatus.Failed, $"Spools can't be sent to {Backend.DisplayName()}");
+            if (!IsInitialized) return new(spool, SpoolUploadStatus.Failed, $"Not connected to {BackendName}");
+
+            var capture = new UploadCapture();
+            upload.Value = capture;
+
+            try
+            {
+                await InventorySpool(spool.Info, spool.BuyDate, spool.Price, spool.LotNr, spool.Location);
+
+                if (capture.Found == null) return new(spool, SpoolUploadStatus.Failed, capture.Error ?? capture.Warning ?? $"Not added to {BackendName}, see logs");
+
+                var found = capture.Found;
+                var created = capture.Created;
+                var input = spool.ToEditInput(found);
+
+                // A spool just created from the stored values, or one the server already has the same values for, needs no update.
+                if (input != found.ToEditInput())
+                {
+                    capture.Error = null;
+
+                    await UpdateCurrentSpoolAsync(input);
+
+                    if (capture.Error != null) return new(spool, SpoolUploadStatus.Failed, created ? $"Added, but its weight and details weren't saved: {capture.Error}" : capture.Error);
+                }
+
+                return new(spool, created ? SpoolUploadStatus.Created : SpoolUploadStatus.Updated, capture.Warning);
+            }
+            catch (Exception e)
+            {
+                await Log(LogLevel.Error, $"Sending spool '{spool.Key}' to {BackendName} failed: {e.Message}", e);
+                return new(spool, SpoolUploadStatus.Failed, e.Message);
+            }
+            finally
+            {
+                upload.Value = null;
+            }
+        }
+
+        #endregion
+
         #region Health check timer
 
         /// <summary>
@@ -385,11 +489,17 @@ namespace BambuMan.Shared.Managers
 
         protected async Task HandleNetworkError(Exception ex, string operation)
         {
-            var message = ex is TaskCanceledException
-                ? $"{operation} timed out. Will retry automatically."
-                : $"{operation} failed. Will retry automatically.";
+            // A stored spool being sent isn't retried: its result says why it failed, and it can simply be sent again.
+            if (upload.Value is { } capture) capture.Error ??= ex is TaskCanceledException ? $"{operation} timed out" : $"{operation} failed: {ex.Message}";
+            else
+            {
+                var message = ex is TaskCanceledException
+                    ? $"{operation} timed out. Will retry automatically."
+                    : $"{operation} failed. Will retry automatically.";
 
-            OnShowMessage?.Invoke(true, message);
+                OnShowMessage?.Invoke(true, message);
+            }
+
             await Log(LogLevel.Information, $"{operation}: {ex.Message}");
         }
 
@@ -400,6 +510,16 @@ namespace BambuMan.Shared.Managers
         protected async Task LogAndSetStatus(ManagerStatusType status, LogLevel level, string message, Exception? exception = null)
         {
             await Log(level, message, exception);
+
+            // A stored spool the backend can't take is that spool's result, not the backend's status: the next scan still reads Ready.
+            if (upload.Value is { } capture)
+            {
+                if (level is LogLevel.Error or LogLevel.Critical) capture.Error ??= message;
+                else if (level == LogLevel.Warning) capture.Warning ??= message;
+
+                return;
+            }
+
             await SetStatus(status);
         }
 
