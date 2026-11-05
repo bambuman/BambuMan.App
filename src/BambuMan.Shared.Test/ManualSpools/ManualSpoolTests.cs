@@ -159,6 +159,44 @@ namespace BambuMan.Shared.Test.ManualSpools
 
         #endregion
 
+        #region Spoolman
+
+        [Fact(DisplayName = "A scanned spool is created in Spoolman with its tag and production time, as before manual spools")]
+        public void Spoolman_ScannedSpoolExtra()
+        {
+            var info = new BambuFilamentInfo([0x11, 0x22, 0x33, 0x44]) { TrayUid = "4663E9ADF9CC454380EB58CE627BFE72", ProductionDateTime = new DateTime(2025, 3, 4, 5, 6, 0) };
+
+            var extra = SpoolmanManager.BuildNewSpoolExtra(info, new DateTime(2026, 10, 1));
+
+            Assert.Equal("\"4663E9ADF9CC454380EB58CE627BFE72\"", extra[SpoolmanManager.ExtraTag]);
+            Assert.Equal("\"2025-03-04Z05:06:00\"", extra[SpoolmanManager.ExtraProductionDateTime]);
+            Assert.Equal("\"2026-10-01Z00:00:00\"", extra[SpoolmanManager.ExtraBuyDate]);
+        }
+
+        [Fact(DisplayName = "A scanned spool without a readable production date still gets an empty production time")]
+        public void Spoolman_ScannedSpoolExtra_NoProductionDate()
+        {
+            var info = new BambuFilamentInfo([0x11, 0x22, 0x33, 0x44]) { TrayUid = "4663E9ADF9CC454380EB58CE627BFE72" };
+
+            var extra = SpoolmanManager.BuildNewSpoolExtra(info, null);
+
+            Assert.Equal("\"\"", extra[SpoolmanManager.ExtraProductionDateTime]);
+            Assert.Equal("\"4663E9ADF9CC454380EB58CE627BFE72\"", extra[SpoolmanManager.ExtraTag]);
+            Assert.False(extra.ContainsKey(SpoolmanManager.ExtraBuyDate));
+        }
+
+        [Fact(DisplayName = "A spool added by hand is created in Spoolman without tag or production time")]
+        public void Spoolman_ManualSpoolExtra()
+        {
+            var extra = SpoolmanManager.BuildNewSpoolExtra(ManualSpool.FromCatalog(Filament(MatteIceBlueId)).Info, new DateTime(2026, 10, 1));
+
+            Assert.False(extra.ContainsKey(SpoolmanManager.ExtraTag));
+            Assert.False(extra.ContainsKey(SpoolmanManager.ExtraProductionDateTime));
+            Assert.Equal("\"2026-10-01Z00:00:00\"", extra[SpoolmanManager.ExtraBuyDate]);
+        }
+
+        #endregion
+
         #region Bambuddy
 
         [Fact(DisplayName = "A spool added by hand is created in Bambuddy with its weight and without tag fields")]

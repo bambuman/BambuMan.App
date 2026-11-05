@@ -636,6 +636,25 @@ namespace BambuMan.Shared.Managers
         }
 
         /// <summary>
+        /// The extra fields of a new spool. A scanned spool always gets its tag (what OpenSpoolMan / Bambuddy match AMS
+        /// trays by) and production time — an unparsed production date as <c>""</c>; a spool added by hand gets neither.
+        /// </summary>
+        public static Dictionary<string, string> BuildNewSpoolExtra(BambuFilamentInfo info, DateTime? buyDate)
+        {
+            var extraValues = new Dictionary<string, string>();
+
+            if (info.HasTag)
+            {
+                extraValues[ExtraProductionDateTime] = $"\"{info.ProductionDateTime:yyyy-MM-ddZHH:mm:ss}\"";
+                extraValues[ExtraTag] = $"\"{info.TrayUid}\"";
+            }
+
+            if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
+
+            return extraValues;
+        }
+
+        /// <summary>
         /// Create a spool of <paramref name="filament"/>. <paramref name="input"/> carries the scan defaults, or the whole
         /// edit card for a spool added by hand (only then is a weight given). A spool without a tag gets no tag extra field,
         /// so it can never be found by (or mistaken for) a scanned tag. Returns false when Spoolman refused it.
@@ -644,11 +663,7 @@ namespace BambuMan.Shared.Managers
         {
             try
             {
-                var extraValues = new Dictionary<string, string>();
-
-                if (info.ProductionDateTime != null) extraValues[ExtraProductionDateTime] = $"\"{info.ProductionDateTime:yyyy-MM-ddZHH:mm:ss}\"";
-                if (!string.IsNullOrEmpty(info.TrayUid)) extraValues[ExtraTag] = $"\"{info.TrayUid}\"";
-                if (input.BuyDate != null) extraValues[ExtraBuyDate] = $"\"{input.BuyDate:yyyy-MM-dd}Z00:00:00\"";
+                var extraValues = BuildNewSpoolExtra(info, input.BuyDate);
 
                 var comment = filament.ExternalId == UnknownFilament.Id ? $"Filament: {info.DetailedFilamentType}, Color: #{info.Color}, Spool weight: {info.SpoolWeight:0.#}g" : "";
 
