@@ -629,9 +629,9 @@ namespace BambuMan
             SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
 
             var scan = new PendingScan { Backend = active.Backend, Info = info, BuyDate = buyDate, Price = defaultPrice, LotNr = defaultLotNr, Location = defaultLocation };
-            var result = await pendingScans.SendOrQueueAsync(active, scan);
+            var sendResult = await pendingScans.SendOrQueueAsync(active, scan);
 
-            if (result.Status == ScanSendStatus.Unreachable) await ShowScanQueuedAsync(active);
+            if (sendResult.Status == ScanSendStatus.Unreachable) await ShowScanQueuedAsync(active);
 
             if (viewModel.FullTagScanAndUpload)
             {
