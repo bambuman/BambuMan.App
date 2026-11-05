@@ -280,6 +280,13 @@ public partial class MainForm : Form
 
     private void ManagerOnStatusChanged()
     {
+        // Raised from the health check timer too; the queued scan send below writes to the log window.
+        if (InvokeRequired)
+        {
+            BeginInvoke(new MethodInvoker(ManagerOnStatusChanged));
+            return;
+        }
+
         UpdateBackendUi();
 
         // Connected (again): send what was queued while the backend couldn't be reached.
