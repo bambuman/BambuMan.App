@@ -158,7 +158,8 @@ public class LocalSpoolEditForm : Form
 
     /// <summary>
     /// The number in <paramref name="field"/>, null when it is empty. Marks the field and returns false when it isn't a
-    /// number or is negative — the same check the Android edit card does.
+    /// number or is negative — the same check the Android edit card does. Group separators aren't accepted: with them
+    /// <c>1.5</c> typed on a German system (or <c>1,5</c> on an English one) would silently become 15.
     /// </summary>
     private bool TryRead(TextBox field, string name, out decimal? value)
     {
@@ -167,7 +168,7 @@ public class LocalSpoolEditForm : Form
 
         if (string.IsNullOrWhiteSpace(field.Text)) return true;
 
-        if (!decimal.TryParse(field.Text.Trim(), NumberStyles.Number, CultureInfo.CurrentCulture, out var parsed))
+        if (!decimal.TryParse(field.Text.Trim(), NumberStyles.Float, CultureInfo.CurrentCulture, out var parsed))
         {
             errors.SetError(field, $"{name} must be a number.");
             return false;
