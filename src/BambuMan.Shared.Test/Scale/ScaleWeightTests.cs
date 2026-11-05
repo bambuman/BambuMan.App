@@ -84,6 +84,25 @@ namespace BambuMan.Shared.Test.Scale
             Assert.Null(ScaleWeight.ForSpoolRead(Reading(grams, true), Now));
         }
 
+        [Fact(DisplayName = "A reading that weighed another spool is not used for the next one")]
+        public void ForSpoolRead_WeighedAnotherSpool()
+        {
+            // A Weight Scale Service scale sends its measurement once: lifting the spool off sends nothing.
+            var reading = new ScaleReading(1180, true, ScaleProtocol.WeightScaleService, Now.AddSeconds(-20));
+
+            Assert.Null(ScaleWeight.ForSpoolRead(reading, Now, reading));
+            Assert.Null(ScaleWeight.ForSpoolRead(reading, Now, reading with { }));
+        }
+
+        [Fact(DisplayName = "A newer reading than the one that weighed another spool is used")]
+        public void ForSpoolRead_NewerThanWeighedAnotherSpool()
+        {
+            var previous = Reading(1180, true, 20);
+            var reading = Reading(950, true, 2);
+
+            Assert.Same(reading, ScaleWeight.ForSpoolRead(reading, Now, previous));
+        }
+
         #endregion
 
         #region Weight while the card is open

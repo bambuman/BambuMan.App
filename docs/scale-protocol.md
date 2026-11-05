@@ -81,7 +81,8 @@ Other values are reserved; ignore them. When the characteristic is there, the ap
 ## How the app uses the readings
 
 - When a spool's tag is read, the weight is filled from the latest reading if the scale shows more than 20 g, and the
-  reading is fresh: up to 60 seconds old when stable, 3 seconds when still settling.
+  reading is fresh: up to 60 seconds old when stable, 3 seconds when still settling. A reading that already filled
+  another spool's card is not used again (a Weight Scale Service scale sends nothing when a spool is lifted off).
 - While the spool card is open, new readings keep filling the weight (stable preferred, see above) until you type in
   the weight field yourself.
 - Readings below 20 g are an empty scale: lifting the spool off doesn't empty the field.

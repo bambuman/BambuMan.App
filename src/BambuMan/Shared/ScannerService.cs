@@ -35,6 +35,9 @@ namespace BambuMan
         private readonly ToastService toasts;
         private readonly IScaleService scale;
 
+        // The scale reading last put in an edit card, and the tray uid of the spool it weighed.
+        private (ScaleReading Reading, string? TrayUid)? weighedSpool;
+
 #if !GOOGLE_PLAY
         private bool versionChecked;
 #endif
@@ -148,8 +151,10 @@ namespace BambuMan
 
                     viewModel.ShowSpool(found, info);
 
-                    // A spool put on the scale before its tag is read: the latest reading is its weight.
-                    FillWeightFromScale(ScaleWeight.ForSpoolRead(scale.LastReading, DateTime.UtcNow));
+                    // A spool put on the scale before its tag is read: the latest reading is its weight — unless it
+                    // already weighed another spool.
+                    var weighedAnotherSpool = weighedSpool is { } weighed && weighed.TrayUid != found.TrayUid ? weighed.Reading : null;
+                    FillWeightFromScale(ScaleWeight.ForSpoolRead(scale.LastReading, DateTime.UtcNow, weighedAnotherSpool));
 
                     if (viewModel.ShowKeyboardOnSpoolRead) SpoolEditFocusRequested?.Invoke(true);
                 }
@@ -419,6 +424,7 @@ namespace BambuMan
             if (reading == null || edit.WeightTyped || !ScaleWeight.ShouldReplace(viewModel.AppliedScaleReading, reading)) return;
 
             edit.Weight = ScaleWeight.Round(reading.Grams);
+            weighedSpool = (reading, viewModel.Spool?.TrayUid);
 
             // Last: the scan page re-renders on it, with the new weight already in place.
             viewModel.AppliedScaleReading = reading;

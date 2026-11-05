@@ -43,10 +43,13 @@ namespace BambuMan.Shared.Scale
         /// <summary>
         /// The reading to fill the weight with when a spool's tag is read: the latest one, if a spool is on the scale and
         /// the reading is still fresh. Null leaves the backend's weight in place.
+        /// <paramref name="weighedAnotherSpool"/> is the reading already put in a different spool's card: a scale that sends
+        /// a weight only once (Weight Scale Service) still has it as its latest after that spool was lifted off, and it is
+        /// that spool's weight, not this one's.
         /// </summary>
-        public static ScaleReading? ForSpoolRead(ScaleReading? latest, DateTime now)
+        public static ScaleReading? ForSpoolRead(ScaleReading? latest, DateTime now, ScaleReading? weighedAnotherSpool = null)
         {
-            if (latest == null || !IsSpoolOnScale(latest)) return null;
+            if (latest == null || !IsSpoolOnScale(latest) || latest == weighedAnotherSpool) return null;
 
             var maxAge = latest.IsStable ? StableReadingMaxAge : LiveReadingMaxAge;
 
