@@ -94,6 +94,7 @@ namespace BambuMan.Shared.Test.ManualSpools
 
             Assert.False(spool.IsUnknown);
             Assert.Equal("PLA", info.FilamentType);
+            Assert.Equal("PLA Matte", info.DetailedFilamentType);
             Assert.Equal("A3D8E1FF", info.Color);
             Assert.Equal((ushort)1000, info.SpoolWeight);
             Assert.Equal(1.75f, info.FilamentDiameter);
@@ -104,6 +105,19 @@ namespace BambuMan.Shared.Test.ManualSpools
             Assert.Null(info.TrayUid);
             Assert.Equal("", info.SerialNumber);
             Assert.Null(LocalSpool.KeyOf(info));
+        }
+
+        [Theory(DisplayName = "The detailed type comes from the product line the catalog name starts with")]
+        [InlineData(MatteIceBlueId, "PLA Matte")]
+        [InlineData("bambulab_pla_silk+rosegold_1000_175_n", "PLA Silk+")]
+        [InlineData("bambulab_pla_tough+gray_1000_175_n", "PLA Tough+")]
+        [InlineData("bambulab_petg_matteblack_1000_175_n", "PETG Matte")]
+        [InlineData("bambulab_pc_frwhite_1000_175_n", "PC FR")]
+        [InlineData(AbsBlackId, null)]
+        [InlineData(DawnRadianceId, null)]
+        public void FromCatalog_DetailedTypeFromName(string id, string? detailed)
+        {
+            Assert.Equal(detailed, ManualSpool.FromCatalog(Filament(id)).Info.DetailedFilamentType);
         }
 
         [Fact(DisplayName = "A gradient pick keeps its first two stops on the tag data and the colour count")]
@@ -153,6 +167,7 @@ namespace BambuMan.Shared.Test.ManualSpools
             var create = BambuddyManager.BuildManualSpoolCreate(ManualSpool.FromCatalog(Filament(MatteIceBlueId)), Card);
 
             Assert.Equal("PLA", create.Material);
+            Assert.Equal("Matte", create.Subtype);
             Assert.Equal("Matte Ice Blue", create.ColorName);
             Assert.Equal("A3D8E1FF", create.Rgba);
             Assert.Equal("Bambu", create.Brand);

@@ -17,20 +17,32 @@ namespace BambuMan.Shared.Models
         /// <summary>True when the user didn't find the filament in the catalog and entered it as unknown.</summary>
         public bool IsUnknown => Filament == null;
 
+        /// <summary>
+        /// The product lines a catalog name starts with, as the tag's detailed type names them ("Matte Ice Blue" is a
+        /// <c>PLA Matte</c>). A name without one (most Basic PLA, every ABS colour) gets no detailed type, as there is nothing
+        /// to tell it by.
+        /// </summary>
+        private static readonly string[] ProductLines = ["Silk+", "Tough+", "Translucent", "Matte", "Basic", "Tough", "Silk", "Lite", "Glow", "Pure", "HF", "FR"];
+
         /// <summary>A short name for messages and the list, e.g. <c>PLA Matte Ice Blue</c>.</summary>
-        public string Label => string.Join(" ", new[] { Info.DetailedFilamentType ?? Info.FilamentType, Filament?.Name }.Where(x => !string.IsNullOrEmpty(x)));
+        public string Label => Filament == null ? Info.FilamentType ?? string.Empty : $"{Filament.Material} {Filament.Name}";
 
         #region Methods
 
-        /// <summary>A spool of a catalog filament: material, colour(s), label weight and diameter come from the catalog entry.</summary>
+        /// <summary>
+        /// A spool of a catalog filament: material, colour(s), label weight and diameter come from the catalog entry, and
+        /// the detailed type (e.g. <c>PLA Matte</c>, which Bambuddy takes its subtype from) from the start of its name.
+        /// </summary>
         public static ManualSpool FromCatalog(ExternalFilament filament)
         {
             var colors = (filament.ColorHexes ?? []).Select(NormalizeHex).OfType<string>().ToList();
             var primary = NormalizeHex(filament.ColorHex) ?? colors.FirstOrDefault();
+            var productLine = ProductLines.FirstOrDefault(x => filament.Name.StartsWith(x + " ", StringComparison.OrdinalIgnoreCase));
 
             var info = new BambuFilamentInfo
             {
                 FilamentType = filament.Material,
+                DetailedFilamentType = productLine == null ? null : $"{filament.Material} {productLine}",
                 Color = primary == null ? null : primary + "FF",
                 ColorCount = (ushort)Math.Max(colors.Count, 1),
                 SecondColor = colors.Count > 1 ? colors[1] + "FF" : null,

@@ -222,7 +222,7 @@ namespace BambuMan.Shared.Services
 
             if (!headers.Contains("tag_uid") && !headers.Contains("tray_uuid") && !headers.Contains("manual_id"))
             {
-                errors.Add("The file has no tag_uid or tray_uuid column, so its spools can't be matched to their tags.");
+                errors.Add("The file has no tag_uid or tray_uuid column (nor manual_id, for spools added by hand), so its spools can't be matched to their tags.");
                 return new LocalSpoolCsvReadResult(spools, errors);
             }
 

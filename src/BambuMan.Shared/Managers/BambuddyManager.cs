@@ -499,8 +499,10 @@ namespace BambuMan.Shared.Managers
         {
             var info = spool.Info;
             var labelWeight = LabelWeight(info);
-            var coreWeight = input.EmptyWeight.HasValue ? (int)input.EmptyWeight.Value : CoreWeight;
-            decimal? weightUsed = input.Weight is { } weight ? Math.Max(coreWeight + labelWeight - weight, 0) : null;
+            // core_weight is whole grams in Bambuddy; the used weight is worked out from the empty weight as entered.
+            var emptyWeight = input.EmptyWeight ?? CoreWeight;
+            var coreWeight = (int)emptyWeight;
+            decimal? weightUsed = input.Weight is { } weight ? Math.Max(emptyWeight + labelWeight - weight, 0) : null;
             var (material, subtype, slicerFilament, slicerFilamentName) = DeriveFilament(info);
 
             // A gradient / multi-colour catalog entry: every stop, as Bambuddy's RRGGBBAA list (same as the csv export).

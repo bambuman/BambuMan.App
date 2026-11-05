@@ -142,8 +142,14 @@ namespace BambuMan
                     // A backend that can't save edits shows the info card from OnSpoolInfoRead instead.
                     if (!ActiveManager.CanEditSpools) return;
 
-                    // A spool added by hand was saved from its own edit card already; don't open it again.
-                    if (!info.HasTag) return;
+                    // A spool added by hand was saved from its own edit card already; don't open it again. A card still
+                    // open from an earlier scan is closed: the manager's current spool is now the one added by hand, so
+                    // saving that card would write to the wrong spool.
+                    if (!info.HasTag)
+                    {
+                        viewModel.ShowSpoolEdit = false;
+                        return;
+                    }
 
                     viewModel.ShowSpool(found, info);
 
