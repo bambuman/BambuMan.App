@@ -1,5 +1,4 @@
 using BambuMan.Shared.Models;
-using Newtonsoft.Json;
 
 namespace BambuMan.Shared.Services
 {
@@ -27,55 +26,17 @@ namespace BambuMan.Shared.Services
         private const string FileName = "local-inventory.json";
         private const int CurrentVersion = 1;
 
-        private readonly SemaphoreSlim fileLock = new(1, 1);
+        private readonly JsonFileStore<LocalInventoryFile> file = new(FileName);
 
-        public string? Directory { get; set; }
-
-        private string FilePath => string.IsNullOrEmpty(Directory)
-            ? throw new InvalidOperationException($"{nameof(LocalInventoryStore)}.{nameof(Directory)} is not set")
-            : Path.Combine(Directory, FileName);
-
-        public async Task<List<LocalSpool>> LoadAsync()
+        public string? Directory
         {
-            var path = FilePath;
-
-            await fileLock.WaitAsync();
-
-            try
-            {
-                if (!File.Exists(path)) return [];
-
-                var file = JsonConvert.DeserializeObject<LocalInventoryFile>(await File.ReadAllTextAsync(path))
-                    ?? throw new InvalidDataException($"{path} is empty");
-
-                return file.Spools;
-            }
-            finally
-            {
-                fileLock.Release();
-            }
+            get => file.Directory;
+            set => file.Directory = value;
         }
 
-        public async Task SaveAsync(IReadOnlyCollection<LocalSpool> spools)
-        {
-            var path = FilePath;
-            var tempPath = path + ".tmp";
-            var json = JsonConvert.SerializeObject(new LocalInventoryFile { Version = CurrentVersion, Spools = spools.ToList() }, Formatting.Indented);
+        public async Task<List<LocalSpool>> LoadAsync() => (await file.ReadAsync())?.Spools ?? [];
 
-            await fileLock.WaitAsync();
-
-            try
-            {
-                System.IO.Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-
-                await File.WriteAllTextAsync(tempPath, json);
-                File.Move(tempPath, path, overwrite: true);
-            }
-            finally
-            {
-                fileLock.Release();
-            }
-        }
+        public Task SaveAsync(IReadOnlyCollection<LocalSpool> spools) => file.WriteAsync(new LocalInventoryFile { Version = CurrentVersion, Spools = spools.ToList() });
 
         /// <summary>On-disk shape. Versioned so a later format change can migrate rather than guess.</summary>
         private class LocalInventoryFile

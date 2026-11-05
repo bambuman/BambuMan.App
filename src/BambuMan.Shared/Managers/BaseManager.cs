@@ -41,7 +41,11 @@ namespace BambuMan.Shared.Managers
         protected void PlayErrorTone() => OnPlayErrorTone?.Invoke();
 
         /// <summary>Raise <see cref="OnSpoolFound"/> from a subclass. Pass the scanned <paramref name="info"/> so consumers can read raw tag fields without extending <see cref="SpoolFound"/>.</summary>
-        protected void RaiseSpoolFound(SpoolFound found, BambuFilamentInfo info) => OnSpoolFound?.Invoke(found, info);
+        protected void RaiseSpoolFound(SpoolFound found, BambuFilamentInfo info)
+        {
+            spoolsFound++;
+            OnSpoolFound?.Invoke(found, info);
+        }
 
         /// <summary>Raise <see cref="OnSpoolInfoRead"/> from a subclass.</summary>
         protected void RaiseSpoolInfoRead(SpoolDisplayInfo info) => OnSpoolInfoRead?.Invoke(info);
@@ -56,6 +60,12 @@ namespace BambuMan.Shared.Managers
         private bool isInitialized;
         private Timer? healthCheckTimer;
         private bool healthCheckInProgress;
+
+        // Scans are sent one at a time, so the counters below belong to the scan being sent.
+        private readonly SemaphoreSlim sendLock = new(1, 1);
+        private int spoolsFound;
+        private int networkErrors;
+        private string? sendError;
 
         /// <summary>The DI host wrapping the generated API client, built by <see cref="CreateApiHost"/>.</summary>
         protected IHost? ApiHost { get; set; }
@@ -97,6 +107,15 @@ namespace BambuMan.Shared.Managers
         public virtual bool CanEditSpools => !IsReadOnly;
 
         public bool IsInitialized => isInitialized;
+
+        /// <summary>
+        /// Whether a scan can be sent right now: the backend finished initializing and its last health check passed.
+        /// While false, <see cref="SendScanAsync"/> answers <see cref="ScanSendStatus.Unreachable"/> without trying.
+        /// </summary>
+        public bool CanSendScans => IsReadOnly || (isInitialized && IsHealth);
+
+        /// <summary>The scan <see cref="SendScanAsync"/> is sending right now, so event handlers can tell a queued scan's events from a live one's.</summary>
+        public PendingScan? SendingScan { get; private set; }
 
         public ManagerStatusType Status { get; private set; } = ManagerStatusType.Initializing;
 
@@ -294,6 +313,44 @@ namespace BambuMan.Shared.Managers
         /// <summary>Refresh known storage locations (backend-specific; base no-op).</summary>
         public virtual Task RefreshLocationsAsync() => Task.CompletedTask;
 
+        /// <summary>
+        /// Send a scan through <see cref="InventorySpool"/> — the path every live and queued scan takes — and tell an
+        /// unreachable backend apart from a scan it rejected: a spool surfaced via <see cref="OnSpoolFound"/> means it
+        /// was inventoried, a network error during the call means the backend couldn't be reached (and is then marked
+        /// unreachable, so the health check reports when it's back), anything else is a rejection. Scans are sent one
+        /// at a time.
+        /// </summary>
+        public async Task<ScanSendResult> SendScanAsync(PendingScan scan)
+        {
+            await sendLock.WaitAsync();
+
+            try
+            {
+                if (Status == ManagerStatusType.ApiUrlMissing) return new ScanSendResult(ScanSendStatus.Rejected, $"{BackendName} url is not set");
+                if (!CanSendScans) return new ScanSendResult(ScanSendStatus.Unreachable);
+
+                SendingScan = scan;
+                sendError = null;
+
+                var found = spoolsFound;
+                var errors = networkErrors;
+
+                await InventorySpool(scan.Info, scan.BuyDate, scan.Price, scan.LotNr, scan.Location);
+
+                if (spoolsFound != found) return new ScanSendResult(ScanSendStatus.Inventoried);
+
+                if (networkErrors == errors) return new ScanSendResult(ScanSendStatus.Rejected, sendError ?? "Not inventoried, see logs");
+
+                await MarkUnreachableAsync();
+                return new ScanSendResult(ScanSendStatus.Unreachable);
+            }
+            finally
+            {
+                SendingScan = null;
+                sendLock.Release();
+            }
+        }
+
         #endregion
 
         #region Health check timer
@@ -325,6 +382,19 @@ namespace BambuMan.Shared.Managers
                     // ignored
                 }
             }, null, interval, interval);
+        }
+
+        /// <summary>
+        /// A request just failed on the network: report the backend unreachable now rather than on the next health
+        /// check tick, and poll fast so the reconnect (and with it the queued scans) follows as soon as it's back.
+        /// </summary>
+        private async Task MarkUnreachableAsync()
+        {
+            if (!IsHealth) return;
+
+            IsHealth = false;
+            await LogAndSetStatus(ManagerStatusType.CantConnectToApi, LogLevel.Warning, $"Lost connection to {BackendName}. Retrying ...");
+            StartHealthCheckTimer(healthy: false);
         }
 
         private async Task PerformHealthCheck()
@@ -389,6 +459,8 @@ namespace BambuMan.Shared.Managers
                 ? $"{operation} timed out. Will retry automatically."
                 : $"{operation} failed. Will retry automatically.";
 
+            networkErrors++;
+
             OnShowMessage?.Invoke(true, message);
             await Log(LogLevel.Information, $"{operation}: {ex.Message}");
         }
@@ -414,6 +486,9 @@ namespace BambuMan.Shared.Managers
         protected Task Log(LogLevel level, string message, Exception? ex = null)
         {
             if (ShowLogs) OnLogMessage?.Invoke(level, message);
+
+            // The first error a scan runs into is why it was rejected (e.g. "No matching filament found").
+            if (SendingScan != null && level is LogLevel.Error or LogLevel.Critical) sendError ??= message;
 
             switch (level)
             {
