@@ -29,6 +29,9 @@ namespace BambuMan.Shared.Test.PendingScans
         /// <summary>Tray uids inventoried as the unknown filament: the spool is added, but the call returns false.</summary>
         public HashSet<string> UnknownFilamentTrayUids { get; } = [];
 
+        /// <summary>Tray uids the manager fails on with an exception, like a bug one tag's data runs into.</summary>
+        public HashSet<string> ThrowingTrayUids { get; } = [];
+
         /// <summary>When set, inventory calls wait for it — to hold a send open.</summary>
         public TaskCompletionSource? Gate { get; set; }
 
@@ -70,6 +73,8 @@ namespace BambuMan.Shared.Test.PendingScans
             }
 
             Sent.Add(new SentScan(info, buyDate, price, lotNr, location));
+
+            if (info.TrayUid != null && ThrowingTrayUids.Contains(info.TrayUid)) throw new InvalidOperationException("Unexpected tag data");
 
             if (!ServerUp)
             {

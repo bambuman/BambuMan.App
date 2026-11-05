@@ -189,8 +189,14 @@ namespace BambuMan.Shared.Services
                 int sent = 0, rejected = 0;
                 var unreachable = false;
 
-                foreach (var scan in Items.Where(x => x.Backend == manager.Backend).Where(filter).ToList())
+                // Each scan is picked from the queue as it is now, not from a copy taken up front: one discarded while
+                // the send runs is not sent any more, and one queued or read again meanwhile is sent in its turn.
+                var tried = new HashSet<Guid>();
+
+                while (Items.FirstOrDefault(x => x.Backend == manager.Backend && !tried.Contains(x.Id) && filter(x)) is { } scan)
                 {
+                    tried.Add(scan.Id);
+
                     var result = await manager.SendScanAsync(scan);
 
                     if (result.Status == ScanSendStatus.Unreachable)

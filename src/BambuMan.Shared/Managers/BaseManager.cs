@@ -352,6 +352,13 @@ namespace BambuMan.Shared.Managers
                 await MarkUnreachableAsync();
                 return new ScanSendResult(ScanSendStatus.Unreachable);
             }
+            catch (Exception e) when (scan.IsQueued)
+            {
+                // Left to throw, it would throw again on every reconnect and hold up every scan queued after it. Kept
+                // as rejected for the user to send again or discard; logged as an error, so it is still reported.
+                await Log(LogLevel.Error, $"Sending queued scan '{scan.Info.TrayUid}' failed: {e.Message}", e);
+                return new ScanSendResult(ScanSendStatus.Rejected, e.Message);
+            }
             finally
             {
                 SendingScan = null;

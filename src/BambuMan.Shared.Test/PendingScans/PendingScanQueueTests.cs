@@ -380,7 +380,7 @@ namespace BambuMan.Shared.Test.PendingScans
             Assert.Single(manager.Sent);
         }
 
-        [Fact(DisplayName = "A tag read again while its older read is being sent stays queued, so the newer read is sent too")]
+        [Fact(DisplayName = "A tag read again while its older read is being sent stays queued, so the newer read is sent too, after it")]
         public async Task Enqueue_WhileSendingTheSameTag()
         {
             var manager = await Manager();
@@ -393,11 +393,81 @@ namespace BambuMan.Shared.Test.PendingScans
             await queue.EnqueueAsync(Scan(SampleTags.AbsBlack, location: "Shelf B"));
 
             manager.Gate.SetResult();
-            await sending;
 
-            var newer = Assert.Single(queue.Items);
-            Assert.Equal("Shelf B", newer.Location);
-            Assert.Equal("Shelf A", Assert.Single(manager.Sent).Location);
+            Assert.Equal(new PendingScanSendResult(2, 0, 0, false), await sending);
+            Assert.Empty(queue.Items);
+            Assert.Equal(["Shelf A", "Shelf B"], manager.Sent.Select(x => x.Location));
+        }
+
+        [Fact(DisplayName = "A scan discarded while a send is running is not sent")]
+        public async Task Remove_WhileSending()
+        {
+            var manager = await Manager();
+            var queue = Queue();
+            await queue.EnqueueAsync(Scan(SampleTags.AbsBlack));
+            var white = await queue.EnqueueAsync(Scan(SampleTags.AbsWhite));
+            await queue.EnqueueAsync(Scan(SampleTags.PlaWood));
+
+            manager.Gate = new TaskCompletionSource();
+            var sending = queue.SendAsync(manager);
+
+            await queue.RemoveAsync(white.Id);
+
+            manager.Gate.SetResult();
+
+            Assert.Equal(new PendingScanSendResult(2, 0, 0, false), await sending);
+            Assert.Equal([AbsBlackTray, PlaWoodTray], manager.Sent.Select(x => x.Info.TrayUid));
+        }
+
+        [Fact(DisplayName = "Discarding every scan while a send is running stops it after the scan in flight")]
+        public async Task Clear_WhileSending()
+        {
+            var manager = await Manager();
+            var queue = Queue();
+            await queue.EnqueueAsync(Scan(SampleTags.AbsBlack));
+            await queue.EnqueueAsync(Scan(SampleTags.AbsWhite));
+            await queue.EnqueueAsync(Scan(SampleTags.PlaWood));
+
+            manager.Gate = new TaskCompletionSource();
+            var sending = queue.SendAsync(manager);
+
+            await queue.ClearAsync();
+
+            manager.Gate.SetResult();
+
+            Assert.Equal(new PendingScanSendResult(1, 0, 0, false), await sending);
+            Assert.Equal(AbsBlackTray, Assert.Single(manager.Sent).Info.TrayUid);
+        }
+
+        [Fact(DisplayName = "A queued scan the manager fails on is kept as rejected, and the scans after it are still sent")]
+        public async Task Send_FailingScanDoesNotHoldUpTheQueue()
+        {
+            var manager = await Manager();
+            manager.ThrowingTrayUids.Add(AbsBlackTray);
+
+            var queue = Queue();
+            await queue.EnqueueAsync(Scan(SampleTags.AbsBlack));
+            await queue.EnqueueAsync(Scan(SampleTags.AbsWhite));
+
+            Assert.Equal(new PendingScanSendResult(1, 1, 1, false), await queue.SendAsync(manager));
+
+            var failed = Assert.Single(queue.Items);
+            Assert.Equal(AbsBlackTray, failed.Key);
+            Assert.Equal("Unexpected tag data", failed.LastError);
+            Assert.Null(manager.SendingScan);
+
+            // Not tried again on the next reconnect, so it doesn't fail on every one.
+            Assert.False(queue.HasScansToSend(manager));
+        }
+
+        [Fact(DisplayName = "A live scan the manager fails on still throws, as before")]
+        public async Task SendScan_LiveFailureThrows()
+        {
+            var manager = await Manager();
+            manager.ThrowingTrayUids.Add(AbsBlackTray);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => manager.SendScanAsync(Scan(SampleTags.AbsBlack)));
+            Assert.Null(manager.SendingScan);
         }
 
         [Fact(DisplayName = "A server failing behind a reverse proxy counts as unreachable, not as a rejection")]
