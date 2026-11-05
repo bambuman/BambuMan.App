@@ -51,6 +51,14 @@ namespace BambuMan.Shared.Test.Integration
             Assert.Equal(tag.SerialNumber, scan.Key);
         }
 
+        [Fact(DisplayName = "A live third-party scan reaches the backend as read, with every field")]
+        public void PendingScan_LiveThirdPartyTagAsRead()
+        {
+            var tag = OpenSpoolTag();
+
+            Assert.Same(tag, new PendingScan { Tag = tag }.Tag);
+        }
+
         [Fact(DisplayName = "A queued Bambu Lab scan is stored as before: the tag itself, no brand")]
         public void PendingScan_BambuTagUnchanged()
         {

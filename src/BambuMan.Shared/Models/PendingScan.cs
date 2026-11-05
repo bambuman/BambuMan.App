@@ -31,11 +31,20 @@ namespace BambuMan.Shared.Models
         /// <summary>Brand written on a third-party tag. Null for a Bambu Lab tag, whose brand is implied.</summary>
         public string? Brand { get; set; }
 
-        /// <summary>The scanned tag as the managers take it; setting it fills <see cref="Info"/>, <see cref="Format"/> and <see cref="Brand"/>.</summary>
+        /// <summary>
+        /// The scanned tag as the managers take it; setting it fills <see cref="Info"/>, <see cref="Format"/> and <see cref="Brand"/>.
+        /// A third-party tag set here is handed out as read (all its fields, e.g. the remaining weight) while this scan is in memory;
+        /// once read back from the queue file it is rebuilt from <see cref="Info"/>.
+        /// </summary>
         [JsonIgnore]
         public ISpoolTag Tag
         {
-            get => Format == SpoolTagFormat.BambuLab ? Info : SpoolTag.FromFilamentInfo(Format, Brand, Info);
+            get
+            {
+                if (Format == SpoolTagFormat.BambuLab) return Info;
+
+                return scannedTag is { } read && ReferenceEquals(scannedInfo, Info) ? read : SpoolTag.FromFilamentInfo(Format, Brand, Info);
+            }
             set
             {
                 Info = value switch
@@ -47,8 +56,14 @@ namespace BambuMan.Shared.Models
 
                 Format = value.Format;
                 Brand = value.Format == SpoolTagFormat.BambuLab ? null : value.Brand;
+                scannedTag = value as SpoolTag;
+                scannedInfo = Info;
             }
         }
+
+        // The third-party tag as read, and the Info built from it (a later Info replaces it).
+        private SpoolTag? scannedTag;
+        private BambuFilamentInfo? scannedInfo;
 
         public DateTime? BuyDate { get; set; }
 
