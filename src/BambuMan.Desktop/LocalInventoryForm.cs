@@ -20,6 +20,7 @@ public class LocalInventoryForm : Form
     private readonly Button btnDelete = new() { Text = "Delete selected", AutoSize = true };
     private readonly Button btnDeleteAll = new() { Text = "Delete all", AutoSize = true };
     private CancellationTokenSource? sendCancellation;
+    private bool closeAfterSend;
 
     /// <summary>True while stored spools are being sent; the main form holds back scans meanwhile.</summary>
     public bool IsSending => sendCancellation != null;
@@ -153,6 +154,7 @@ public class LocalInventoryForm : Form
         {
             sendCancellation.Cancel();
             btnSend.Enabled = false;
+            closeAfterSend = true;
             e.Cancel = true;
         }
 
@@ -223,6 +225,8 @@ public class LocalInventoryForm : Form
             btnDelete.Enabled = true;
             btnDeleteAll.Enabled = true;
             LoadSpools();
+
+            if (closeAfterSend) Close();
         }
     }
 
