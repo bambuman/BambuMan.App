@@ -761,8 +761,13 @@ namespace BambuMan.Shared.Managers
 
         private void OnSpoolInventoried(Spool spool, BambuFilamentInfo info)
         {
-            currentSpool = spool;
-            currentInfo = info;
+            // A queued scan sent in the background must not become the spool an open edit card saves to.
+            if (SendingScan?.IsQueued != true)
+            {
+                currentSpool = spool;
+                currentInfo = info;
+            }
+
             RaiseSpoolFound(BuildSpoolFound(spool, info), info);
         }
 

@@ -1274,6 +1274,12 @@ body.editing .content {
     white-space: nowrap;
 }
 
+/* Why a queued scan was rejected, under its row. */
+.list-row-error {
+    color: var(--error-text);
+    font-size: calc(12px * var(--text-scale));
+}
+
 .empty {
     padding: 24px 8px;
     color: var(--text-subtle);

@@ -38,6 +38,7 @@ public partial class MainForm : Form
     private readonly NoBackendManager? noBackendManager;
     private readonly TagApiService? tagApiService;
     private readonly FilamentOverrideService? filamentOverrideService;
+    private readonly PendingScanQueue? pendingScans;
     private Spool? currentSpool;
     private BambuFilamentInfo? currentBambuFilamentInfo;
 
@@ -122,6 +123,10 @@ public partial class MainForm : Form
         noBackendManager.OnSpoolInfoRead += NoBackendManagerOnSpoolInfoRead;
         noBackendManager.OnSpoolsChanged += UpdateBackendUi;
 
+        // Scans the selected server couldn't be reached for, sent once it's back.
+        pendingScans = new PendingScanQueue { Directory = appDataDirectory };
+        pendingScans.OnChanged += UpdateBackendUi;
+
         tagApiService = new TagApiService(new HttpClient()) { LogAction = AppendText };
 
         filamentOverrideService = new FilamentOverrideService(tagApiService)
@@ -149,6 +154,8 @@ public partial class MainForm : Form
 
             // Started here rather than in the constructor so a PC/SC failure can be reported in a window that already exists.
             nfcReader?.Start();
+
+            await LoadPendingScansAsync();
 
             if (ActiveManager != null) await ActiveManager.Init();
             if (filamentOverrideService != null) await filamentOverrideService.RefreshAsync();
@@ -180,7 +187,7 @@ public partial class MainForm : Form
             var json = JsonConvert.SerializeObject(info, Formatting.Indented);
             AppendText(LogLevel.Information, json);
 
-            if (ActiveManager != null) await ActiveManager.InventorySpool(info, dtpBuyDate.Value, nudPrice.Value, txtLotNr.Text, txtLocation.Text);
+            if (ActiveManager != null) await InventorySpoolAsync(ActiveManager, info);
             if (fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null) await tagApiService.UploadNfcTagAsync(info);
         }
         catch (Exception ex)
@@ -213,6 +220,9 @@ public partial class MainForm : Form
 
     private void SpoolmanManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
     {
+        // A queued scan sent in the background must not take over the edit panel.
+        if (spoolmanManager?.SendingScan?.IsQueued == true) return;
+
         if (InvokeRequired)
         {
             BeginInvoke(new MethodInvoker(delegate { SpoolmanManagerOnSpoolFound(found, info); }));
@@ -245,6 +255,9 @@ public partial class MainForm : Form
     /// </summary>
     private void BambuddyManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
     {
+        // A queued scan sent in the background must not take over the edit panel.
+        if (bambuddyManager?.SendingScan?.IsQueued == true) return;
+
         if (InvokeRequired)
         {
             BeginInvoke(new MethodInvoker(delegate { BambuddyManagerOnSpoolFound(found, info); }));
@@ -265,7 +278,22 @@ public partial class MainForm : Form
         currentBambuFilamentInfo = info;
     }
 
-    private void ManagerOnStatusChanged() => UpdateBackendUi();
+    private void ManagerOnStatusChanged()
+    {
+        // Raised from the health check timer too; the queued scan send below writes to the log window.
+        if (InvokeRequired)
+        {
+            BeginInvoke(new MethodInvoker(ManagerOnStatusChanged));
+            return;
+        }
+
+        UpdateBackendUi();
+
+        // Connected (again): send what was queued while the backend couldn't be reached.
+        var manager = ActiveManager;
+
+        if (manager != null && pendingScans?.HasScansToSend(manager) == true) _ = SendQueuedScansAsync(manager, retryRejected: false);
+    }
 
     private void ManagerOnShowMessage(bool isError, string message)
     {
@@ -509,6 +537,35 @@ public partial class MainForm : Form
         form.ShowDialog(this);
     }
 
+    private async void sendQueuedScansToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (ActiveManager != null) await SendQueuedScansAsync(ActiveManager, retryRejected: true);
+        }
+        catch (Exception ex)
+        {
+            AppendText(LogLevel.Error, ex.ToString());
+        }
+    }
+
+    private async void discardQueuedScansToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (pendingScans == null || pendingScans.Items.Count == 0) return;
+
+            if (MessageBox.Show(this, $"Discard all {pendingScans.Items.Count} queued scans? They won't be sent to the inventory server.", "Discard queued scans", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK) return;
+
+            await pendingScans.ClearAsync();
+            AppendText(LogLevel.Information, "Queued scans discarded");
+        }
+        catch (Exception ex)
+        {
+            AppendText(LogLevel.Error, ex.ToString());
+        }
+    }
+
     private void clearLogsToolStripMenuItem_Click(object? sender, EventArgs e)
     {
         lock (rtbLogs)
@@ -566,6 +623,62 @@ public partial class MainForm : Form
     private void eXitToolStripMenuItem_Click(object? sender, EventArgs e)
     {
         Application.Exit();
+    }
+
+    #endregion
+
+    #region Queued scans
+
+    private async Task LoadPendingScansAsync()
+    {
+        if (pendingScans == null) return;
+
+        try
+        {
+            await pendingScans.LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            // A damaged file was moved aside (kept, never saved over) and the queue starts empty; the message names the
+            // kept file. Any other read error leaves the queue unloaded, to be read again on its next use.
+            AppendText(LogLevel.Error, $"Could not read the queued scans: {ex.Message}");
+        }
+    }
+
+    /// <summary>Send a read tag to the backend; when it can't be reached, queue it to send once it's back.</summary>
+    private async Task InventorySpoolAsync(BaseManager manager, BambuFilamentInfo info)
+    {
+        var scan = new PendingScan { Backend = manager.Backend, Info = info, BuyDate = dtpBuyDate.Value, Price = nudPrice.Value, LotNr = txtLotNr.Text, Location = txtLocation.Text };
+
+        if (pendingScans == null)
+        {
+            await manager.SendScanAsync(scan);
+            return;
+        }
+
+        var result = await pendingScans.SendOrQueueAsync(manager, scan);
+
+        if (result.Status == ScanSendStatus.Unreachable)
+            AppendText(LogLevel.Warning, $"{manager.Backend.DisplayName()} {(manager.IsHealth ? "isn't ready yet" : "can't be reached")}. The spool '{info.TrayUid}' is queued and will be sent when it's back.");
+    }
+
+    private async Task SendQueuedScansAsync(BaseManager manager, bool retryRejected)
+    {
+        if (pendingScans == null) return;
+
+        try
+        {
+            var result = await pendingScans.SendAsync(manager, retryRejected);
+            var name = manager.Backend.DisplayName();
+
+            if (result.Sent > 0) AppendText(LogLevel.Success, $"Sent {result.Sent} queued scans to {name}");
+            if (result.Rejected > 0) AppendText(LogLevel.Error, $"{name} rejected {result.Rejected} queued scans; they stay queued (File > Send queued scans to retry)");
+            if (retryRejected && result.Unreachable) AppendText(LogLevel.Warning, $"{name} still can't be reached. The scans stay queued.");
+        }
+        catch (Exception ex)
+        {
+            AppendText(LogLevel.Error, ex.ToString());
+        }
     }
 
     #endregion
@@ -651,6 +764,13 @@ public partial class MainForm : Form
 
         if (isNoBackend && noBackendManager != null)
             status += stored ? $" | Stored spools: {noBackendManager.Spools.Count}" : $" | Scanned spools: {noBackendManager.Spools.Count}";
+
+        var queued = pendingScans?.Items.Count ?? 0;
+
+        sendQueuedScansToolStripMenuItem.Visible = queued > 0 && !isNoBackend;
+        discardQueuedScansToolStripMenuItem.Visible = queued > 0;
+
+        if (queued > 0) status += $" | Queued scans: {queued}";
 
         tsslStatus.Text = status;
     }

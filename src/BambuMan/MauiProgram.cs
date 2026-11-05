@@ -5,6 +5,7 @@ using BambuMan.Shared.Services;
 using BambuMan.UI.LocalInventory;
 using BambuMan.UI.Logs;
 using BambuMan.UI.Main;
+using BambuMan.UI.PendingScans;
 using BambuMan.UI.Scan;
 using BambuMan.UI.Settings;
 using BarcodeScanning;
@@ -137,6 +138,7 @@ namespace BambuMan
             services.AddTransient<LogsPageViewModel>();
             services.AddTransient<ScanPage>();
             services.AddTransient<LocalInventoryPageViewModel>();
+            services.AddTransient<PendingScansPageViewModel>();
 
             services.AddSingleton<AppNavigation>();
             services.AddSingleton<ToastService>();
@@ -164,6 +166,7 @@ namespace BambuMan
             });
 
             services.AddSingleton<ILocalInventoryStore>(_ => new LocalInventoryStore { Directory = FileSystem.AppDataDirectory });
+            services.AddSingleton<IPendingScanQueue>(_ => new PendingScanQueue { Directory = FileSystem.AppDataDirectory });
 
             services.AddSingleton<SpoolmanManager>();
             services.AddSingleton<BambuddyManager>();

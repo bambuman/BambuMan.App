@@ -35,6 +35,8 @@
             exportCsvToolStripMenuItem = new ToolStripMenuItem();
             importCsvToolStripMenuItem = new ToolStripMenuItem();
             storedSpoolsToolStripMenuItem = new ToolStripMenuItem();
+            sendQueuedScansToolStripMenuItem = new ToolStripMenuItem();
+            discardQueuedScansToolStripMenuItem = new ToolStripMenuItem();
             fileToolStripSeparator = new ToolStripSeparator();
             backendToolStripMenuItem = new ToolStripMenuItem();
             spoolmanBackendToolStripMenuItem = new ToolStripMenuItem();
@@ -107,7 +109,7 @@
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { exportCsvToolStripMenuItem, importCsvToolStripMenuItem, storedSpoolsToolStripMenuItem, fileToolStripSeparator, eXitToolStripMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { exportCsvToolStripMenuItem, importCsvToolStripMenuItem, storedSpoolsToolStripMenuItem, sendQueuedScansToolStripMenuItem, discardQueuedScansToolStripMenuItem, fileToolStripSeparator, eXitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "File";
@@ -139,6 +141,20 @@
             storedSpoolsToolStripMenuItem.Size = new Size(180, 22);
             storedSpoolsToolStripMenuItem.Text = "Stored spools...";
             storedSpoolsToolStripMenuItem.Click += storedSpoolsToolStripMenuItem_Click;
+            // 
+            // sendQueuedScansToolStripMenuItem
+            // 
+            sendQueuedScansToolStripMenuItem.Name = "sendQueuedScansToolStripMenuItem";
+            sendQueuedScansToolStripMenuItem.Size = new Size(180, 22);
+            sendQueuedScansToolStripMenuItem.Text = "Send queued scans";
+            sendQueuedScansToolStripMenuItem.Click += sendQueuedScansToolStripMenuItem_Click;
+            // 
+            // discardQueuedScansToolStripMenuItem
+            // 
+            discardQueuedScansToolStripMenuItem.Name = "discardQueuedScansToolStripMenuItem";
+            discardQueuedScansToolStripMenuItem.Size = new Size(180, 22);
+            discardQueuedScansToolStripMenuItem.Text = "Discard queued scans...";
+            discardQueuedScansToolStripMenuItem.Click += discardQueuedScansToolStripMenuItem_Click;
             // 
             // fileToolStripSeparator
             // 
@@ -699,6 +715,8 @@
         private ToolStripMenuItem exportCsvToolStripMenuItem;
         private ToolStripMenuItem importCsvToolStripMenuItem;
         private ToolStripMenuItem storedSpoolsToolStripMenuItem;
+        private ToolStripMenuItem sendQueuedScansToolStripMenuItem;
+        private ToolStripMenuItem discardQueuedScansToolStripMenuItem;
         private ToolStripSeparator fileToolStripSeparator;
         private ToolStripMenuItem backendToolStripMenuItem;
         private ToolStripMenuItem spoolmanBackendToolStripMenuItem;
