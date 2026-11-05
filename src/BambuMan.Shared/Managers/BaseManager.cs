@@ -350,7 +350,9 @@ namespace BambuMan.Shared.Managers
         /// takes: the filament is matched, and the server's spool is looked up by tray uid / tag and only created when it isn't there.
         /// A new spool is created with the stored spool's price, location, buy date and lot nr; then every field the stored spool has a
         /// value for — its weight too — is written to the server's spool the way saving the edit card would (see
-        /// <see cref="LocalSpool.ToEditInput"/>). Fields the backend doesn't model are ignored, as they are for the edit card.
+        /// <see cref="LocalSpool.ToEditInput"/>). Fields the backend doesn't model are ignored, as they are for the edit card. The one
+        /// exception is the weight of a spool the server already had: it is only written when it doesn't leave more filament on the
+        /// spool than the server has, since the server may have tracked filament used since the spool was stored.
         /// <para>
         /// Nothing reaches the scan page while this runs — no edit card, message, error tone or status change; the result says what
         /// would have. Afterwards the sent spool is the one <see cref="UpdateCurrentSpoolAsync"/> writes to, so the caller closes any
@@ -374,6 +376,18 @@ namespace BambuMan.Shared.Managers
                 var found = capture.Found;
                 var created = capture.Created;
                 var input = spool.ToEditInput(found);
+                string? weightKept = null;
+
+                // The server may have tracked filament used since this spool was stored (prints, a later scan and weigh), so a
+                // stale stored weight must not hand that filament back: a spool the server already had keeps its own weight
+                // when it has less filament left than stored here.
+                if (!created && RemainingWeight(input) > RemainingWeight(found.ToEditInput()))
+                {
+                    input = input with { Weight = found.Weight, EmptyWeight = found.EmptyWeight };
+                    weightKept = $"Kept the weight {BackendName} has, it has less filament left than stored here";
+
+                    await Log(LogLevel.Information, $"Spool '{spool.Key}': {weightKept} ({found.Weight:0.#}g, stored {spool.Weight:0.#}g)");
+                }
 
                 // A spool just created from the stored values, or one the server already has the same values for, needs no update.
                 if (input != found.ToEditInput())
@@ -385,7 +399,9 @@ namespace BambuMan.Shared.Managers
                     if (capture.Error != null) return new(spool, SpoolUploadStatus.Failed, created ? $"Added, but its weight and details weren't saved: {capture.Error}" : capture.Error);
                 }
 
-                return new(spool, created ? SpoolUploadStatus.Created : SpoolUploadStatus.Updated, capture.Warning);
+                var message = string.Join(". ", new[] { capture.Warning, weightKept }.OfType<string>());
+
+                return new(spool, created ? SpoolUploadStatus.Created : SpoolUploadStatus.Updated, message.Length == 0 ? null : message);
             }
             catch (Exception e)
             {
@@ -396,6 +412,9 @@ namespace BambuMan.Shared.Managers
             {
                 upload.Value = null;
             }
+
+            // Filament left on the spool; an unknown empty weight counts as 0, as the managers' updates do.
+            static decimal? RemainingWeight(SpoolEditInput input) => input.Weight - (input.EmptyWeight ?? 0);
         }
 
         #endregion

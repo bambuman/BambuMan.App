@@ -289,6 +289,10 @@ namespace BambuMan.Shared.Managers
 
                 progress?.Report(new SpoolUploadProgress(results.Count, spools.Count, spool));
 
+                SpoolEditInput sentValues;
+
+                lock (spoolLock) sentValues = spool.EditInput;
+
                 var result = await target.UploadSpoolAsync(spool);
                 results.Add(result);
 
@@ -301,8 +305,12 @@ namespace BambuMan.Shared.Managers
 
                 lock (spoolLock)
                 {
-                    spool.SentTo = target.Backend;
-                    spool.SentAt = DateTime.Now;
+                    // Edited while it was being sent: the server may not have the new values, so it stays unsent.
+                    if (spool.EditInput == sentValues)
+                    {
+                        spool.SentTo = target.Backend;
+                        spool.SentAt = DateTime.Now;
+                    }
                 }
 
                 await SaveAndNotifyAsync();

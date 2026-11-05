@@ -133,6 +133,35 @@ namespace BambuMan.Shared.Test.LocalInventory
             Assert.Equal("Dry box", update.Location);
         }
 
+        [Fact(DisplayName = "A spool the server already has keeps its weight when it has less filament left than stored")]
+        public async Task Upload_ExistingKeepsLowerServerWeight()
+        {
+            var manager = await FakeServerManager.ConnectedAsync();
+            manager.ServerSpools[AbsBlackKey] = ServerSpool(weight: 600, emptyWeight: 250, location: "Dry box");
+
+            // Stored full, before the server tracked 650g printed from it.
+            var result = await manager.UploadSpoolAsync(new LocalSpool { Info = Tag(SampleTags.AbsBlack), Weight = 1250, EmptyWeight = 200, Location = "Shelf A" });
+
+            Assert.Equal(SpoolUploadStatus.Updated, result.Status);
+            Assert.Equal("Kept the weight Spoolman has, it has less filament left than stored here", result.Message);
+
+            var update = Assert.Single(manager.Updates);
+            Assert.Equal((600, 250), (update.Weight, update.EmptyWeight));
+            Assert.Equal("Shelf A", update.Location);
+        }
+
+        [Fact(DisplayName = "A spool just created takes the stored weight, even above the label weight")]
+        public async Task Upload_CreatedTakesHigherStoredWeight()
+        {
+            var manager = await FakeServerManager.ConnectedAsync();
+
+            var result = await manager.UploadSpoolAsync(new LocalSpool { Info = Tag(SampleTags.AbsBlack), Weight = 1400 });
+
+            Assert.Equal(SpoolUploadStatus.Created, result.Status);
+            Assert.Null(result.Message);
+            Assert.Equal(1400, Assert.Single(manager.Updates).Weight);
+        }
+
         [Fact(DisplayName = "No update is sent when the server's spool already has the stored values")]
         public async Task Upload_SkipsUnchangedUpdate()
         {
@@ -332,6 +361,21 @@ namespace BambuMan.Shared.Test.LocalInventory
             await manager.UpdateSpoolAsync(AbsBlackKey, spool.EditInput with { Weight = 500 });
             Assert.Null(spool.SentTo);
             Assert.Null(spool.SentAt);
+        }
+
+        [Fact(DisplayName = "A spool edited while it is being sent isn't marked as sent")]
+        public async Task Send_EditDuringSendStaysUnsent()
+        {
+            var manager = await StoredAsync(SampleTags.AbsBlack);
+            var spool = manager.FindSpool(AbsBlackKey)!;
+            var target = new FakeTarget { AfterSend = () => _ = manager.UpdateSpoolAsync(AbsBlackKey, spool.EditInput with { Weight = 500 }) };
+
+            var summary = await manager.SendSpoolsAsync(target, [AbsBlackKey]);
+
+            Assert.Equal(1, summary.Created);
+            Assert.Equal(500, spool.Weight);
+            Assert.Null(spool.SentTo);
+            Assert.Null((await Store().LoadAsync()).Single().SentTo);
         }
 
         [Fact(DisplayName = "Spools can only be sent while they are stored locally")]
