@@ -87,7 +87,8 @@ namespace BambuMan.Shared.Nfc
                     idLength = data[index++];
                 }
 
-                if (payloadLength < 0 || index + typeLength + idLength + payloadLength > data.Length) break;
+                // In long arithmetic: a garbage 4-byte payload length near int.MaxValue would overflow the sum and pass.
+                if (payloadLength < 0 || (long)index + typeLength + idLength + payloadLength > data.Length) break;
 
                 var type = data.Slice(index, typeLength);
                 index += typeLength + idLength;

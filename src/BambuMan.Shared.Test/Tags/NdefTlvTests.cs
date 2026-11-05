@@ -70,6 +70,13 @@ namespace BambuMan.Shared.Test.Tags
             Assert.Null(NdefTlv.FindMessage([]));
         }
 
+        [Fact(DisplayName = "NDEF TLV: a garbage long-record payload length near int.MaxValue yields nothing instead of throwing")]
+        public void Parse_HugePayloadLength()
+        {
+            // NDEF TLV of 10 bytes: a long record (MB | ME, TNF mime), type length 1, payload length 0x7FFFFFFF.
+            Assert.Empty(NdefTlv.ParseRecords([0x03, 0x0A, 0xC2, 0x01, 0x7F, 0xFF, 0xFF, 0xFF, 0x41, 0x42, 0x43, 0x44]));
+        }
+
         [Fact(DisplayName = "NDEF TLV: raw memory with an OpenSpool record reads as an OpenSpool tag")]
         public void Reader_ReadsRawOpenSpool()
         {
