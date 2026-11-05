@@ -1,3 +1,4 @@
+using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
 
 namespace BambuMan.Shared.Nfc
@@ -37,5 +38,17 @@ namespace BambuMan.Shared.Nfc
 
             return null;
         }
+
+        /// <summary>
+        /// Whether an OpenSpool record may replace what <paramref name="tagInfo"/> holds: only when the raw user pages
+        /// were read (so a TigerTag, which isn't NDEF, is ruled out) and the tag is NDEF-empty or already OpenSpool.
+        /// </summary>
+        public static bool CanOverwrite(ITagInfo tagInfo) =>
+            tagInfo is TagInfo { UserMemory: not null } && TryRead(tagInfo) switch
+            {
+                { Format: SpoolTagFormat.OpenSpool } => true,
+                null => tagInfo.IsEmpty,
+                _ => false
+            };
     }
 }

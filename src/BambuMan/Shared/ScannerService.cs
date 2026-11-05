@@ -969,10 +969,17 @@ namespace BambuMan
                     return;
                 }
 
-                // Writing NDEF would overwrite a TigerTag's binary data.
-                if (SpoolTagReader.TryRead(tagInfo) is { Format: SpoolTagFormat.TigerTag })
+                // Without the raw pages a TigerTag (binary, not NDEF) can't be ruled out, so never write blind.
+                if (tagInfo is not TagInfo { UserMemory: not null })
                 {
-                    toasts.Show("This is a TigerTag, it was not overwritten. Use a blank NTAG215 or NTAG216.", ToastKind.Error, true);
+                    toasts.Show("The tag couldn't be read completely, it was not written. Hold it to the phone again.", ToastKind.Error, true);
+                    return;
+                }
+
+                // Only a blank tag or an OpenSpool one is overwritten; a TigerTag or other data is kept.
+                if (!SpoolTagReader.CanOverwrite(tagInfo))
+                {
+                    toasts.Show("This tag already holds other data (e.g. a TigerTag), it was not overwritten. Use a blank NTAG215 or NTAG216.", ToastKind.Error, true);
                     return;
                 }
 

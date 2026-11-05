@@ -40,6 +40,13 @@ namespace BambuMan.Shared.Test.Tags
             return memory.ToArray();
         }
 
+        [Fact(DisplayName = "TigerTag: a TigerTag is never overwritten with an OpenSpool record")]
+        public void Write_RefusesTigerTag()
+        {
+            Assert.False(SpoolTagReader.CanOverwrite(new TagInfo(Uid, false) { UserMemory = Rosa3DRedPla() }));
+            Assert.False(SpoolTagReader.CanOverwrite(new TagInfo(Uid, true) { UserMemory = Rosa3DRedPla() }));
+        }
+
         [Fact(DisplayName = "TigerTag: the guide's Rosa3D red PLA example decodes with its ids resolved")]
         public void Parse_Rosa3DExample()
         {
