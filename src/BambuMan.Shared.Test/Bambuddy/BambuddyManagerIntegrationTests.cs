@@ -130,5 +130,54 @@ namespace BambuMan.Shared.Test.Bambuddy
                 if (createdId.HasValue) await seeder.ArchiveSpoolAsync(createdId.Value);
             }
         }
+
+        [Fact(DisplayName = "UploadSpoolAsync creates a stored spool, then updates it on a second send")]
+        public async Task UploadSpool_CreateThenUpdate_AgainstLiveServer()
+        {
+            if (!BambuddyTestConfig.TryLoad(out var url, out var key))
+            {
+                Assert.Skip("Bambuddy test credentials not available (set BAMBUDDY_TEST_URL/BAMBUDDY_TEST_KEY or provide tmp/test_bambuddy.txt).");
+                return;
+            }
+
+            var manager = new BambuddyManager(null) { ApiUrl = url, ApiKey = key, HasNetworkAccess = () => true };
+            await manager.Init();
+
+            if (manager.Status != ManagerStatusType.Ready)
+            {
+                Assert.Skip($"Bambuddy server not reachable / not ready (status: {manager.Status}).");
+                return;
+            }
+
+            var uid = Guid.NewGuid().ToString("N").ToUpperInvariant();
+            var info = JsonConvert.DeserializeObject<BambuFilamentInfo>(SampleTags.AbsWhite)!;
+            info.TrayUid = uid;
+            info.SerialNumber = uid[..8];
+
+            var spool = new LocalSpool { Info = info, Price = 25m, Location = "IntegrationTest", Weight = 900m, EmptyWeight = 250m };
+
+            int? createdId = null;
+            try
+            {
+                var created = await manager.UploadSpoolAsync(spool);
+                Assert.Equal(SpoolUploadStatus.Created, created.Status);
+
+                var stored = manager.FindSpoolByTag(uid, null);
+                Assert.NotNull(stored);
+                createdId = stored!.Id;
+                Assert.Equal(350m, stored.WeightUsed); // 250 core + 1000 label - 900 weighed
+
+                spool.Location = "IntegrationTest2";
+
+                var updated = await manager.UploadSpoolAsync(spool);
+                Assert.Equal(SpoolUploadStatus.Updated, updated.Status);
+                Assert.Equal(createdId, manager.FindSpoolByTag(uid, null)!.Id);
+                Assert.Equal("IntegrationTest2", manager.FindSpoolByTag(uid, null)!.StorageLocation);
+            }
+            finally
+            {
+                if (createdId.HasValue) await manager.ArchiveSpoolAsync(createdId.Value);
+            }
+        }
     }
 }

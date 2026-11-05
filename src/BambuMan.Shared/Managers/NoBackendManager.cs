@@ -19,6 +19,10 @@ namespace BambuMan.Shared.Managers
     /// scans, held in memory; with <see cref="StoreSpoolsLocally"/> it is the inventory kept on the device by
     /// <see cref="ILocalInventoryStore"/>, which survives a restart.
     /// </para>
+    /// <para>
+    /// The stored spools stay on the device when a server backend is selected later, and can be sent to it with
+    /// <see cref="SendSpoolsAsync"/> — besides a csv export, the only way they leave the device, and only when the user asks.
+    /// </para>
     /// </summary>
     public class NoBackendManager(ILogger<NoBackendManager>? logger, ILocalInventoryStore? localStore = null) : BaseManager(logger)
     {
@@ -290,7 +294,8 @@ namespace BambuMan.Shared.Managers
 
                 if (result.Status == SpoolUploadStatus.Failed)
                 {
-                    await Log(LogLevel.Warning, $"Spool {spool.Title} ({spool.Key}) not sent: {result.Message}");
+                    // Information, not Warning: the cause (no filament match, a rejected request) was already logged by the scan path.
+                    await Log(LogLevel.Information, $"Spool {spool.Title} ({spool.Key}) not sent: {result.Message}");
                     continue;
                 }
 
@@ -309,7 +314,7 @@ namespace BambuMan.Shared.Managers
 
             var summary = new SpoolUploadSummary(target.Backend, results, spools.Count, results.Count < spools.Count);
 
-            await Log(summary.Failed > 0 || summary.Cancelled ? LogLevel.Warning : LogLevel.Success, summary.Text);
+            await Log(summary.Failed > 0 || summary.Cancelled ? LogLevel.Information : LogLevel.Success, summary.Text);
 
             return summary;
         }

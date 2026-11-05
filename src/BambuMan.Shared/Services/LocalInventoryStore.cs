@@ -5,7 +5,8 @@ namespace BambuMan.Shared.Services
 {
     /// <summary>
     /// Persists the no-backend mode's spools to a json file on the device, for when "Store spools locally" is on.
-    /// Nothing here ever leaves the device.
+    /// Nothing here leaves the device unless the user exports it or sends stored spools to their own Spoolman / Bambuddy server
+    /// (<see cref="Managers.NoBackendManager.SendSpoolsAsync"/>).
     /// </summary>
     public interface ILocalInventoryStore
     {
