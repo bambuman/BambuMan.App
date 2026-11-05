@@ -6,4 +6,13 @@
 	<uses-permission android:name="android.permission.NFC" />
 	<uses-permission android:name="android.permission.CAMERA" />
 	<uses-permission android:name="android.permission.VIBRATE" />
+
+	<!-- Bluetooth scale (optional, asked for when the scale is turned on in settings). Android 12+: scan without location. -->
+	<uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+	<!-- Android 11 and older: the legacy Bluetooth permissions, and location, which a Bluetooth LE scan requires there. -->
+	<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+	<uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 </manifest>

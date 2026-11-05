@@ -1,8 +1,8 @@
 @inject IJSRuntime Js
 
 <form class="form-grid" @onsubmit="OnSave" @onsubmit:preventDefault>
-    <FormField Label="Weight (g)" Icon="Lucide.Weight" Error="@Model.WeightError">
-        <input type="number" inputmode="decimal" step="any" min="0" @ref="weightInput" @bind="Model.Weight" />
+    <FormField Label="Weight (g)" Icon="Lucide.Weight" Error="@Model.WeightError" Help="@WeightHelp">
+        <input type="number" inputmode="decimal" step="any" min="0" @ref="weightInput" @bind="Model.Weight" @oninput="OnWeightInputAsync" />
     </FormField>
 
     <FormField Label="Empty weight (g)" Icon="Lucide.Cylinder" Error="@Model.EmptyWeightError">
@@ -55,6 +55,12 @@
 
     [Parameter] public IEnumerable<string> Locations { get; set; } = [];
 
+    /// <summary>A note under the weight field, e.g. that the weight came from the Bluetooth scale.</summary>
+    [Parameter] public string? WeightHelp { get; set; }
+
+    /// <summary>Raised on the first keystroke in the weight field, which makes the weight the user's own.</summary>
+    [Parameter] public EventCallback OnWeightTyped { get; set; }
+
     [Parameter] public string CancelText { get; set; } = "Cancel";
 
     [Parameter] public EventCallback OnSave { get; set; }
@@ -66,4 +72,12 @@
     /// keyboard that opens next doesn't cover it.
     /// </summary>
     public ValueTask FocusWeightAsync() => Js.InvokeVoidAsync("bambuman.focusSpoolEdit", weightInput);
+
+    private Task OnWeightInputAsync()
+    {
+        if (Model.WeightTyped) return Task.CompletedTask;
+
+        Model.WeightTyped = true;
+        return OnWeightTyped.InvokeAsync();
+    }
 }

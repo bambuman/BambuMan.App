@@ -56,6 +56,10 @@ namespace BambuMan.UI.Settings
 
         [ObservableProperty] private bool locationsFetched;
 
+        [ObservableProperty] private bool scaleEnabled;
+        [ObservableProperty] private Guid? scaleDeviceId;
+        [ObservableProperty] private string? scaleDeviceName;
+
         [ObservableProperty] private string? serverUrlError;
         [ObservableProperty] private string? bambuddyApiKeyError;
         [ObservableProperty] private string? defaultPriceError;

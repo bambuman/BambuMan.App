@@ -105,7 +105,7 @@
                 </div>
             </div>
 
-            <SpoolEditForm @ref="spoolEditForm" Model="Vm.SpoolEdit" Fields="Vm.EditFields" Locations="Vm.ExistingLocations" OnSave="SaveAsync" OnCancel="Scanner.CloseSpool" />
+            <SpoolEditForm @ref="spoolEditForm" Model="Vm.SpoolEdit" Fields="Vm.EditFields" Locations="Vm.ExistingLocations" WeightHelp="@ScaleWeightHelp" OnWeightTyped="StateHasChanged" OnSave="SaveAsync" OnCancel="Scanner.CloseSpool" />
         </div>
     }
 

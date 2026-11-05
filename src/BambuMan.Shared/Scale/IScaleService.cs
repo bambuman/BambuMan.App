@@ -40,8 +40,12 @@ namespace BambuMan.Shared.Scale
         /// <summary>Asks for the Bluetooth permissions the scale needs; true when they are granted.</summary>
         Task<bool> RequestPermissionsAsync();
 
-        /// <summary>Scans for scales advertising a supported service, calling <paramref name="found"/> for each new one, until the scan times out or is cancelled.</summary>
-        Task ScanAsync(Action<ScaleDevice> found, CancellationToken cancellationToken);
+        /// <summary>
+        /// Scans for scales advertising a supported service, calling <paramref name="found"/> (on a background thread) for
+        /// each new one, until the scan times out or is cancelled. False when it couldn't scan: Bluetooth is off, the
+        /// permissions are missing, or a scan is already running.
+        /// </summary>
+        Task<bool> ScanAsync(Action<ScaleDevice> found, CancellationToken cancellationToken);
 
         /// <summary>Connects to <paramref name="deviceId"/> and keeps it connected until <see cref="StopAsync"/>.</summary>
         Task StartAsync(Guid deviceId, string? deviceName);

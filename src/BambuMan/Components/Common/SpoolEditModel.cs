@@ -17,6 +17,9 @@ namespace BambuMan.Components.Common
         [ObservableProperty] private string? emptyWeightError;
         [ObservableProperty] private string? priceError;
 
+        /// <summary>The user typed in the weight field. From then on a Bluetooth scale no longer fills it.</summary>
+        public bool WeightTyped { get; set; }
+
         public static SpoolEditModel From(SpoolFound found) => new()
         {
             Weight = found.Weight,

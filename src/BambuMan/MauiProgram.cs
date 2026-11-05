@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Resolvers;
+using BambuMan.Shared.Scale;
 using BambuMan.Shared.Services;
 using BambuMan.UI.LocalInventory;
 using BambuMan.UI.Logs;
@@ -173,6 +174,8 @@ namespace BambuMan
             services.AddSingleton<BaseManager>(sp => sp.GetRequiredService<NoBackendManager>());
             services.AddSingleton<IInventoryBackendResolver, InventoryBackendResolver>();
             services.AddSingleton<InventoryService>();
+
+            services.AddSingleton<IScaleService, BluetoothScaleService>();
         }
 
         public static void SetupSerilog(LoggerConfiguration loggerConfiguration, string? version, string? packageName)

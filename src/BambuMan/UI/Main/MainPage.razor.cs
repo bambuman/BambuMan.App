@@ -2,6 +2,7 @@ using BambuMan.Components.Common;
 using BambuMan.Interfaces;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
+using BambuMan.Shared.Scale;
 using BambuMan.UI.Settings;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,7 @@ namespace BambuMan.UI.Main
 
         [Inject] private ScannerService Scanner { get; set; } = null!;
         [Inject] private InventoryService InventoryService { get; set; } = null!;
+        [Inject] private IScaleService ScaleService { get; set; } = null!;
         [Inject] private ISoftKeyboard SoftKeyboard { get; set; } = null!;
         [Inject] private IJSRuntime Js { get; set; } = null!;
         [Inject] private NavigationManager Navigation { get; set; } = null!;
@@ -53,6 +55,27 @@ namespace BambuMan.UI.Main
             _ => "idle"
         };
 
+        /// <summary>
+        /// Under the weight field: that the weight came from the scale (with the filament that leaves on the spool), or
+        /// what keeps the scale from filling it. Nothing without a scale, or once the user typed a weight of their own.
+        /// </summary>
+        private string? ScaleWeightHelp
+        {
+            get
+            {
+                var edit = Vm.SpoolEdit;
+
+                if (ScaleService.DeviceId == null || edit.WeightTyped) return null;
+
+                if (Vm.AppliedScaleReading is { } reading && edit.Weight is { } weight)
+                    return $"From the scale{(reading.IsStable ? "" : ", settling …")} · {ScaleWeight.FilamentLeft(weight, edit.EmptyWeight):0} g of filament";
+
+                return ScaleService.State == ScaleConnectionState.Connected
+                    ? "Put the spool on the scale to fill in its weight"
+                    : $"Scale: {ScaleService.State.DisplayName()}";
+            }
+        }
+
         private (string Kind, string Text) BackendPill => Vm switch
         {
             { Backend: InventoryBackend.NoBackend } => ("primary", "On this device"),
@@ -71,6 +94,7 @@ namespace BambuMan.UI.Main
                 ObserveCollection(Vm.Logs);
                 Observe(InventoryService);
                 ObserveCollection(InventoryService.Inventory);
+                Observe(ScaleService);
 
                 Scanner.SpoolEditFocusRequested += OnSpoolEditFocusRequested;
 

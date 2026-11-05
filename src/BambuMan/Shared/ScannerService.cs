@@ -5,6 +5,7 @@ using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
 using BambuMan.Shared.Nfc;
 using BambuMan.Shared.Resolvers;
+using BambuMan.Shared.Scale;
 using BambuMan.Shared.Services;
 using BambuMan.UI.Main;
 using BambuMan.UI.Settings;
@@ -32,12 +33,13 @@ namespace BambuMan
         private readonly TagApiService tagApiService;
         private readonly IFilamentOverrideService filamentOverrides;
         private readonly ToastService toasts;
+        private readonly IScaleService scale;
 
 #if !GOOGLE_PLAY
         private bool versionChecked;
 #endif
 
-        public ScannerService(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<ScannerService> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IFilamentOverrideService filamentOverrides, ToastService toasts)
+        public ScannerService(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<ScannerService> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IFilamentOverrideService filamentOverrides, ToastService toasts, IScaleService scale)
         {
             this.viewModel = viewModel;
             this.backends = backends;
@@ -47,6 +49,7 @@ namespace BambuMan
             this.tagApiService = tagApiService;
             this.filamentOverrides = filamentOverrides;
             this.toasts = toasts;
+            this.scale = scale;
 
             this.filamentOverrides.LogAction = async void (level, message) =>
             {
@@ -85,6 +88,7 @@ namespace BambuMan
 
             viewModel.PropertyChanged += ViewModel_PropertyChanged;
             NoBackend.OnSpoolsChanged += NoBackendOnSpoolsChanged;
+            scale.ReadingReceived += ScaleOnReadingReceived;
         }
 
         /// <summary>Raised with true when a read spool should take keyboard focus, false when the edit card closes.</summary>
@@ -103,6 +107,7 @@ namespace BambuMan
         public async Task ActivateAsync()
         {
             await ApplySettingsAsync();
+            await ApplyScaleSettingsAsync();
             await InitializeBackendsAsync();
             await SetupNfcAsync();
             await RefreshFilamentOverridesAsync().ConfigureAwait(false);
@@ -142,6 +147,9 @@ namespace BambuMan
                     if (!ActiveManager.CanEditSpools) return;
 
                     viewModel.ShowSpool(found, info);
+
+                    // A spool put on the scale before its tag is read: the latest reading is its weight.
+                    FillWeightFromScale(ScaleWeight.ForSpoolRead(scale.LastReading, DateTime.UtcNow));
 
                     if (viewModel.ShowKeyboardOnSpoolRead) SpoolEditFocusRequested?.Invoke(true);
                 }
@@ -365,6 +373,55 @@ namespace BambuMan
             noBackend.StoreSpoolsLocally = storeLocally;
 
             if (!noBackend.IsInitialized || noBackend.IsStoreLoaded != storeLocally) await noBackend.Init();
+        }
+
+        #endregion
+
+        #region Scale
+
+        /// <summary>Connects the scale chosen in settings, or lets it go. Called on every scan page visit, after settings may have changed.</summary>
+        private async Task ApplyScaleSettingsAsync()
+        {
+            try
+            {
+                await SettingsPage.ApplyScaleSettingsAsync(scale);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error applying the Bluetooth scale settings");
+            }
+        }
+
+        private void ScaleOnReadingReceived(ScaleReading reading)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                try
+                {
+                    // A spool put on the scale after its tag was read, or one still settling.
+                    if (viewModel.ShowSpoolEdit) FillWeightFromScale(reading);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error in ScaleOnReadingReceived");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Puts a scale reading in the edit card's weight. Not once the user typed a weight of their own, and a live
+        /// reading never replaces a stable one (see <see cref="ScaleWeight.ShouldReplace"/>).
+        /// </summary>
+        private void FillWeightFromScale(ScaleReading? reading)
+        {
+            var edit = viewModel.SpoolEdit;
+
+            if (reading == null || edit.WeightTyped || !ScaleWeight.ShouldReplace(viewModel.AppliedScaleReading, reading)) return;
+
+            edit.Weight = ScaleWeight.Round(reading.Grams);
+
+            // Last: the scan page re-renders on it, with the new weight already in place.
+            viewModel.AppliedScaleReading = reading;
         }
 
         #endregion
