@@ -28,6 +28,9 @@ namespace BambuMan
         // Android needs BLE commands one after the other; a second one started while another runs fails with a GATT error.
         private readonly SemaphoreSlim gate = new(1, 1);
 
+        // One start or stop at a time, so two quick ones can't leave two connection loops running.
+        private readonly SemaphoreSlim lifecycle = new(1, 1);
+
         // Released to cut a reconnect wait short, when Bluetooth is turned back on.
         private readonly SemaphoreSlim wake = new(0);
 
@@ -131,18 +134,41 @@ namespace BambuMan
 
         public async Task StartAsync(Guid id, string? name)
         {
-            await StopAsync();
+            await lifecycle.WaitAsync();
 
-            Subscribe();
+            try
+            {
+                await StopRunAsync();
 
-            DeviceId = id;
-            DeviceName = name;
+                Subscribe();
 
-            run = new CancellationTokenSource();
-            runTask = RunAsync(id, run.Token);
+                DeviceId = id;
+                DeviceName = name;
+
+                run = new CancellationTokenSource();
+                runTask = RunAsync(id, run.Token);
+            }
+            finally
+            {
+                lifecycle.Release();
+            }
         }
 
         public async Task StopAsync()
+        {
+            await lifecycle.WaitAsync();
+
+            try
+            {
+                await StopRunAsync();
+            }
+            finally
+            {
+                lifecycle.Release();
+            }
+        }
+
+        private async Task StopRunAsync()
         {
             if (run != null)
             {
@@ -355,7 +381,7 @@ namespace BambuMan
 
         private void OnDeviceConnectionLost(object? sender, DeviceErrorEventArgs e)
         {
-            if (e.Device?.Id == device?.Id) connectionLost?.TrySetResult();
+            if (e.Device != null && e.Device.Id == DeviceId) connectionLost?.TrySetResult();
         }
 
         private void OnBluetoothStateChanged(object? sender, BluetoothStateChangedArgs e)
