@@ -32,12 +32,16 @@ Solution file: `src/BambuMan.sln`
 | `SpoolMan.Api.Test` | xUnit Test | Tests for SpoolMan.Api |
 
 ### Key Directories
-- `BambuMan/UI/` — Razor pages (`*.razor` + `*.razor.cs`) and ViewModels organized by feature (Main, Settings, Logs, LocalInventory, Consent). `Scan/` is the one native MAUI page (camera QR scanner), pushed modally over the web view
+- `BambuMan/UI/` — Razor pages (`*.razor` + `*.razor.cs`) and ViewModels organized by feature (Main, Settings, Logs, LocalInventory, Consent, PendingScans, WriteTag). `Main/` also holds the manual add-spool page (`AddSpoolPage`, `/add-spool`); `PendingScans/` is the offline scan queue (`/pending`); `WriteTag/` writes OpenSpool tags (`/write-tag`). `Scan/` is the one native MAUI page (camera QR scanner), pushed modally over the web view
 - `BambuMan/Components/` — Blazor shell (`Routes`, `Layout/`) and reusable components (`Common/`)
 - `BambuMan/wwwroot/` — Web view host page, `css/app.css` (all styling; colour tokens mirror `Resources/Styles/Colors.xaml`, light + dark), `js/app.js`
-- `BambuMan/Shared/` — Cross-platform services (ScannerService, LogService, InventoryService, ToastService, QrScanService, AppNavigation, AppContainer)
+- `BambuMan/Shared/` — Cross-platform services (ScannerService, LogService, InventoryService, ToastService, QrScanService, BluetoothScaleService, AppNavigation, AppContainer)
+- `BambuMan/Resources/Strings/` — UI strings: `AppResources.resx` (English) with `AppResources.et.resx` / `AppResources.de.resx`
 - `BambuMan/Platforms/` — Platform-specific implementations (Android, iOS)
-- `BambuMan.Shared/Nfc/` — NFC abstractions and utilities
+- `BambuMan.Shared/Nfc/` — NFC abstractions and utilities, incl. the OpenSpool / TigerTag parsers (`SpoolTagReader`)
+- `BambuMan.Shared/Scale/` — Bluetooth scale decoders (Weight Scale Service, BambuMan scale protocol) and `IScaleService`
+- `BambuMan.Shared/Services/` — On-device stores (`JsonFileStore<T>`, `LocalInventoryStore`, `PendingScanQueue`), `LocalSpoolCsv`, `LocalSpoolFilter` (shared by the Android and desktop stored-spools lists)
+- `BambuMan.Shared/Resources/Strings/` — `SharedResources.resx` (+ `.et` / `.de`): manager messages and spool info labels
 - `BambuMan.Shared/Models/` — Shared data models
 - `SpoolMan.Api/Api/` — Generated API endpoint classes
 - `SpoolMan.Api/Model/` — Generated API models
@@ -59,7 +63,8 @@ Solution file: `src/BambuMan.sln`
 
 ## Code Style
 - Prefer **enums over magic strings** for fixed sets of values (e.g. inventory backend selection). Persist them by name (`enum.ToString()` / `Enum.TryParse`), not as ad-hoc string literals scattered across the code.
-- **Don't strip source objects when raising events / calling handlers.** When an event carries a projected/derived model (e.g. `SpoolFound`), also pass the original source object (e.g. the scanned `BambuFilamentInfo`) alongside it — `OnSpoolFound(SpoolFound spool, BambuFilamentInfo info)`. Consumers can then read additional source fields directly instead of forcing a change across the projection record **and** every mapping site. Pass rich source objects rather than pre-extracting individual values.
+- **Don't strip source objects when raising events / calling handlers.** When an event carries a projected/derived model (e.g. `SpoolFound`), also pass the original source object (e.g. the scanned tag, an `ISpoolTag`: `BambuFilamentInfo` or `SpoolTag`) alongside it — `OnSpoolFound(SpoolFound spool, ISpoolTag tag)`. Consumers can then read additional source fields directly instead of forcing a change across the projection record **and** every mapping site. Pass rich source objects rather than pre-extracting individual values.
+- **New UI text goes into the English `.resx`** (`AppResources.resx`, or `SharedResources.resx` for text the shared library shows) **with `.et` and `.de` entries** — no string literals in Razor pages, ViewModels or toasts. Keep the English placeholders (`{0}`) in every translation (the `TranslationTests` check this); log messages stay English.
 - No curly braces for single-line if/else:
   ```csharp
   if (condition) field = "test";
