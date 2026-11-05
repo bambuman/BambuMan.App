@@ -1,0 +1,71 @@
+@page "/write-tag"
+@implements IDisposable
+
+<PageHeader Title="Write tag" Icon="Lucide.Pencil">
+    <Subtitle>Put an OpenSpool tag on a spool that has none</Subtitle>
+</PageHeader>
+
+<div class="stack">
+
+    <Banner Kind="error" Label="Error:" Icon="Lucide.CircleAlert" Message="@(ScannerService.CanWriteTags ? null : "This device can't write NFC tags.")" />
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><Blazicon Svg="Lucide.Nfc" /> OpenSpool</div>
+            @if (Scanner.LastReadTag != null)
+            {
+                <button class="btn btn-secondary btn-sm" disabled="@Scanner.IsTagWritePending" @onclick="CopyLastRead"><Blazicon Svg="Lucide.Package" /> Copy last read spool</button>
+            }
+        </div>
+
+        <form class="form-grid" @onsubmit="Write" @onsubmit:preventDefault>
+            <FormField Label="Brand" Icon="Lucide.Factory" Help="As the slicer / printer knows it, e.g. Generic, Bambu Lab, Polymaker." HasValue="!string.IsNullOrEmpty(model.Brand)" OnClear="() => model.Brand = null">
+                <input type="text" autocomplete="off" @bind="model.Brand" />
+            </FormField>
+
+            <FormField Label="Material" Icon="Lucide.Layers" Error="@model.MaterialError">
+                <input type="text" list="write-tag-materials" autocomplete="off" autocapitalize="characters" @bind="model.Material" />
+                <datalist id="write-tag-materials">
+                    @foreach (var material in WriteTagModel.CommonMaterials)
+                    {
+                        <option value="@material"></option>
+                    }
+                </datalist>
+            </FormField>
+
+            <FormField Label="Colour" Icon="Lucide.Palette">
+                <input type="color" @bind="model.Color" />
+            </FormField>
+
+            <FormField Label="Min nozzle temperature (°C)" Icon="Lucide.Thermometer" Error="@model.TemperatureError">
+                <input type="number" inputmode="numeric" step="1" min="0" max="500" @bind="model.MinTemperature" />
+            </FormField>
+
+            <FormField Label="Max nozzle temperature (°C)" Icon="Lucide.Thermometer">
+                <input type="number" inputmode="numeric" step="1" min="0" max="500" @bind="model.MaxTemperature" />
+            </FormField>
+
+            <div class="form-actions span-2">
+                @if (Scanner.IsTagWritePending)
+                {
+                    <button type="button" class="btn btn-tertiary" @onclick="Scanner.CancelTagWrite">Cancel</button>
+                }
+                <button type="submit" class="btn btn-primary" disabled="@(Scanner.IsTagWritePending || !ScannerService.CanWriteTags)"><Blazicon Svg="Lucide.Nfc" /> Write tag</button>
+            </div>
+        </form>
+    </div>
+
+    @if (Scanner.IsTagWritePending)
+    {
+        <div class="card connecting">
+            <div class="spinner"></div>
+            Hold a blank NTAG215 or NTAG216 tag to the phone ...
+        </div>
+    }
+
+    <div class="small subtle">
+        The tag gets one OpenSpool record (protocol 1.0: type, colour, brand, nozzle temperatures). Anything already on the
+        tag is replaced. Reading spools is paused until the tag is written or you cancel.
+    </div>
+
+</div>

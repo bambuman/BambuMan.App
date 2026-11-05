@@ -17,6 +17,8 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
 ## Features
 
  - **NFC tag reading** on Android (built-in NFC) and Windows desktop (PCSC compatible reader)
+ - **Third-party spool tags** — besides Bambu Lab tags, reads [OpenSpool](https://github.com/spuder/OpenSpool) (NTAG215/216, NDEF JSON) and [TigerTag](https://github.com/TigerTag-Project/TigerTag-RFID-Guide) (NTAG21x) tags on Android and Windows, matches them to known filaments by brand, material and colour, and inventories them like any other spool (the tag UID identifies the spool)
+ - **Write OpenSpool tags** (Android) — put an OpenSpool tag on a spool that has none, from a filament entered by hand or copied from the last read spool
  - **Two inventory backends** — choose [bambuddy](https://bambuddy.cool) or [Spoolman](https://github.com/Donkie/Spoolman) in the settings
  - **No backend mode** — works offline, no inventory server needed
  - **Stored spools** — keep read spools on the device, search and filter them by name, tag or location, edit or delete them
@@ -117,6 +119,13 @@ To participate, enable **Research Data Contribution** in the app settings. Uploa
 	- PETG (HF, Transparent, Translucent), 
 	- ABS, ABS-GF, ASA, ASA-CF, PA6-GF, PA6-CF, PAHT-CF, TPU, PC, PVA, Support filaments, and multi-color spools. 
  - Some niche variants may still need manual matching.
+ - Third-party tags (OpenSpool, TigerTag):
+	- are read on Android and, with a PC/SC reader that reports NTAG as MIFARE Ultralight (e.g. ACR122U), on Windows. iOS is untested, and can't read TigerTag (no raw page access).
+	- carry no spool id, so each tag is its own spool. A spool with a tag on both sides counts twice unless only one side is scanned.
+	- only match a known filament when the catalog has that brand, material and exact colour. The embedded catalog has Bambu Lab filaments only; Spoolman also matches against its full external filament database. Anything else goes the unknown filament path (Spoolman needs "unknown filament" enabled; bambuddy and no backend mode add the spool with the tag data).
+	- are never uploaded to the tag library, whatever the Research Data Contribution setting.
+	- TigerTag signatures (TigerTag+ Certified) are not verified, and resin / non-filament TigerTags are ignored.
+ - Writing OpenSpool tags needs an NDEF-formatted NTAG215/216 (blank tags usually are). It replaces whatever the tag holds, and refuses Bambu Lab tags and TigerTags.
 
 ## Tested with
 

@@ -22,6 +22,14 @@
                 </NavLink>
             }
 
+            @* Writing needs an NFC chip that can write NDEF; the page itself also says so. *@
+            @if (ScannerService.CanWriteTags)
+            {
+                <NavLink class="nav-item" href="write-tag">
+                    <Blazicon Svg="Lucide.Pencil" /> Write tag
+                </NavLink>
+            }
+
             <NavLink class="nav-item" href="settings">
                 <Blazicon Svg="Lucide.Settings" /> Settings
             </NavLink>

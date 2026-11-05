@@ -957,6 +957,12 @@ body.editing .content {
     color-scheme: light dark;
 }
 
+/* The write-tag colour picker: keep the swatch off the field border. */
+.input-wrap input[type="color"] {
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
 .input-clear {
     display: inline-flex;
     align-items: center;

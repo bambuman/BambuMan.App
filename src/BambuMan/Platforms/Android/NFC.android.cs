@@ -603,7 +603,8 @@ namespace BambuMan
 
                 return memory.Take(TigerTag.DataLength).ToArray();
             }
-            catch (Java.IO.IOException e) // TagLostException is one too
+            // The tag moved away (TagLostException is an IOException) or was re-presented meanwhile ("tag is out of date").
+            catch (Exception e) when (e is Java.IO.IOException or Java.Lang.SecurityException)
             {
                 Debug.WriteLine($"NTAG user memory read failed: {e.Message}");
                 return null;

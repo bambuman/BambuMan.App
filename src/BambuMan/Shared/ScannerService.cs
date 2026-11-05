@@ -601,6 +601,8 @@ namespace BambuMan
         /// </summary>
         private async Task InventorySpoolAsync(ISpoolTag tag)
         {
+            LastReadTag = tag;
+
             var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
             var defaultPrice = decimal.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? (decimal?)result : null;
             string? defaultLotNr = Preferences.Default.Get(SettingsPage.KeyDefaultLotNr, string.Empty);
@@ -890,6 +892,111 @@ namespace BambuMan
                 await viewModel.ShowErrorMessage("Import failed. See logs.");
                 toasts.Show("Import failed. See logs.", ToastKind.Error, true);
                 logger.LogError(ex, "Error in ImportCsvAsync");
+            }
+        }
+
+        #endregion
+
+        #region Write OpenSpool tag
+
+        // The spool the next tag held to the phone is written as; null while not writing.
+        private ISpoolTag? pendingTagWrite;
+
+        /// <summary>The spool tag read last (any format), which the write page can copy onto a new tag.</summary>
+        public ISpoolTag? LastReadTag { get; private set; }
+
+        /// <summary>Raised when writing starts, completes, fails or is cancelled.</summary>
+        public event Action? TagWriteChanged;
+
+        /// <summary>True while NFC waits for a tag to write <see cref="StartOpenSpoolWrite"/>'s spool to.</summary>
+        public bool IsTagWritePending => pendingTagWrite != null;
+
+        /// <summary>Whether this device can write NFC tags at all.</summary>
+        public static bool CanWriteTags => CrossNfc.IsSupported && CrossNfc.Current.IsWritingTagSupported;
+
+        /// <summary>
+        /// Write <paramref name="spool"/> as an OpenSpool record to the next tag held to the phone. Reading spools is
+        /// paused until then: while publishing, the NFC layer hands tags to <see cref="Current_OnTagDiscovered"/>.
+        /// </summary>
+        public void StartOpenSpoolWrite(ISpoolTag spool)
+        {
+            if (!CanWriteTags)
+            {
+                toasts.Show("This device can't write NFC tags.", ToastKind.Error, true);
+                return;
+            }
+
+            pendingTagWrite = spool;
+
+            CrossNfc.Current.OnTagDiscovered -= Current_OnTagDiscovered;
+            CrossNfc.Current.OnTagDiscovered += Current_OnTagDiscovered;
+            CrossNfc.Current.StartPublishing();
+
+            TagWriteChanged?.Invoke();
+        }
+
+        /// <summary>Stop waiting for a tag to write and go back to reading spools.</summary>
+        public void CancelTagWrite() => EndTagWrite();
+
+        private void EndTagWrite()
+        {
+            pendingTagWrite = null;
+
+            if (CrossNfc.IsSupported)
+            {
+                CrossNfc.Current.OnTagDiscovered -= Current_OnTagDiscovered;
+                CrossNfc.Current.StopPublishing();
+            }
+
+            TagWriteChanged?.Invoke();
+        }
+
+        /// <summary>A tag held to the phone while writing: put the pending spool on it as an OpenSpool NDEF record.</summary>
+        private async void Current_OnTagDiscovered(ITagInfo tagInfo, bool format)
+        {
+            try
+            {
+                var spool = pendingTagWrite;
+                if (spool == null) return;
+
+                // A Bambu Lab (MIFARE Classic) tag has no NDEF memory to write to.
+                if (!tagInfo.IsSupported)
+                {
+                    toasts.Show("This tag can't hold an OpenSpool record. Use a blank NTAG215 or NTAG216.", ToastKind.Error, true);
+                    return;
+                }
+
+                // Writing NDEF would overwrite a TigerTag's binary data.
+                if (SpoolTagReader.TryRead(tagInfo) is { Format: SpoolTagFormat.TigerTag })
+                {
+                    toasts.Show("This is a TigerTag, it was not overwritten. Use a blank NTAG215 or NTAG216.", ToastKind.Error, true);
+                    return;
+                }
+
+                if (!tagInfo.IsWritable)
+                {
+                    toasts.Show("This tag is read-only.", ToastKind.Error, true);
+                    return;
+                }
+
+                tagInfo.Records = [OpenSpool.CreateRecord(spool)];
+
+                // Throws (and stops publishing) when the write fails, e.g. the tag was moved away or is too small.
+                CrossNfc.Current.PublishMessage(tagInfo);
+
+                EndTagWrite();
+
+                var name = string.Join(" ", new[] { spool.Brand, spool.DetailedFilamentType }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+                await viewModel.AddLog(LogLevel.Success, $"OpenSpool tag {NfcUtils.ByteArrayToHexString(tagInfo.Identifier)} written: {OpenSpool.CreateJson(spool)}");
+                toasts.Show($"OpenSpool tag written: {name}", ToastKind.Success, true);
+            }
+            catch (Exception e)
+            {
+                EndTagWrite();
+
+                logger.LogWarning(e, "Error writing OpenSpool tag");
+                toasts.Show($"Writing the tag failed: {e.Message}", ToastKind.Error, true);
             }
         }
 

@@ -1,7 +1,9 @@
 ﻿// ReSharper disable LocalizableElement
 
 using BambuMan.Shared;
+using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
+using BambuMan.Shared.Nfc;
 using Newtonsoft.Json;
 using PCSC;
 using PCSC.Exceptions;
@@ -154,6 +156,12 @@ public class NfcReader
 
             var atr = BitConverter.ToString(args.Atr);
 
+            if (IsUltralight(args.Atr))
+            {
+                ReadNtag(reader);
+                return;
+            }
+
             if (atr != "3B-8F-80-01-80-4F-0C-A0-00-00-03-06-03-00-01-00-00-00-00-6A" && atr != "3B-8B-80-01-00-12-23-3F-53-65-49-44-0F-90-00-A0")
             {
                 OnLogMessage?.Invoke(LogLevel.Warning, $"Non mifare nfc! ATR: {atr} ");
@@ -261,6 +269,65 @@ public class NfcReader
             OnLogMessage?.Invoke(LogLevel.Error, "Error getting pcsc card information: " + e);
         }
     }
+
+    #region NTAG (OpenSpool, TigerTag)
+
+    /// <summary>NTAG pages 0x04 and up; an NTAG216 has 222 user pages, read 4 at a time.</summary>
+    private const int MaxNtagUserBytes = 888;
+
+    /// <summary>
+    /// A PC/SC part 3 ATR naming a MIFARE Ultralight family card (card name bytes 00 03), which is how readers such as
+    /// the ACR122U report NTAG21x.
+    /// </summary>
+    private static bool IsUltralight(byte[] atr) => atr is [0x3B, _, 0x80, 0x01, 0x80, 0x4F, ..] && atr.Length >= 15 && atr[13] == 0x00 && atr[14] == 0x03;
+
+    /// <summary>
+    /// Read an NTAG's user memory and hand a recognised spool tag (OpenSpool, TigerTag) to <see cref="OnSpoolFound"/>.
+    /// Reads 16 bytes (4 pages) per command until the NDEF message, or TigerTag's 80 bytes, are covered.
+    /// </summary>
+    private void ReadNtag(ICardReader reader)
+    {
+        using (reader.Transaction(SCardReaderDisposition.Leave))
+        {
+            var uidData = SendCmd("Get card UID:", reader, [0xff, 0xCA, 0x00, 0x00, 0x00]);
+
+            if (uidData == null)
+            {
+                OnLogMessage?.Invoke(LogLevel.Error, "Can't get UID");
+                return;
+            }
+
+            var memory = new List<byte>();
+
+            while (memory.Count < MaxNtagUserBytes)
+            {
+                var page = TigerTag.FirstPage + memory.Count / 4;
+                var data = SendCmd("Read Binary: ", reader, [0xFF, 0xB0, 0x00, (byte)page, 0x10]);
+
+                // Past the last page the tag answers with an error and no data.
+                if (data is not { Length: 16 }) break;
+
+                memory.AddRange(data);
+
+                var bytes = memory.ToArray();
+
+                if (TigerTag.IsTigerTag(bytes) && bytes.Length >= TigerTag.DataLength) break;
+                if (NdefTlv.FindMessage(bytes) is { } message && message.Offset + message.Length <= bytes.Length) break;
+            }
+
+            var userMemory = memory.ToArray();
+            var tagInfo = new TagInfo(uidData) { Records = NdefTlv.ParseRecords(userMemory), UserMemory = userMemory };
+
+            if (SpoolTagReader.TryRead(tagInfo) is { } spoolTag)
+            {
+                OnLogMessage?.Invoke(LogLevel.Information, $"{spoolTag.Format.DisplayName()} tag with UID: {spoolTag.SerialNumber}");
+                OnSpoolFound?.Invoke(spoolTag);
+            }
+            else OnLogMessage?.Invoke(LogLevel.Warning, $"NTAG {tagInfo.SerialNumber} holds no OpenSpool or TigerTag data");
+        }
+    }
+
+    #endregion
 
     private byte[]? SendCmd(string info, ICardReader reader, byte[] command)
     {
