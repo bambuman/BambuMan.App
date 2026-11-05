@@ -31,16 +31,30 @@ namespace BambuMan.Shared.Services
         int CountFor(InventoryBackend backend);
 
         /// <summary>
-        /// Read the queue from the device. Done once; later calls return straight away. Throws when the file exists but
-        /// can't be read, and leaves the queue unloaded, so a damaged file is never saved over.
+        /// Whether <see cref="SendAsync"/> has something to do for <paramref name="manager"/> right now: it is ready and
+        /// reachable, nothing is being sent, and scans not rejected before wait for its backend. Checked on every status
+        /// change, so a reconnect sends the queue.
+        /// </summary>
+        bool HasScansToSend(BaseManager manager);
+
+        /// <summary>
+        /// Read the queue from the device. Done once; later calls return straight away. A file that can't be read is
+        /// moved aside (kept, never saved over) and the queue starts empty; that throws an <see cref="InvalidDataException"/>
+        /// naming the kept file, so the caller can report it.
         /// </summary>
         Task LoadAsync();
 
         /// <summary>
-        /// Queue a scan. A tag already waiting for the same backend is refreshed in place (keeping its turn) rather than
-        /// queued twice. Returns the queued entry.
+        /// Queue a scan. A tag already waiting for the same backend is replaced by the newer read (keeping its turn)
+        /// rather than queued twice. Returns the queued entry.
         /// </summary>
         Task<PendingScan> EnqueueAsync(PendingScan scan);
+
+        /// <summary>
+        /// Send a scan just read the way <see cref="BaseManager.SendScanAsync"/> does, and queue it when the backend
+        /// can't be reached. The result is the send's: <see cref="ScanSendStatus.Unreachable"/> means it was queued.
+        /// </summary>
+        Task<ScanSendResult> SendOrQueueAsync(BaseManager manager, PendingScan scan);
 
         Task RemoveAsync(Guid id);
 
@@ -69,7 +83,7 @@ namespace BambuMan.Shared.Services
         // Every change and the save that follows it run under this, so the file is always written in change order.
         private readonly SemaphoreSlim gate = new(1, 1);
 
-        // Replaced, never mutated, so Items can hand it out without a lock.
+        // The list is replaced, never changed in place, so Items can hand it out without a lock.
         private List<PendingScan>? items;
 
         private int sending;
@@ -88,15 +102,35 @@ namespace BambuMan.Shared.Services
 
         public int CountFor(InventoryBackend backend) => Items.Count(x => x.Backend == backend);
 
+        public bool HasScansToSend(BaseManager manager) =>
+            manager is { Status: ManagerStatusType.Ready, CanSendScans: true } && !IsSending && Items.Any(x => x.Backend == manager.Backend && !x.IsRejected);
+
         public async Task LoadAsync()
         {
             if (items != null) return;
+
+            string? keptAs = null;
+            Exception? error = null;
 
             await gate.WaitAsync();
 
             try
             {
-                items ??= (await file.ReadAsync())?.Scans ?? [];
+                if (items == null)
+                {
+                    try
+                    {
+                        items = (await file.ReadAsync())?.Scans ?? [];
+                    }
+                    catch (Exception e) when (e is Newtonsoft.Json.JsonException or InvalidDataException)
+                    {
+                        // Kept for a look by hand rather than lost; the queue must keep working for the next scan.
+                        keptAs = file.FilePath.Replace(".json", $".damaged-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+                        File.Move(file.FilePath, keptAs);
+                        items = [];
+                        error = e;
+                    }
+                }
             }
             finally
             {
@@ -104,6 +138,8 @@ namespace BambuMan.Shared.Services
             }
 
             OnChanged?.Invoke();
+
+            if (error != null) throw new InvalidDataException($"The queued scans could not be read and were kept as {Path.GetFileName(keptAs)}", error);
         }
 
         public Task<PendingScan> EnqueueAsync(PendingScan scan) =>
@@ -112,22 +148,25 @@ namespace BambuMan.Shared.Services
                 var key = scan.Key;
                 var existing = key == null ? null : list.FirstOrDefault(x => x.Backend == scan.Backend && x.Key == key);
 
-                if (existing == null)
-                {
-                    scan.QueuedAt ??= DateTime.Now;
-                    list.Add(scan);
-                    return scan;
-                }
+                // The newest read and defaults win; the turn in the queue stays. Replaced rather than updated, so a send
+                // of the older entry that is in flight right now removes only that one, and the newer read still goes.
+                scan.QueuedAt = existing?.QueuedAt ?? scan.QueuedAt ?? DateTime.Now;
+                scan.LastError = null;
 
-                // The newest read and defaults win; the turn in the queue stays.
-                existing.Info = scan.Info;
-                existing.BuyDate = scan.BuyDate;
-                existing.Price = scan.Price;
-                existing.LotNr = scan.LotNr;
-                existing.Location = scan.Location;
-                existing.LastError = null;
-                return existing;
+                if (existing == null) list.Add(scan);
+                else list[list.IndexOf(existing)] = scan;
+
+                return scan;
             });
+
+        public async Task<ScanSendResult> SendOrQueueAsync(BaseManager manager, PendingScan scan)
+        {
+            var result = await manager.SendScanAsync(scan);
+
+            if (result.Status == ScanSendStatus.Unreachable) await EnqueueAsync(scan);
+
+            return result;
+        }
 
         public Task RemoveAsync(Guid id) => ChangeAsync(list => list.RemoveAll(x => x.Id == id));
 

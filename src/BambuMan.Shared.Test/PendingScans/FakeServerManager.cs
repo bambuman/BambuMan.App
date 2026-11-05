@@ -17,6 +17,12 @@ namespace BambuMan.Shared.Test.PendingScans
         /// <summary>Whether the server answers — both the health check and the inventory calls.</summary>
         public bool Reachable { get; set; } = true;
 
+        /// <summary>
+        /// False for a server that answers, but only with errors — a reverse proxy in front of a stopped server: the
+        /// health check fails and inventory calls get a 502.
+        /// </summary>
+        public bool ServerUp { get; set; } = true;
+
         /// <summary>Tray uids the server refuses, like a tag without a filament match.</summary>
         public HashSet<string> RejectedTrayUids { get; } = [];
 
@@ -43,12 +49,13 @@ namespace BambuMan.Shared.Test.PendingScans
         public void Reconnect()
         {
             Reachable = true;
+            ServerUp = true;
             IsHealth = true;
         }
 
         protected override IHost CreateApiHost(string normalizedApiUrl) => Host.CreateDefaultBuilder([]).Build();
 
-        protected override Task<bool> CheckHealthAsync() => Task.FromResult(IsHealth = Reachable);
+        protected override Task<bool> CheckHealthAsync() => Task.FromResult(IsHealth = Reachable && ServerUp);
 
         protected override Task<bool> LoadInitialDataAsync() => Task.FromResult(true);
 
@@ -63,6 +70,12 @@ namespace BambuMan.Shared.Test.PendingScans
             }
 
             Sent.Add(new SentScan(info, buyDate, price, lotNr, location));
+
+            if (!ServerUp)
+            {
+                await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, "Can't add spool. Api response: 502 Bad Gateway");
+                return false;
+            }
 
             if (info.TrayUid != null && RejectedTrayUids.Contains(info.TrayUid))
             {

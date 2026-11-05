@@ -95,8 +95,8 @@ namespace BambuMan.Shared.Test.PendingScans
             Assert.DoesNotContain("Keys", await File.ReadAllTextAsync(FilePath));
         }
 
-        [Fact(DisplayName = "A tag scanned again while queued is refreshed in place, not queued twice")]
-        public async Task Enqueue_SameTagRefreshesInPlace()
+        [Fact(DisplayName = "A tag scanned again while queued replaces the older read, keeping its turn, not queued twice")]
+        public async Task Enqueue_SameTagReplacesInPlace()
         {
             var queue = Queue();
 
@@ -108,7 +108,8 @@ namespace BambuMan.Shared.Test.PendingScans
             otherSide.Info.SerialNumber = "11223344";
             var again = await queue.EnqueueAsync(otherSide);
 
-            Assert.Same(first, again);
+            Assert.Same(otherSide, again);
+            Assert.Equal(first.QueuedAt, again.QueuedAt);
             Assert.Equal([AbsBlackTray, AbsWhiteTray], queue.Items.Select(x => x.Key));
             Assert.Equal("Shelf B", queue.Items[0].Location);
             Assert.Equal("11223344", queue.Items[0].Info.SerialNumber);
@@ -128,19 +129,26 @@ namespace BambuMan.Shared.Test.PendingScans
             Assert.Equal(0, queue.CountFor(InventoryBackend.NoBackend));
         }
 
-        [Fact(DisplayName = "A damaged queue file throws and is never saved over")]
-        public async Task Load_DamagedFileIsNotOverwritten()
+        [Fact(DisplayName = "A damaged queue file is reported and kept aside, never saved over, and queueing goes on")]
+        public async Task Load_DamagedFileIsKeptAside()
         {
             Directory.CreateDirectory(directory);
             await File.WriteAllTextAsync(FilePath, "{ not json");
 
             var queue = Queue();
 
-            await Assert.ThrowsAnyAsync<JsonException>(queue.LoadAsync);
-            await Assert.ThrowsAnyAsync<JsonException>(() => queue.EnqueueAsync(Scan(SampleTags.AbsBlack)));
+            var error = await Assert.ThrowsAsync<InvalidDataException>(queue.LoadAsync);
+            Assert.IsAssignableFrom<JsonException>(error.InnerException);
 
-            Assert.Empty(queue.Items);
-            Assert.Equal("{ not json", await File.ReadAllTextAsync(FilePath));
+            var kept = Assert.Single(Directory.GetFiles(directory, "pending-scans.damaged-*.json"));
+            Assert.Contains(Path.GetFileName(kept), error.Message);
+            Assert.Equal("{ not json", await File.ReadAllTextAsync(kept));
+
+            await queue.EnqueueAsync(Scan(SampleTags.AbsBlack));
+
+            var restarted = Queue();
+            await restarted.LoadAsync();
+            Assert.Equal(AbsBlackTray, Assert.Single(restarted.Items).Key);
         }
 
         [Fact(DisplayName = "Discarding removes one scan, every scan of one backend, or all")]
@@ -370,6 +378,105 @@ namespace BambuMan.Shared.Test.PendingScans
             Assert.Equal(new PendingScanSendResult(1, 0, 0, false), await first);
             Assert.False(queue.IsSending);
             Assert.Single(manager.Sent);
+        }
+
+        [Fact(DisplayName = "A tag read again while its older read is being sent stays queued, so the newer read is sent too")]
+        public async Task Enqueue_WhileSendingTheSameTag()
+        {
+            var manager = await Manager();
+            var queue = Queue();
+            await queue.EnqueueAsync(Scan(SampleTags.AbsBlack, location: "Shelf A"));
+
+            manager.Gate = new TaskCompletionSource();
+            var sending = queue.SendAsync(manager);
+
+            await queue.EnqueueAsync(Scan(SampleTags.AbsBlack, location: "Shelf B"));
+
+            manager.Gate.SetResult();
+            await sending;
+
+            var newer = Assert.Single(queue.Items);
+            Assert.Equal("Shelf B", newer.Location);
+            Assert.Equal("Shelf A", Assert.Single(manager.Sent).Location);
+        }
+
+        [Fact(DisplayName = "A server failing behind a reverse proxy counts as unreachable, not as a rejection")]
+        public async Task Send_ServerErrorWithFailingHealthIsUnreachable()
+        {
+            var manager = await Manager();
+            var queue = Queue();
+            await queue.EnqueueAsync(Scan(SampleTags.AbsBlack));
+
+            manager.ServerUp = false;
+
+            Assert.Equal(new PendingScanSendResult(0, 0, 1, true), await queue.SendAsync(manager));
+            Assert.False(Assert.Single(queue.Items).IsRejected);
+            Assert.Equal(ManagerStatusType.CantConnectToApi, manager.Status);
+            Assert.False(manager.CanSendScans);
+        }
+
+        [Fact(DisplayName = "A rejected queued scan leaves the backend status as it was")]
+        public async Task Send_RejectedQueuedScanKeepsStatus()
+        {
+            var manager = await Manager();
+            manager.RejectedTrayUids.Add(AbsBlackTray);
+
+            var queue = Queue();
+            await queue.EnqueueAsync(Scan(SampleTags.AbsBlack));
+            await queue.SendAsync(manager);
+
+            Assert.Equal(ManagerStatusType.Ready, manager.Status);
+
+            // A live scan's rejection still shows, as before.
+            await manager.SendScanAsync(Scan(SampleTags.AbsBlack));
+            Assert.Equal(ManagerStatusType.Error, manager.Status);
+        }
+
+        [Fact(DisplayName = "A reconnect has something to send only while unrejected scans wait for that backend")]
+        public async Task HasScansToSend()
+        {
+            var manager = await Manager();
+            manager.RejectedTrayUids.Add(AbsWhiteTray);
+
+            var queue = Queue();
+            Assert.False(queue.HasScansToSend(manager));
+
+            await queue.EnqueueAsync(Scan(SampleTags.PlaWood, InventoryBackend.Bambuddy));
+            Assert.False(queue.HasScansToSend(manager));
+
+            await queue.EnqueueAsync(Scan(SampleTags.AbsWhite));
+            Assert.True(queue.HasScansToSend(manager));
+
+            manager.Reachable = false;
+            manager.IsHealth = false;
+            Assert.False(queue.HasScansToSend(manager));
+
+            manager.Reconnect();
+            await queue.SendAsync(manager);
+
+            // Only the rejected one is left.
+            Assert.False(queue.HasScansToSend(manager));
+        }
+
+        [Fact(DisplayName = "A scan just read is queued only when the backend can't be reached")]
+        public async Task SendOrQueue()
+        {
+            var manager = await Manager();
+            manager.RejectedTrayUids.Add(AbsWhiteTray);
+
+            var queue = Queue();
+
+            Assert.Equal(ScanSendStatus.Inventoried, (await queue.SendOrQueueAsync(manager, Scan(SampleTags.AbsBlack))).Status);
+            Assert.Equal(ScanSendStatus.Rejected, (await queue.SendOrQueueAsync(manager, Scan(SampleTags.AbsWhite))).Status);
+            Assert.Empty(queue.Items);
+
+            manager.Reachable = false;
+
+            Assert.Equal(ScanSendStatus.Unreachable, (await queue.SendOrQueueAsync(manager, Scan(SampleTags.PlaWood))).Status);
+
+            var queued = Assert.Single(queue.Items);
+            Assert.Equal(PlaWoodTray, queued.Key);
+            Assert.True(queued.IsQueued);
         }
 
         #endregion

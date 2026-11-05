@@ -285,8 +285,7 @@ public partial class MainForm : Form
         // Connected (again): send what was queued while the backend couldn't be reached.
         var manager = ActiveManager;
 
-        if (manager is { Status: ManagerStatusType.Ready, CanSendScans: true } && pendingScans is { IsSending: false } && pendingScans.CountFor(manager.Backend) > 0)
-            _ = SendQueuedScansAsync(manager, retryRejected: false);
+        if (manager != null && pendingScans?.HasScansToSend(manager) == true) _ = SendQueuedScansAsync(manager, retryRejected: false);
     }
 
     private void ManagerOnShowMessage(bool isError, string message)
@@ -675,19 +674,17 @@ public partial class MainForm : Form
     private async Task InventorySpoolAsync(BaseManager manager, BambuFilamentInfo info)
     {
         var scan = new PendingScan { Backend = manager.Backend, Info = info, BuyDate = dtpBuyDate.Value, Price = nudPrice.Value, LotNr = txtLotNr.Text, Location = txtLocation.Text };
-        var result = await manager.SendScanAsync(scan);
 
-        if (result.Status != ScanSendStatus.Unreachable || pendingScans == null) return;
+        if (pendingScans == null)
+        {
+            await manager.SendScanAsync(scan);
+            return;
+        }
 
-        try
-        {
-            await pendingScans.EnqueueAsync(scan);
-            AppendText(LogLevel.Warning, $"{manager.Backend.DisplayName()} can't be reached. The spool '{info.TrayUid}' is queued and will be sent when it's back.");
-        }
-        catch (Exception ex)
-        {
-            AppendText(LogLevel.Error, $"Could not queue the scan: {ex.Message}");
-        }
+        var result = await pendingScans.SendOrQueueAsync(manager, scan);
+
+        if (result.Status == ScanSendStatus.Unreachable)
+            AppendText(LogLevel.Warning, $"{manager.Backend.DisplayName()} {(manager.IsHealth ? "isn't ready yet" : "can't be reached")}. The spool '{info.TrayUid}' is queued and will be sent when it's back.");
     }
 
     private async Task SendQueuedScansAsync(BaseManager manager, bool retryRejected)

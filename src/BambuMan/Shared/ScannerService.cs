@@ -227,8 +227,7 @@ namespace BambuMan
                 await viewModel.Validate(manager);
 
                 // Connected (again): send what was queued while the backend couldn't be reached.
-                if (manager.Status == ManagerStatusType.Ready && manager.CanSendScans && !pendingScans.IsSending && pendingScans.CountFor(manager.Backend) > 0)
-                    _ = SendQueuedScansAsync(manual: false, x => pendingScans.SendAsync(x));
+                if (pendingScans.HasScansToSend(manager)) _ = SendQueuedScansAsync(manual: false, x => pendingScans.SendAsync(x));
             }
             catch (Exception e)
             {
@@ -630,9 +629,9 @@ namespace BambuMan
             SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
 
             var scan = new PendingScan { Backend = active.Backend, Info = info, BuyDate = buyDate, Price = defaultPrice, LotNr = defaultLotNr, Location = defaultLocation };
-            var result = await active.SendScanAsync(scan);
+            var result = await pendingScans.SendOrQueueAsync(active, scan);
 
-            if (result.Status == ScanSendStatus.Unreachable) await QueueScanAsync(scan);
+            if (result.Status == ScanSendStatus.Unreachable) await ShowScanQueuedAsync(active);
 
             if (viewModel.FullTagScanAndUpload)
             {
@@ -676,8 +675,11 @@ namespace BambuMan
 
         #region Queued scans
 
-        /// <summary>True while the active backend is sending a scan from the queue rather than one just read.</summary>
-        private bool IsSendingQueuedScan => ActiveManager.SendingScan?.IsQueued == true;
+        /// <summary>
+        /// True while a backend is sending a scan from the queue rather than one just read. Any backend, not just the
+        /// active one: the selection can change while a send to the previous one is still running.
+        /// </summary>
+        private bool IsSendingQueuedScan => backends.All.Any(x => x.SendingScan?.IsQueued == true);
 
         /// <summary>Reads the queued scans from the device (once). A damaged file is reported and left alone, never saved over.</summary>
         public async Task LoadPendingScansAsync()
@@ -695,24 +697,18 @@ namespace BambuMan
             UpdatePendingScans();
         }
 
-        /// <summary>Keeps a scan the backend couldn't be reached for, to send once it's back.</summary>
-        private async Task QueueScanAsync(PendingScan scan)
+        /// <summary>Tells the user the spool just read was queued, not lost.</summary>
+        private async Task ShowScanQueuedAsync(BaseManager manager)
         {
-            try
-            {
-                await pendingScans.EnqueueAsync(scan);
+            var name = manager.Backend.DisplayName();
 
-                var message = $"{scan.Backend.DisplayName()} can't be reached. The spool is queued and will be sent when it's back.";
+            // A healthy server whose setup hasn't finished (still connecting, or it failed — see logs) isn't "unreachable".
+            var message = manager.IsHealth
+                ? $"{name} isn't ready yet. The spool is queued and will be sent once it is."
+                : $"{name} can't be reached. The spool is queued and will be sent when it's back.";
 
-                await viewModel.ShowInfoMessage(message);
-                toasts.Show(message, ToastKind.Info, true);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Error queuing a scan");
-                await viewModel.ShowErrorMessage("Could not queue the scan. See logs.");
-                toasts.Show("Could not queue the scan. See logs.", ToastKind.Error, true);
-            }
+            await viewModel.ShowInfoMessage(message);
+            toasts.Show(message, ToastKind.Info, true);
         }
 
         /// <summary>Sends every scan queued for the selected backend, the rejected ones too.</summary>

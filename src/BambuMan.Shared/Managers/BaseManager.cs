@@ -316,9 +316,11 @@ namespace BambuMan.Shared.Managers
         /// <summary>
         /// Send a scan through <see cref="InventorySpool"/> — the path every live and queued scan takes — and tell an
         /// unreachable backend apart from a scan it rejected: a spool surfaced via <see cref="OnSpoolFound"/> means it
-        /// was inventoried, a network error during the call means the backend couldn't be reached (and is then marked
-        /// unreachable, so the health check reports when it's back), anything else is a rejection. Scans are sent one
-        /// at a time.
+        /// was inventoried; a network error during the call, or a failure after which the health check fails too
+        /// (e.g. a reverse proxy answering 502 for a stopped server), means the backend couldn't be reached, and it is
+        /// marked unreachable so the health check reports when it's back; anything else is a rejection. A rejected
+        /// queued scan leaves the backend status as it was, so it doesn't read as a problem with the spool in hand.
+        /// Scans are sent one at a time.
         /// </summary>
         public async Task<ScanSendResult> SendScanAsync(PendingScan scan)
         {
@@ -334,12 +336,18 @@ namespace BambuMan.Shared.Managers
 
                 var found = spoolsFound;
                 var errors = networkErrors;
+                var status = Status;
 
                 await InventorySpool(scan.Info, scan.BuyDate, scan.Price, scan.LotNr, scan.Location);
 
                 if (spoolsFound != found) return new ScanSendResult(ScanSendStatus.Inventoried);
 
-                if (networkErrors == errors) return new ScanSendResult(ScanSendStatus.Rejected, sendError ?? "Not inventoried, see logs");
+                if (networkErrors == errors && await IsStillHealthyAsync())
+                {
+                    if (scan.IsQueued && Status != status) await SetStatus(status);
+
+                    return new ScanSendResult(ScanSendStatus.Rejected, sendError ?? "Not inventoried, see logs");
+                }
 
                 await MarkUnreachableAsync();
                 return new ScanSendResult(ScanSendStatus.Unreachable);
@@ -390,11 +398,24 @@ namespace BambuMan.Shared.Managers
         /// </summary>
         private async Task MarkUnreachableAsync()
         {
-            if (!IsHealth) return;
-
             IsHealth = false;
-            await LogAndSetStatus(ManagerStatusType.CantConnectToApi, LogLevel.Warning, $"Lost connection to {BackendName}. Retrying ...");
             StartHealthCheckTimer(healthy: false);
+
+            if (Status != ManagerStatusType.CantConnectToApi) await LogAndSetStatus(ManagerStatusType.CantConnectToApi, LogLevel.Warning, $"Lost connection to {BackendName}. Retrying ...");
+        }
+
+        /// <summary>One health probe after a failed request: tells a server that refused the request from one that is gone.</summary>
+        private async Task<bool> IsStillHealthyAsync()
+        {
+            try
+            {
+                return await CheckHealthAsync();
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                await Log(LogLevel.Warning, $"Health check failed: {ex.Message}");
+                return IsHealth = false;
+            }
         }
 
         private async Task PerformHealthCheck()
