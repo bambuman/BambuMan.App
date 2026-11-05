@@ -242,7 +242,7 @@ namespace BambuMan
                                     Console.WriteLine("Cannot lock tag");
                             }
 
-                            var nTag = GetTagInfo(currentTag, ndef.NdefMessage);
+                            var nTag = GetTagInfo(currentTag, ndef.NdefMessage, readUserMemory: false);
                             if (nTag != null) OnMessagePublished?.Invoke(nTag);
                         }
                         else
@@ -424,8 +424,9 @@ namespace BambuMan
         /// </summary>
         /// <param name="tag">Android <see cref="Tag"/></param>
         /// <param name="ndefMessage">Android <see cref="NdefMessage"/></param>
+        /// <param name="readUserMemory">Also read the raw NTAG user pages (see <see cref="TagInfo.UserMemory"/>). Off while another technology of the tag is connected.</param>
         /// <returns><see cref="ITagInfo"/></returns>
-        ITagInfo? GetTagInfo(Tag? tag, NdefMessage? ndefMessage = null)
+        ITagInfo? GetTagInfo(Tag? tag, NdefMessage? ndefMessage = null, bool readUserMemory = true)
         {
             if (tag == null) return null;
 
@@ -569,7 +570,56 @@ namespace BambuMan
                 }
             }
 
+            // TigerTag isn't NDEF: its fields sit at fixed offsets in the user pages, so read those raw too.
+            if (readUserMemory) nTag.UserMemory = ReadUltralightUserMemory(tag);
+
             return nTag;
+        }
+
+        /// <summary>
+        /// Reads an NTAG21x's user pages 0x04–0x17 (<see cref="TigerTag.DataLength"/> bytes), for formats that aren't
+        /// NDEF. Null when the tag isn't an Ultralight / NTAG or the read didn't complete (e.g. the tag moved away) —
+        /// the tag's NDEF records, if any, are still used then.
+        /// </summary>
+        byte[]? ReadUltralightUserMemory(Tag tag)
+        {
+            var ultralight = MifareUltralight.Get(tag);
+            if (ultralight == null) return null;
+
+            try
+            {
+                ultralight.Connect();
+
+                var memory = new List<byte>(TigerTag.DataLength);
+
+                // ReadPages returns 4 pages (16 bytes) at a time.
+                for (var page = TigerTag.FirstPage; memory.Count < TigerTag.DataLength; page += 4)
+                {
+                    var data = ultralight.ReadPages(page);
+                    if (data is not { Length: 16 }) return null;
+
+                    memory.AddRange(data);
+                }
+
+                return memory.Take(TigerTag.DataLength).ToArray();
+            }
+            // The tag moved away (TagLostException is an IOException) or was re-presented meanwhile ("tag is out of date").
+            catch (Exception e) when (e is Java.IO.IOException or Java.Lang.SecurityException)
+            {
+                Debug.WriteLine($"NTAG user memory read failed: {e.Message}");
+                return null;
+            }
+            finally
+            {
+                try
+                {
+                    if (ultralight.IsConnected) ultralight.Close();
+                }
+                catch (Exception)
+                {
+                    //ignore
+                }
+            }
         }
 
         /// <summary>

@@ -8,10 +8,12 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\filaments.json" />
+	  <None Remove="Resources\tigertag.json" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <EmbeddedResource Include="Resources\filaments.json" />
+	  <EmbeddedResource Include="Resources\tigertag.json" />
 	</ItemGroup>
 
 	<ItemGroup>

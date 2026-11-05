@@ -1,3 +1,4 @@
+using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Matcher;
 using SpoolMan.Api.Model;
@@ -39,9 +40,17 @@ namespace BambuMan.Shared.Models
         /// <summary>True when the catalog had no entry for this tag — the rows are then tag data only.</summary>
         public bool Matched { get; init; }
 
-        public static SpoolDisplayInfo From(BambuFilamentInfo info, ExternalFilament? matched, FilamentOverrideSet? overrides = null)
+        /// <summary>
+        /// The card for a scanned tag of any format. Bambu-only fields (filament code, variant, tray uid, nozzle
+        /// diameter) come from a <see cref="BambuFilamentInfo"/>; a third-party tag adds its format, its own brand when
+        /// the catalog didn't match, and its message.
+        /// </summary>
+        public static SpoolDisplayInfo From(ISpoolTag tag, ExternalFilament? matched, FilamentOverrideSet? overrides = null)
         {
-            var colors = ResolveColors(info, matched);
+            var info = tag as BambuFilamentInfo;
+            var thirdParty = tag as SpoolTag;
+
+            var colors = ResolveColors(tag, matched);
             var colorText = colors.Count == 0 ? null : string.Join(", ", colors.Select(ToRgbText));
 
             var rows = new List<SpoolInfoRow>();
@@ -51,22 +60,26 @@ namespace BambuMan.Shared.Models
                 if (!string.IsNullOrWhiteSpace(value)) rows.Add(new SpoolInfoRow(label, value));
             }
 
-            Add("Manufacturer", matched?.Manufacturer);
-            Add("Material", info.DetailedFilamentType ?? info.FilamentType);
+            Add("Tag format", tag.Format == SpoolTagFormat.BambuLab ? null : tag.Format.DisplayName());
+            Add("Manufacturer", matched?.Manufacturer ?? (info == null ? tag.Brand : null));
+            Add("Material", tag.DetailedFilamentType ?? tag.FilamentType);
             Add("Name", matched?.Name);
-            Add("Filament code", ExternalFilamentMatcher.FindFilamentCode(info, overrides));
-            Add("Variant", info.MaterialVariantIdentifier);
-            Add("Manufactured", info.ProductionDateTime?.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+            Add("Filament code", info == null ? null : ExternalFilamentMatcher.FindFilamentCode(info, overrides));
+            Add("Variant", info?.MaterialVariantIdentifier);
+            Add("Manufactured", tag.ProductionDateTime?.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
             Add("Colour", colorText);
             Add("Colour type", matched?.MultiColorDirection?.ToString());
-            Add("Diameter", info.FilamentDiameter == null ? null : $"{info.FilamentDiameter.Value.ToString("0.00", CultureInfo.InvariantCulture)} mm");
-            Add("Spool weight", info.SpoolWeight == null ? null : $"{info.SpoolWeight} g");
-            Add("Drying temperature", info.DryingTemperature == null ? null : $"{info.DryingTemperature} °C");
-            Add("Drying time", info.DryingTime == null ? null : $"{info.DryingTime} h");
-            Add("Hotend temperature", FormatRange(info.MinTemperatureForHotend, info.MaxTemperatureForHotend, "°C"));
-            Add("Min nozzle diameter", info.NozzleDiameter == null ? null : $"{info.NozzleDiameter.Value.ToString("0.0#", CultureInfo.InvariantCulture)} mm");
-            Add("Tag serial", info.SerialNumber);
-            Add("Tray uid", info.TrayUid);
+            Add("Diameter", tag.FilamentDiameter == null ? null : $"{tag.FilamentDiameter.Value.ToString("0.00", CultureInfo.InvariantCulture)} mm");
+            Add("Spool weight", tag.SpoolWeight == null ? null : $"{tag.SpoolWeight} g");
+            Add("Remaining", thirdParty?.RemainingWeight == null ? null : $"{thirdParty.RemainingWeight} g");
+            Add("Drying temperature", tag.DryingTemperature == null ? null : $"{tag.DryingTemperature} °C");
+            Add("Drying time", tag.DryingTime == null ? null : $"{tag.DryingTime} h");
+            Add("Hotend temperature", FormatRange(tag.MinTemperatureForHotend, tag.MaxTemperatureForHotend, "°C"));
+            Add("Bed temperature", info == null && tag.BedTemperature != null ? $"{tag.BedTemperature} °C" : null);
+            Add("Min nozzle diameter", info?.NozzleDiameter == null ? null : $"{info.NozzleDiameter.Value.ToString("0.0#", CultureInfo.InvariantCulture)} mm");
+            Add("Message", thirdParty?.Message);
+            Add("Tag serial", tag.SerialNumber);
+            Add("Tray uid", info?.TrayUid);
 
             return new SpoolDisplayInfo
             {
@@ -83,7 +96,7 @@ namespace BambuMan.Shared.Models
         /// component uses: the catalog's list first — it is the only source that can describe a gradient with
         /// more than two stops — then its single colour, then the tag itself.
         /// </summary>
-        private static List<string> ResolveColors(BambuFilamentInfo info, ExternalFilament? matched)
+        private static List<string> ResolveColors(ISpoolTag tag, ExternalFilament? matched)
         {
             if (matched?.ColorHexes is { Count: > 0 } catalogColors)
                 return catalogColors.Select(ToArgbHex).OfType<string>().ToList();
@@ -92,10 +105,18 @@ namespace BambuMan.Shared.Models
 
             var colors = new List<string>();
 
-            if (ToArgbHex(info.Color) is { } primary) colors.Add(primary);
+            if (ToArgbHex(tag.Color) is { } primary) colors.Add(primary);
 
-            // A single-colour spool still carries a SecondColor field, so gate on the count rather than the value.
-            if (info.ColorCount > 1 && ToArgbHex(info.SecondColor) is { } second) colors.Add(second);
+            switch (tag)
+            {
+                // A single-colour spool still carries a SecondColor field, so gate on the count rather than the value.
+                case BambuFilamentInfo info when info.ColorCount > 1 && ToArgbHex(info.SecondColor) is { } second:
+                    colors.Add(second);
+                    break;
+                case SpoolTag thirdParty:
+                    colors.AddRange(thirdParty.AdditionalColors.Select(ToArgbHex).OfType<string>());
+                    break;
+            }
 
             return colors;
         }

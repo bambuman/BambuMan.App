@@ -20,7 +20,7 @@ namespace BambuMan.Shared.Managers
         public delegate void ShowMessageEventHandler(bool isError, string message);
         public delegate void LogMessageEventHandler(LogLevel level, string message);
         public delegate void PlayErrorToneEventHandler();
-        public delegate void SpoolFoundEventHandler(SpoolFound found, BambuFilamentInfo info);
+        public delegate void SpoolFoundEventHandler(SpoolFound found, ISpoolTag tag);
         public delegate void SpoolInfoReadEventHandler(SpoolDisplayInfo info);
         public delegate void LocationsLoadedEventHandler();
 
@@ -54,12 +54,12 @@ namespace BambuMan.Shared.Managers
         }
 
         /// <summary>
-        /// Raise <see cref="OnSpoolFound"/> from a subclass. Pass the scanned <paramref name="info"/> so consumers can read raw tag fields
-        /// without extending <see cref="SpoolFound"/>, and whether the server's spool was just <paramref name="created"/> or already there.
+        /// Raise <see cref="OnSpoolFound"/> from a subclass. Pass the scanned <paramref name="tag"/> as read (a <see cref="BambuFilamentInfo"/> or
+        /// <see cref="SpoolTag"/>) so consumers can read raw tag fields without extending <see cref="SpoolFound"/>, and whether the server's spool was just <paramref name="created"/> or already there.
         /// While a stored spool is sent, the spool is kept for <see cref="UploadSpoolAsync"/> instead, so the scan page doesn't open an
         /// edit card for every one.
         /// </summary>
-        protected void RaiseSpoolFound(SpoolFound found, BambuFilamentInfo info, bool created = false)
+        protected void RaiseSpoolFound(SpoolFound found, ISpoolTag tag, bool created = false)
         {
             spoolsFound++;
 
@@ -70,7 +70,7 @@ namespace BambuMan.Shared.Managers
                 return;
             }
 
-            OnSpoolFound?.Invoke(found, info);
+            OnSpoolFound?.Invoke(found, tag);
         }
 
         /// <summary>Raise <see cref="OnSpoolInfoRead"/> from a subclass.</summary>
@@ -333,8 +333,11 @@ namespace BambuMan.Shared.Managers
 
         #region Inventory operations
 
-        /// <summary>Inventory a scanned spool: match, create-or-find, link, then fire <see cref="OnSpoolFound"/>. Returns false on no/ambiguous filament match.</summary>
-        public abstract Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location);
+        /// <summary>
+        /// Inventory a scanned spool of any tag format: match, create-or-find (by <see cref="ISpoolTag.SpoolId"/>), link,
+        /// then fire <see cref="OnSpoolFound"/>. Returns false on no/ambiguous filament match.
+        /// </summary>
+        public abstract Task<bool> InventorySpool(ISpoolTag tag, DateTime? buyDate, decimal? price, string? lotNr, string? location);
 
         /// <summary>Persist edits to the spool most recently surfaced via <see cref="OnSpoolFound"/>. Fields the backend doesn't model are ignored.</summary>
         public abstract Task UpdateCurrentSpoolAsync(SpoolEditInput input);
@@ -397,7 +400,7 @@ namespace BambuMan.Shared.Managers
                 var errors = networkErrors;
                 var status = Status;
 
-                await InventorySpool(scan.Info, scan.BuyDate, scan.Price, scan.LotNr, scan.Location);
+                await InventorySpool(scan.Tag, scan.BuyDate, scan.Price, scan.LotNr, scan.Location);
 
                 if (spoolsFound != found) return new ScanSendResult(ScanSendStatus.Inventoried);
 
@@ -415,7 +418,7 @@ namespace BambuMan.Shared.Managers
             {
                 // Left to throw, it would throw again on every reconnect and hold up every scan queued after it. Kept
                 // as rejected for the user to send again or discard; logged as an error, so it is still reported.
-                await Log(LogLevel.Error, $"Sending queued scan '{scan.Info.TrayUid}' failed: {e.Message}", e);
+                await Log(LogLevel.Error, $"Sending queued scan '{scan.Key}' failed: {e.Message}", e);
                 return new ScanSendResult(ScanSendStatus.Rejected, e.Message);
             }
             finally
@@ -477,7 +480,7 @@ namespace BambuMan.Shared.Managers
 
             try
             {
-                await InventorySpool(spool.Info, spool.BuyDate, spool.Price, spool.LotNr, spool.Location);
+                await InventorySpool(spool.Tag, spool.BuyDate, spool.Price, spool.LotNr, spool.Location);
 
                 if (capture.Found == null) return new(spool, SpoolUploadStatus.Failed, capture.Error ?? capture.Warning ?? $"Not added to {BackendName}, see logs");
 

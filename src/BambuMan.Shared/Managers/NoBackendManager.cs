@@ -104,9 +104,9 @@ namespace BambuMan.Shared.Managers
         /// Show the tag and keep it in <see cref="Spools"/>, with the defaults passed in. Price and location also go into
         /// the csv export (Bambuddy's cost_per_kg and storage_location); with the store on, all of them can be edited.
         /// </summary>
-        public override async Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
+        public override async Task<bool> InventorySpool(ISpoolTag tag, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
-            var candidates = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, info, Overrides);
+            var candidates = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, tag, Overrides);
             var matched = candidates.Count == 1 ? candidates[0] : null;
 
             // Unlike the server-backed managers an unmatched tag is not a failure here: nothing has to be
@@ -119,9 +119,9 @@ namespace BambuMan.Shared.Managers
                     : "Tag not found in the filament catalog, showing tag data only");
             }
 
-            RaiseSpoolInfoRead(SpoolDisplayInfo.From(info, matched, Overrides));
+            RaiseSpoolInfoRead(SpoolDisplayInfo.From(tag, matched, Overrides));
 
-            var key = await KeepSpoolAsync(info, matched, buyDate, price, lotNr, location);
+            var key = await KeepSpoolAsync(tag, matched, buyDate, price, lotNr, location);
 
             currentKey = key;
 
@@ -131,14 +131,14 @@ namespace BambuMan.Shared.Managers
             var emptyWeight = kept?.EmptyWeight ?? BambuddyManager.CoreWeight;
 
             RaiseSpoolFound(new SpoolFound(
-                Material: matched?.Material ?? info.FilamentType,
-                TrayUid: info.TrayUid,
-                Weight: kept?.Weight ?? BambuddyManager.LabelWeight(info) + emptyWeight,
+                Material: matched?.Material ?? tag.FilamentType,
+                TrayUid: tag.SpoolId,
+                Weight: kept?.Weight ?? BambuddyManager.LabelWeight(tag) + emptyWeight,
                 EmptyWeight: emptyWeight,
                 Price: kept?.Price,
                 BuyDate: kept?.BuyDate,
                 LotNr: kept?.LotNr,
-                Location: kept?.Location), info);
+                Location: kept?.Location), tag);
 
             return matched != null;
         }
@@ -308,13 +308,15 @@ namespace BambuMan.Shared.Managers
                 catalogLoaded = true;
             }
 
+            var tag = spool.Tag;
+
             // A spool added by hand has no tag data to match by — it is the filament it was picked as, or unknown.
             if (spool.IsManual)
-                return SpoolDisplayInfo.From(spool.Info, spool.FilamentId == null ? null : bambuLabFilaments.FirstOrDefault(x => x.Id == spool.FilamentId), Overrides);
+                return SpoolDisplayInfo.From(tag, spool.FilamentId == null ? null : bambuLabFilaments.FirstOrDefault(x => x.Id == spool.FilamentId), Overrides);
 
-            var candidates = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, spool.Info, Overrides);
+            var candidates = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, tag, Overrides);
 
-            return SpoolDisplayInfo.From(spool.Info, candidates.Count == 1 ? candidates[0] : null, Overrides);
+            return SpoolDisplayInfo.From(tag, candidates.Count == 1 ? candidates[0] : null, Overrides);
         }
 
         /// <summary>
@@ -417,8 +419,17 @@ namespace BambuMan.Shared.Managers
         }
 
         /// <summary>Adds or refreshes the scanned spool; returns its key, or null when the tag has nothing to key it by.</summary>
-        private async Task<string?> KeepSpoolAsync(BambuFilamentInfo info, ExternalFilament? matched, DateTime? buyDate, decimal? price, string? lotNr, string? location)
+        private async Task<string?> KeepSpoolAsync(ISpoolTag tag, ExternalFilament? matched, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
+            // The store keeps every format in the Bambu tag's shape; a third-party tag keys by its tag uid (no tray uid).
+            var info = tag switch
+            {
+                BambuFilamentInfo bambu => bambu,
+                SpoolTag thirdParty => thirdParty.ToFilamentInfo(),
+                _ => throw new NotSupportedException($"Unsupported spool tag {tag.GetType().Name}")
+            };
+
+            var brand = tag.Format == SpoolTagFormat.BambuLab ? null : tag.Brand;
             var key = LocalSpool.KeyOf(info);
 
             if (key == null) return null;
@@ -447,6 +458,8 @@ namespace BambuMan.Shared.Managers
                     spools.Add(new LocalSpool
                     {
                         Info = info,
+                        Format = tag.Format,
+                        Brand = brand,
                         Manufacturer = matched?.Manufacturer,
                         Name = matched?.Name,
                         FilamentCode = ExternalFilamentMatcher.FindFilamentCode(info, Overrides),
@@ -466,6 +479,8 @@ namespace BambuMan.Shared.Managers
                 // spool already has — they may have been edited or imported, and the defaults a re-scan passes would
                 // overwrite them. The one exception is "override location on read", which asks for exactly that.
                 existing.Info = info;
+                existing.Format = tag.Format;
+                existing.Brand = brand;
                 existing.Manufacturer = matched?.Manufacturer ?? existing.Manufacturer;
                 existing.Name = matched?.Name ?? existing.Name;
                 existing.FilamentCode = ExternalFilamentMatcher.FindFilamentCode(info, Overrides) ?? existing.FilamentCode;

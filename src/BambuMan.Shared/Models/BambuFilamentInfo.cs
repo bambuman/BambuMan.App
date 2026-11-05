@@ -1,4 +1,5 @@
-﻿using BambuMan.Shared.Nfc;
+﻿using BambuMan.Shared.Enums;
+using BambuMan.Shared.Nfc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
@@ -6,8 +7,11 @@ using System.Text;
 
 namespace BambuMan.Shared.Models;
 
-public class BambuFilamentInfo : ITagInfo
+public class BambuFilamentInfo : ITagInfo, ISpoolTag
 {
+    /// <summary>The brand every Bambu Lab tag belongs to — also the vendor / manufacturer name in the catalogs.</summary>
+    public const string BambuLabBrand = "Bambu Lab";
+
     public BambuFilamentInfo() { }
 
     public BambuFilamentInfo(byte[] identifier)
@@ -33,6 +37,16 @@ public class BambuFilamentInfo : ITagInfo
     /// </summary>
     [JsonIgnore]
     public bool HasTag => Identifier.Length > 0 || !string.IsNullOrEmpty(TrayUid);
+
+    [JsonIgnore]
+    public SpoolTagFormat Format => SpoolTagFormat.BambuLab;
+
+    /// <summary>The tray uid: both tags on a Bambu spool share it, so scanning either side finds the same spool.</summary>
+    [JsonIgnore]
+    public string? SpoolId => TrayUid;
+
+    [JsonIgnore]
+    public string? Brand => BambuLabBrand;
 
     [JsonIgnore]
     public bool IsWritable { get; set; } = false;

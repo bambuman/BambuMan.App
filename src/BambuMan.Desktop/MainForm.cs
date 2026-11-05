@@ -40,7 +40,7 @@ public partial class MainForm : Form
     private readonly FilamentOverrideService? filamentOverrideService;
     private readonly PendingScanQueue? pendingScans;
     private Spool? currentSpool;
-    private BambuFilamentInfo? currentBambuFilamentInfo;
+    private ISpoolTag? currentTag;
 
     // Open while the stored spools are shown; sending them holds back scans.
     private LocalInventoryForm? localInventoryForm;
@@ -185,17 +185,17 @@ public partial class MainForm : Form
 
     #region Events
 
-    private async void NfcReaderOnOnSpoolFound(BambuFilamentInfo info)
+    private async void NfcReaderOnOnSpoolFound(ISpoolTag tag)
     {
         try
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new MethodInvoker(delegate { NfcReaderOnOnSpoolFound(info); }));
+                BeginInvoke(new MethodInvoker(delegate { NfcReaderOnOnSpoolFound(tag); }));
                 return;
             }
 
-            var json = JsonConvert.SerializeObject(info, Formatting.Indented);
+            var json = JsonConvert.SerializeObject(tag, Formatting.Indented);
             AppendText(LogLevel.Information, json);
 
             // Sending goes through the same backend calls and leaves the sent spool as the current one; a scan in between would mix them up.
@@ -205,8 +205,10 @@ public partial class MainForm : Form
                 return;
             }
 
-            if (ActiveManager != null) await InventorySpoolAsync(ActiveManager, info);
-            if (fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null) await tagApiService.UploadNfcTagAsync(info);
+            if (ActiveManager != null) await InventorySpoolAsync(ActiveManager, tag);
+
+            // Only Bambu Lab tags are uploaded — the upload consent and the tag database cover those.
+            if (fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null && tag is BambuFilamentInfo info) await tagApiService.UploadNfcTagAsync(info);
         }
         catch (Exception ex)
         {
@@ -236,14 +238,14 @@ public partial class MainForm : Form
         AppendText(level, message);
     }
 
-    private void SpoolmanManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
+    private void SpoolmanManagerOnSpoolFound(SpoolFound found, ISpoolTag tag)
     {
         // A queued scan sent in the background must not take over the edit panel.
         if (spoolmanManager?.SendingScan?.IsQueued == true) return;
 
         if (InvokeRequired)
         {
-            BeginInvoke(new MethodInvoker(delegate { SpoolmanManagerOnSpoolFound(found, info); }));
+            BeginInvoke(new MethodInvoker(delegate { SpoolmanManagerOnSpoolFound(found, tag); }));
             return;
         }
 
@@ -264,26 +266,26 @@ public partial class MainForm : Form
         nudSpoolWeight.Select(0, 40);
 
         currentSpool = spool;
-        currentBambuFilamentInfo = info;
+        currentTag = tag;
     }
 
     /// <summary>
     /// Same edit panel as Spoolman, fed from the backend-neutral <see cref="SpoolFound"/>. Bambuddy keeps no buy date
     /// or lot nr, and its label weight comes from the tag, so those fields stay disabled.
     /// </summary>
-    private void BambuddyManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
+    private void BambuddyManagerOnSpoolFound(SpoolFound found, ISpoolTag tag)
     {
         // A queued scan sent in the background must not take over the edit panel.
         if (bambuddyManager?.SendingScan?.IsQueued == true) return;
 
         if (InvokeRequired)
         {
-            BeginInvoke(new MethodInvoker(delegate { BambuddyManagerOnSpoolFound(found, info); }));
+            BeginInvoke(new MethodInvoker(delegate { BambuddyManagerOnSpoolFound(found, tag); }));
             return;
         }
 
         SetValue(nudEmptyWeight, found.EmptyWeight);
-        SetValue(nudInitialWeight, info.SpoolWeight);
+        SetValue(nudInitialWeight, tag.SpoolWeight);
         SetValue(nudSpoolWeight, found.Weight);
         SetValue(nudSpoolPrice, found.Price);
         txtSpoolLocation.Text = found.Location;
@@ -293,7 +295,7 @@ public partial class MainForm : Form
         nudSpoolWeight.Focus();
         nudSpoolWeight.Select(0, 40);
 
-        currentBambuFilamentInfo = info;
+        currentTag = tag;
     }
 
     private void ManagerOnStatusChanged()
@@ -660,8 +662,8 @@ public partial class MainForm : Form
                 nudEmptyWeight.Value,
                 nudInitialWeight.Value,
                 nudSpoolWeight.Value,
-                currentBambuFilamentInfo?.TrayUid,
-                currentBambuFilamentInfo?.ProductionDateTime);
+                currentTag?.SpoolId,
+                currentTag?.ProductionDateTime);
 
             gbSpoolInfo.Enabled = false;
         }
@@ -703,9 +705,9 @@ public partial class MainForm : Form
     }
 
     /// <summary>Send a read tag to the backend; when it can't be reached, queue it to send once it's back.</summary>
-    private async Task InventorySpoolAsync(BaseManager manager, BambuFilamentInfo info)
+    private async Task InventorySpoolAsync(BaseManager manager, ISpoolTag tag)
     {
-        var scan = new PendingScan { Backend = manager.Backend, Info = info, BuyDate = dtpBuyDate.Value, Price = nudPrice.Value, LotNr = txtLotNr.Text, Location = txtLocation.Text };
+        var scan = new PendingScan { Backend = manager.Backend, Tag = tag, BuyDate = dtpBuyDate.Value, Price = nudPrice.Value, LotNr = txtLotNr.Text, Location = txtLocation.Text };
 
         if (pendingScans == null)
         {
@@ -716,7 +718,7 @@ public partial class MainForm : Form
         var result = await pendingScans.SendOrQueueAsync(manager, scan);
 
         if (result.Status == ScanSendStatus.Unreachable)
-            AppendText(LogLevel.Warning, $"{manager.Backend.DisplayName()} {(manager.IsHealth ? "isn't ready yet" : "can't be reached")}. The spool '{info.TrayUid}' is queued and will be sent when it's back.");
+            AppendText(LogLevel.Warning, $"{manager.Backend.DisplayName()} {(manager.IsHealth ? "isn't ready yet" : "can't be reached")}. The spool '{tag.SpoolId}' is queued and will be sent when it's back.");
     }
 
     private async Task SendQueuedScansAsync(BaseManager manager, bool retryRejected)

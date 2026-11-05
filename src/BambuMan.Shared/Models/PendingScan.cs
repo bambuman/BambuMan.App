@@ -7,8 +7,9 @@ namespace BambuMan.Shared.Models
     /// <summary>
     /// A scanned tag on its way to an inventory backend, with the import defaults it is inventoried with. A live scan
     /// is sent straight away; one the backend couldn't take (see <see cref="ScanSendStatus.Unreachable"/>) waits in the
-    /// pending scan queue and is sent the same way once the backend is back. The whole <see cref="BambuFilamentInfo"/>
-    /// is kept so the queued scan is exactly what was read.
+    /// pending scan queue and is sent the same way once the backend is back. The tag is kept the way a stored spool keeps
+    /// it (see <see cref="LocalSpool.Info"/>): a Bambu Lab tag whole, a third-party one in the Bambu tag's shape with its
+    /// <see cref="Format"/> and <see cref="Brand"/>.
     /// </summary>
     public class PendingScan
     {
@@ -20,7 +21,34 @@ namespace BambuMan.Shared.Models
         [JsonConverter(typeof(StringEnumConverter))]
         public InventoryBackend Backend { get; set; }
 
+        /// <summary>The tag's fields; for a third-party tag see <see cref="SpoolTag.ToFilamentInfo"/>.</summary>
         public BambuFilamentInfo Info { get; set; } = new();
+
+        /// <summary>The format the tag was read in. Stored by name; queues from before third-party tags read as Bambu Lab.</summary>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public SpoolTagFormat Format { get; set; } = SpoolTagFormat.BambuLab;
+
+        /// <summary>Brand written on a third-party tag. Null for a Bambu Lab tag, whose brand is implied.</summary>
+        public string? Brand { get; set; }
+
+        /// <summary>The scanned tag as the managers take it; setting it fills <see cref="Info"/>, <see cref="Format"/> and <see cref="Brand"/>.</summary>
+        [JsonIgnore]
+        public ISpoolTag Tag
+        {
+            get => Format == SpoolTagFormat.BambuLab ? Info : SpoolTag.FromFilamentInfo(Format, Brand, Info);
+            set
+            {
+                Info = value switch
+                {
+                    BambuFilamentInfo bambu => bambu,
+                    SpoolTag thirdParty => thirdParty.ToFilamentInfo(),
+                    _ => throw new NotSupportedException($"Unsupported spool tag {value.GetType().Name}")
+                };
+
+                Format = value.Format;
+                Brand = value.Format == SpoolTagFormat.BambuLab ? null : value.Brand;
+            }
+        }
 
         public DateTime? BuyDate { get; set; }
 

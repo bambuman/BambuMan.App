@@ -31,7 +31,10 @@ namespace BambuMan.Shared.Managers
 
         // The spool most recently surfaced via OnSpoolFound, retained for UpdateCurrentSpoolAsync.
         private Spool? currentSpool;
-        private BambuFilamentInfo? currentInfo;
+        private ISpoolTag? currentTag;
+
+        // Spoolman vendors by name, for filaments matched to a manufacturer other than Bambu Lab (third-party tags).
+        private readonly Dictionary<string, Vendor> vendors = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>The full Spool most recently surfaced via OnSpoolFound (for consumers needing richer data than <see cref="SpoolFound"/>, e.g. the desktop app).</summary>
         public Spool? CurrentSpool => currentSpool;
@@ -145,6 +148,7 @@ namespace BambuMan.Shared.Managers
 
         protected override void ResetInitState()
         {
+            vendors.Clear();
             defaultsChecked = false;
             localFilamentsLoaded = false;
             locationsLoaded = false;
@@ -470,14 +474,21 @@ namespace BambuMan.Shared.Managers
             RaiseLocationsLoaded();
         }
 
-        public override async Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
+        public override async Task<bool> InventorySpool(ISpoolTag tag, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
             if (ApiHost == null) return false;
+
+            // The spool is stored under this id and found by it on the next scan; without one every scan would add a spool.
+            if (string.IsNullOrEmpty(tag.SpoolId))
+            {
+                await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"{tag.Format.DisplayName()} tag has no id to store the spool under");
+                return false;
+            }
 
             try
             {
                 var result = true;
-                var externalFilament = await FindExternalFilament(info);
+                var externalFilament = await FindExternalFilament(tag);
 
                 switch (UnknownFilamentEnabled)
                 {
@@ -491,13 +502,13 @@ namespace BambuMan.Shared.Managers
 
                 await Log(LogLevel.Debug, externalFilament.ToString());
 
-                var filament = await AddOrUpdateFilament(externalFilament, price, info);
+                var filament = await AddOrUpdateFilament(externalFilament, price, tag);
                 if (filament == null) return false;
 
                 var spoolApi = ApiHost.Services.GetRequiredService<ISpoolApi>();
 
                 // Try local cache first
-                var cachedSpool = CachedSpools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{info.TrayUid}\"", StringComparison.CurrentCultureIgnoreCase));
+                var cachedSpool = CachedSpools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{tag.SpoolId}\"", StringComparison.CurrentCultureIgnoreCase));
 
                 Spool? spool;
                 if (cachedSpool != null)
@@ -521,7 +532,7 @@ namespace BambuMan.Shared.Managers
                     var spoolQuery = await spoolApi.FindSpoolSpoolGetAsync(filamentId2: new Option<string?>($"{filament.Id}"), allowArchived: new Option<bool>(true));
 
                     if (spoolQuery.TryOk(out var spools))
-                        spool = spools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{info.TrayUid}\"", StringComparison.CurrentCultureIgnoreCase));
+                        spool = spools.FirstOrDefault(x => x.Extra.TryGetValue(ExtraTag, out var value) && value.Equals($"\"{tag.SpoolId}\"", StringComparison.CurrentCultureIgnoreCase));
                     else
                     {
                         await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't load existing spools. Api response: {spoolQuery.RawContent.Truncated()}");
@@ -529,18 +540,18 @@ namespace BambuMan.Shared.Managers
                     }
                 }
 
-                if (spool == null) await AddSpool(info, new SpoolEditInput(null, null, price, buyDate, lotNr, location), filament, spoolApi, info.TrayUid?.TrimTo(14, "...") ?? string.Empty);
+                if (spool == null) await AddSpool(tag, new SpoolEditInput(null, null, price, buyDate, lotNr, location), filament, spoolApi, tag.SpoolId?.TrimTo(14, "...") ?? string.Empty);
                 else
                 {
                     if (OverrideLocationOnRead && !string.IsNullOrWhiteSpace(location) && !string.Equals(spool.Location, location, StringComparison.OrdinalIgnoreCase))
                     {
                         spool = await UpdateSpoolLocation(spool, location, spoolApi);
-                        await Log(LogLevel.Success, $"Location updated to '{location}' for spool '{info.TrayUid?.TrimTo(14, "...")}'");
+                        await Log(LogLevel.Success, $"Location updated to '{location}' for spool '{tag.SpoolId?.TrimTo(14, "...")}'");
                     }
 
-                    ShowMessage(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
-                    await Log(LogLevel.Success, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
-                    OnSpoolInventoried(spool, info);
+                    ShowMessage(false, $"Existing spool '{tag.SpoolId?.TrimTo(14, "...")}' fount");
+                    await Log(LogLevel.Success, $"Existing spool '{tag.SpoolId?.TrimTo(14, "...")}' fount");
+                    OnSpoolInventoried(spool, tag);
                 }
 
                 return result;
@@ -552,12 +563,23 @@ namespace BambuMan.Shared.Managers
             }
         }
 
-        public async Task<ExternalFilament?> FindExternalFilament(BambuFilamentInfo info)
+        public async Task<ExternalFilament?> FindExternalFilament(ISpoolTag tag)
         {
-            var result = await ExternalFilamentMatcher.FindExternalFilament(BambuLabExternalFilaments, info, Overrides);
+            var result = await ExternalFilamentMatcher.FindExternalFilament(CatalogFor(tag), tag, Overrides);
 
             var spoolmanErrorLevel = UnknownFilamentEnabled ? ManagerStatusType.Ready : ManagerStatusType.Error;
             var logLevel = UnknownFilamentEnabled ? LogLevel.Warning : LogLevel.Error;
+
+            // A third-party tag the catalog doesn't know is expected (any brand, any colour), not a matching bug to
+            // report with the tag data — tell the user what was read and how to add it anyway.
+            if (tag.Format != SpoolTagFormat.BambuLab && result.Count != 1)
+            {
+                var hint = UnknownFilamentEnabled ? "" : " Turn on 'Import unknown filament' in settings to add it anyway.";
+                await LogAndSetStatus(spoolmanErrorLevel, LogLevel.Warning, $"{tag.Format.DisplayName()} tag ({tag.Brand} {tag.DetailedFilamentType} #{tag.Color}) matched {result.Count} filaments in the catalog.{hint}");
+                if (!UnknownFilamentEnabled) ShowMessage(true, $"{tag.Format.DisplayName()} tag not found in the filament catalog.{hint}");
+                PlayErrorTone();
+                return null;
+            }
 
             switch (result.Count)
             {
@@ -568,12 +590,12 @@ namespace BambuMan.Shared.Managers
                             await Log(LogLevel.Debug, item.ToString());
                         }
 
-                        await LogAndSetStatus(spoolmanErrorLevel, logLevel, "Found more then 1 matching filament", new Exception($"{info.ToDiagnosticJson()}\r\n{string.Join("\t\n", result.Select(x => x.ToString()))}"));
+                        await LogAndSetStatus(spoolmanErrorLevel, logLevel, "Found more then 1 matching filament", new Exception($"{tag.ToDiagnosticJson()}\r\n{string.Join("\t\n", result.Select(x => x.ToString()))}"));
                         PlayErrorTone();
                         return null;
                     }
                 case 0:
-                    await LogAndSetStatus(spoolmanErrorLevel, logLevel, "No matching filament found", new Exception($"{info.ToDiagnosticJson()}"));
+                    await LogAndSetStatus(spoolmanErrorLevel, logLevel, "No matching filament found", new Exception($"{tag.ToDiagnosticJson()}"));
                     PlayErrorTone();
                     return null;
             }
@@ -581,7 +603,51 @@ namespace BambuMan.Shared.Managers
             return result.First();
         }
 
-        private async Task<Filament?> AddOrUpdateFilament(ExternalFilament externalFilament, decimal? price, BambuFilamentInfo info)
+        /// <summary>
+        /// The catalog to match a tag against: the Bambu Lab one (api + embedded) for Bambu tags and third-party tags
+        /// branded Bambu Lab, Spoolman's whole external database for any other brand (empty until its background load).
+        /// </summary>
+        private List<ExternalFilament> CatalogFor(ISpoolTag tag) =>
+            tag is BambuFilamentInfo || ExternalFilamentMatcher.NormalizeBrand(tag.Brand) == DefaultBambuLabVendor ? BambuLabExternalFilaments : AllExternalFilaments;
+
+        /// <summary>The Spoolman vendor for a filament: Bambu Lab's, or one found / created by the catalog manufacturer's name.</summary>
+        private async Task<Vendor?> GetVendorAsync(ExternalFilament externalFilament)
+        {
+            var name = externalFilament.Manufacturer;
+
+            if (ApiHost == null || string.IsNullOrWhiteSpace(name) || name.EqualsCI(DefaultBambuLabVendor)) return BambuLabsVendor;
+
+            lock (vendors)
+            {
+                if (vendors.TryGetValue(name, out var cached)) return cached;
+            }
+
+            var vendorApi = ApiHost.Services.GetRequiredService<IVendorApi>();
+            var query = await vendorApi.FindVendorVendorGetAsync(name: new Option<string?>(name));
+
+            Vendor? vendor = null;
+
+            if (query.TryOk(out var found) && found.Count >= 1) vendor = found.First();
+            else
+            {
+                var addResponse = await vendorApi.AddVendorVendorPostAsync(new VendorParameters(name));
+
+                if (addResponse.TryOk(out var added))
+                {
+                    vendor = added;
+                    await Log(LogLevel.Information, $"Created vendor '{name}'");
+                }
+                else await Log(LogLevel.Warning, $"Can't add vendor '{name}'. Api response: {addResponse.RawContent.Truncated()}");
+            }
+
+            if (vendor == null) return null;
+
+            lock (vendors) vendors[name] = vendor;
+
+            return vendor;
+        }
+
+        private async Task<Filament?> AddOrUpdateFilament(ExternalFilament externalFilament, decimal? price, ISpoolTag tag)
         {
             if (ApiHost == null) return null;
 
@@ -595,16 +661,22 @@ namespace BambuMan.Shared.Managers
                 {
                     if (list.Count != 0) return list.First();
 
+                    var vendor = await GetVendorAsync(externalFilament);
+
+                    // A third-party tag may leave the temperatures out; Spoolman rejects a half-empty range.
+                    var extra = new Dictionary<string, string>();
+                    if (tag.MinTemperatureForHotend != null && tag.MaxTemperatureForHotend != null) extra["nozzle_temperature"] = $"[{tag.MinTemperatureForHotend},{tag.MaxTemperatureForHotend}]";
+
                     var filamentPost = new FilamentParameters(
                         externalFilament.Density,
                         externalFilament.Diameter,
                         name: new Option<string?>(externalFilament.Name),
-                        vendorId: new Option<int?>(BambuLabsVendor?.Id),
+                        vendorId: new Option<int?>(vendor?.Id),
                         material: new Option<string?>(externalFilament.Material),
                         price: new Option<decimal?>(price),
                         weight: new Option<decimal?>(externalFilament.Weight),
                         spoolWeight: new Option<decimal?>(externalFilament.SpoolWeight),
-                        articleNumber: new Option<string?>(info.SkuStart),
+                        articleNumber: new Option<string?>((tag as BambuFilamentInfo)?.SkuStart),
                         //comment: new Option<string?>(externalFilament.CommentOption),
                         settingsExtruderTemp: new Option<int?>(externalFilament.ExtruderTemp),
                         settingsBedTemp: new Option<int?>(externalFilament.BedTemp),
@@ -612,10 +684,7 @@ namespace BambuMan.Shared.Managers
                         multiColorHexes: new Option<string?>(externalFilament.ColorHexes != null ? string.Join(",", externalFilament.ColorHexes) : null),
                         multiColorDirection: new Option<MultiColorDirectionInput?>((MultiColorDirectionInput?)externalFilament.MultiColorDirection),
                         externalId: new Option<string?>(externalFilament.Id),
-                        // A spool added by hand carries no hotend range; leave the field at its default rather than send "[,]".
-                        extra: new Option<Dictionary<string, string>?>(info is { MinTemperatureForHotend: not null, MaxTemperatureForHotend: not null }
-                            ? new Dictionary<string, string> { { "nozzle_temperature", $"[{info.MinTemperatureForHotend},{info.MaxTemperatureForHotend}]" } }
-                            : [])
+                        extra: new Option<Dictionary<string, string>?>(extra)
                     );
 
                     var filamentAddResult = await filamentApi.AddFilamentFilamentPostAsync(filamentPost);
@@ -640,14 +709,14 @@ namespace BambuMan.Shared.Managers
         /// The extra fields of a new spool. A scanned spool always gets its tag (what OpenSpoolMan / Bambuddy match AMS
         /// trays by) and production time — an unparsed production date as <c>""</c>; a spool added by hand gets neither.
         /// </summary>
-        public static Dictionary<string, string> BuildNewSpoolExtra(BambuFilamentInfo info, DateTime? buyDate)
+        public static Dictionary<string, string> BuildNewSpoolExtra(ISpoolTag tag, DateTime? buyDate)
         {
             var extraValues = new Dictionary<string, string>();
 
-            if (info.HasTag)
+            if (tag.HasTag)
             {
-                extraValues[ExtraProductionDateTime] = $"\"{info.ProductionDateTime:yyyy-MM-ddZHH:mm:ss}\"";
-                extraValues[ExtraTag] = $"\"{info.TrayUid}\"";
+                extraValues[ExtraProductionDateTime] = $"\"{tag.ProductionDateTime:yyyy-MM-ddZHH:mm:ss}\"";
+                extraValues[ExtraTag] = $"\"{tag.SpoolId}\"";
             }
 
             if (buyDate != null) extraValues[ExtraBuyDate] = $"\"{buyDate:yyyy-MM-dd}Z00:00:00\"";
@@ -660,22 +729,24 @@ namespace BambuMan.Shared.Managers
         /// edit card for a spool added by hand (only then is a weight given). A spool without a tag gets no tag extra field,
         /// so it can never be found by (or mistaken for) a scanned tag. Returns false when Spoolman refused it.
         /// </summary>
-        private async Task<bool> AddSpool(BambuFilamentInfo info, SpoolEditInput input, Filament filament, ISpoolApi spoolApi, string label)
+        private async Task<bool> AddSpool(ISpoolTag tag, SpoolEditInput input, Filament filament, ISpoolApi spoolApi, string label)
         {
             try
             {
-                var extraValues = BuildNewSpoolExtra(info, input.BuyDate);
+                var extraValues = BuildNewSpoolExtra(tag, input.BuyDate);
 
-                var comment = filament.ExternalId == UnknownFilament.Id ? $"Filament: {info.DetailedFilamentType}, Color: #{info.Color}, Spool weight: {info.SpoolWeight:0.#}g" : "";
+                // The unknown filament is a placeholder, so the comment keeps what the tag said; a third-party tag adds its brand and format.
+                var source = tag.Format == SpoolTagFormat.BambuLab ? "" : $"Brand: {tag.Brand}, Tag: {tag.Format.DisplayName()}, ";
+                var comment = filament.ExternalId == UnknownFilament.Id ? $"{source}Filament: {tag.DetailedFilamentType}, Color: #{tag.Color}, Spool weight: {tag.SpoolWeight:0.#}g" : "";
 
                 var emptyWeight = input.EmptyWeight ?? filament.SpoolWeight;
-                var usedWeight = input.Weight is { } weight ? Math.Max(emptyWeight.GetValueOrDefault() + info.SpoolWeight.GetValueOrDefault() - weight, 0) : (decimal?)null;
+                var usedWeight = input.Weight is { } weight ? Math.Max(emptyWeight.GetValueOrDefault() + tag.SpoolWeight.GetValueOrDefault() - weight, 0) : (decimal?)null;
 
                 var spoolParams = new SpoolParameters(filament.Id,
                     //firstUsed: new Option<string?>(externalFilament.FirstUsed),
                     //lastUsed: new Option<string?>(externalFilament.LastUsed),
                     price: new Option<decimal?>(input.Price),
-                    initialWeight: new Option<decimal?>(info.SpoolWeight),
+                    initialWeight: new Option<decimal?>(tag.SpoolWeight),
                     spoolWeight: new Option<decimal?>(emptyWeight),
                     //remainingWeight: new Option<string?>(externalFilament.RemainingWeight),
                     usedWeight: usedWeight == null ? default : new Option<decimal?>(usedWeight),
@@ -696,7 +767,7 @@ namespace BambuMan.Shared.Managers
                     TrackNewLocation(input.Location);
                     ShowMessage(false, $"Spool '{label}' added");
                     await Log(LogLevel.Success, $"Spool '{label}' added");
-                    OnSpoolInventoried(addedSpool, info, created: true);
+                    OnSpoolInventoried(addedSpool, tag, created: true);
                     return true;
                 }
 
@@ -812,21 +883,21 @@ namespace BambuMan.Shared.Managers
             return spool;
         }
 
-        private void OnSpoolInventoried(Spool spool, BambuFilamentInfo info, bool created = false)
+        private void OnSpoolInventoried(Spool spool, ISpoolTag tag, bool created = false)
         {
             // A queued scan sent in the background must not become the spool an open edit card saves to.
             if (SendingScan?.IsQueued != true)
             {
                 currentSpool = spool;
-                currentInfo = info;
+                currentTag = tag;
             }
 
-            RaiseSpoolFound(BuildSpoolFound(spool, info), info, created);
+            RaiseSpoolFound(BuildSpoolFound(spool, tag), tag, created);
         }
 
-        private static SpoolFound BuildSpoolFound(Spool spool, BambuFilamentInfo info) => new(
+        private static SpoolFound BuildSpoolFound(Spool spool, ISpoolTag tag) => new(
             Material: spool.Filament.Material,
-            TrayUid: info.TrayUid,
+            TrayUid: tag.SpoolId,
             Weight: spool.SpoolWeight.GetValueOrDefault() + spool.InitialWeight.GetValueOrDefault() - spool.UsedWeight,
             EmptyWeight: spool.SpoolWeight,
             Price: spool.Price,
@@ -847,8 +918,8 @@ namespace BambuMan.Shared.Managers
                 input.EmptyWeight.GetValueOrDefault(),
                 currentSpool.InitialWeight.GetValueOrDefault(),
                 input.Weight.GetValueOrDefault(),
-                currentInfo?.TrayUid,
-                currentInfo?.ProductionDateTime);
+                currentTag?.SpoolId,
+                currentTag?.ProductionDateTime);
         }
     }
 }

@@ -137,7 +137,7 @@ namespace BambuMan
             }
         }
 
-        private void ManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
+        private void ManagerOnSpoolFound(SpoolFound found, ISpoolTag tag)
         {
             // Read now: the send is over by the time the main thread runs the code below.
             var queued = IsSendingQueuedScan;
@@ -147,7 +147,7 @@ namespace BambuMan
             {
                 try
                 {
-                    viewModel.InventorySpool(found, info);
+                    viewModel.InventorySpool(found, tag);
 
                     // A queued scan sent in the background only counts; the edit card is for the spool just read.
                     // A backend that can't save edits shows the info card from OnSpoolInfoRead instead.
@@ -156,13 +156,13 @@ namespace BambuMan
                     // A spool added by hand was saved from its own edit card already; don't open it again. A card still
                     // open from an earlier scan is closed: the manager's current spool is now the one added by hand, so
                     // saving that card would write to the wrong spool.
-                    if (!info.HasTag)
+                    if (!tag.HasTag)
                     {
                         viewModel.ShowSpoolEdit = false;
                         return;
                     }
 
-                    viewModel.ShowSpool(found, info);
+                    viewModel.ShowSpool(found, tag);
 
                     if (viewModel.ShowKeyboardOnSpoolRead) SpoolEditFocusRequested?.Invoke(true);
                 }
@@ -593,6 +593,15 @@ namespace BambuMan
                     return;
                 }
 
+                // NTAG-based formats (OpenSpool, TigerTag) arrive as NDEF records / raw user memory and are decoded here.
+                if (SpoolTagReader.TryRead(tagInfo) is SpoolTag spoolTag)
+                {
+                    await viewModel.AddLog(LogLevel.Information, $"{spoolTag.Format.DisplayName()} tag: {JsonConvert.SerializeObject(spoolTag, Formatting.Indented)}");
+
+                    await InventorySpoolAsync(spoolTag);
+                    return;
+                }
+
                 if (tagInfo is MifareReadFailure failure)
                 {
                     SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
@@ -633,9 +642,14 @@ namespace BambuMan
             }
         }
 
-        /// <summary>Inventory a read tag against the active backend with the configured defaults, then upload it if opted in.</summary>
-        private async Task InventorySpoolAsync(BambuFilamentInfo info)
+        /// <summary>
+        /// Inventory a read tag against the active backend with the configured defaults, then upload it if opted in.
+        /// Only Bambu Lab tags are uploaded: the upload consent covers those, and the tag database is built from them.
+        /// </summary>
+        private async Task InventorySpoolAsync(ISpoolTag tag)
         {
+            LastReadTag = tag;
+
             var (buyDate, defaultPrice, defaultLotNr, defaultLocation) = GetSpoolDefaults();
 
             await viewModel.ClearMessages();
@@ -663,12 +677,12 @@ namespace BambuMan
 
             SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
 
-            var scan = new PendingScan { Backend = active.Backend, Info = info, BuyDate = buyDate, Price = defaultPrice, LotNr = defaultLotNr, Location = defaultLocation };
+            var scan = new PendingScan { Backend = active.Backend, Tag = tag, BuyDate = buyDate, Price = defaultPrice, LotNr = defaultLotNr, Location = defaultLocation };
             var sendResult = await pendingScans.SendOrQueueAsync(active, scan);
 
             if (sendResult.Status == ScanSendStatus.Unreachable) await ShowScanQueuedAsync(active);
 
-            if (viewModel.FullTagScanAndUpload)
+            if (viewModel.FullTagScanAndUpload && tag is BambuFilamentInfo info)
             {
                 var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(info);
                 if (rateLimited)
@@ -1214,6 +1228,121 @@ namespace BambuMan
         private sealed class InlineProgress(Action<SpoolUploadProgress> report) : IProgress<SpoolUploadProgress>
         {
             public void Report(SpoolUploadProgress value) => report(value);
+        }
+
+        #endregion
+
+        #region Write OpenSpool tag
+
+        // The spool the next tag held to the phone is written as; null while not writing.
+        private ISpoolTag? pendingTagWrite;
+
+        /// <summary>The spool tag read last (any format), which the write page can copy onto a new tag.</summary>
+        public ISpoolTag? LastReadTag { get; private set; }
+
+        /// <summary>Raised when writing starts, completes, fails or is cancelled.</summary>
+        public event Action? TagWriteChanged;
+
+        /// <summary>True while NFC waits for a tag to write <see cref="StartOpenSpoolWrite"/>'s spool to.</summary>
+        public bool IsTagWritePending => pendingTagWrite != null;
+
+        /// <summary>
+        /// Whether this device can write NFC tags at all. Android only for now: the iOS write session is untested with
+        /// this flow.
+        /// </summary>
+        public static bool CanWriteTags => DeviceInfo.Platform == DevicePlatform.Android && CrossNfc.IsSupported && CrossNfc.Current.IsAvailable && CrossNfc.Current.IsWritingTagSupported;
+
+        /// <summary>
+        /// Write <paramref name="spool"/> as an OpenSpool record to the next tag held to the phone. Reading spools is
+        /// paused until then: while publishing, the NFC layer hands tags to <see cref="Current_OnTagDiscovered"/>.
+        /// </summary>
+        public void StartOpenSpoolWrite(ISpoolTag spool)
+        {
+            if (!CanWriteTags)
+            {
+                toasts.Show("This device can't write NFC tags.", ToastKind.Error, true);
+                return;
+            }
+
+            pendingTagWrite = spool;
+
+            CrossNfc.Current.OnTagDiscovered -= Current_OnTagDiscovered;
+            CrossNfc.Current.OnTagDiscovered += Current_OnTagDiscovered;
+            CrossNfc.Current.StartPublishing();
+
+            TagWriteChanged?.Invoke();
+        }
+
+        /// <summary>Stop waiting for a tag to write and go back to reading spools.</summary>
+        public void CancelTagWrite() => EndTagWrite();
+
+        private void EndTagWrite()
+        {
+            pendingTagWrite = null;
+
+            if (CrossNfc.IsSupported)
+            {
+                CrossNfc.Current.OnTagDiscovered -= Current_OnTagDiscovered;
+                CrossNfc.Current.StopPublishing();
+            }
+
+            TagWriteChanged?.Invoke();
+        }
+
+        /// <summary>A tag held to the phone while writing: put the pending spool on it as an OpenSpool NDEF record.</summary>
+        private async void Current_OnTagDiscovered(ITagInfo tagInfo, bool format)
+        {
+            try
+            {
+                var spool = pendingTagWrite;
+                if (spool == null) return;
+
+                // A Bambu Lab (MIFARE Classic) tag has no NDEF memory to write to.
+                if (!tagInfo.IsSupported)
+                {
+                    toasts.Show("This tag can't hold an OpenSpool record. Use a blank NTAG215 or NTAG216.", ToastKind.Error, true);
+                    return;
+                }
+
+                // Without the raw pages a TigerTag (binary, not NDEF) can't be ruled out, so never write blind.
+                if (tagInfo is not TagInfo { UserMemory: not null })
+                {
+                    toasts.Show("The tag couldn't be read completely, it was not written. Hold it to the phone again.", ToastKind.Error, true);
+                    return;
+                }
+
+                // Only a blank tag or an OpenSpool one is overwritten; a TigerTag or other data is kept.
+                if (!SpoolTagReader.CanOverwrite(tagInfo))
+                {
+                    toasts.Show("This tag already holds other data (e.g. a TigerTag), it was not overwritten. Use a blank NTAG215 or NTAG216.", ToastKind.Error, true);
+                    return;
+                }
+
+                if (!tagInfo.IsWritable)
+                {
+                    toasts.Show("This tag is read-only.", ToastKind.Error, true);
+                    return;
+                }
+
+                tagInfo.Records = [OpenSpool.CreateRecord(spool)];
+
+                // Throws (and stops publishing) when the write fails, e.g. the tag was moved away or is too small.
+                CrossNfc.Current.PublishMessage(tagInfo);
+
+                EndTagWrite();
+
+                var name = string.Join(" ", new[] { spool.Brand, spool.DetailedFilamentType }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+                await viewModel.AddLog(LogLevel.Success, $"OpenSpool tag {NfcUtils.ByteArrayToHexString(tagInfo.Identifier)} written: {OpenSpool.CreateJson(spool)}");
+                toasts.Show($"OpenSpool tag written: {name}", ToastKind.Success, true);
+            }
+            catch (Exception e)
+            {
+                EndTagWrite();
+
+                logger.LogWarning(e, "Error writing OpenSpool tag");
+                toasts.Show($"Writing the tag failed: {e.Message}", ToastKind.Error, true);
+            }
         }
 
         #endregion

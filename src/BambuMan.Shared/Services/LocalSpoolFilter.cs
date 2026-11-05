@@ -77,7 +77,7 @@ namespace BambuMan.Shared.Services
         {
             var info = spool.Info;
 
-            return new[] { info.DetailedFilamentType, info.FilamentType, spool.Name, spool.Manufacturer, spool.FilamentCode, info.TrayUid, info.SerialNumber }
+            return new[] { info.DetailedFilamentType, info.FilamentType, spool.Name, spool.Manufacturer, spool.Brand, spool.FilamentCode, info.TrayUid, info.SerialNumber }
                 .Any(x => x?.Contains(search, StringComparison.OrdinalIgnoreCase) == true);
         }
 

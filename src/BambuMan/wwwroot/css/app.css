@@ -957,7 +957,7 @@ body.editing .content {
     color-scheme: light dark;
 }
 
-/* The colour picker (an unknown filament in add spool): a full-width swatch inside the field. */
+/* The colour picker (an unknown filament in add spool, the write-tag page): a full-width swatch inside the field. */
 .input-wrap input[type="color"] {
     padding: 6px 10px;
     cursor: pointer;

@@ -13,7 +13,22 @@ namespace BambuMan.Shared.Models
     {
         #region Properties
 
+        /// <summary>
+        /// The tag's fields. A third-party tag is kept in this shape too (see <see cref="SpoolTag.ToFilamentInfo"/>),
+        /// with <see cref="Format"/> and <see cref="Brand"/> saying what it really was.
+        /// </summary>
         public BambuFilamentInfo Info { get; set; } = new();
+
+        /// <summary>The format the spool's tag was read in. Stored by name; files from before third-party tags read as Bambu Lab.</summary>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public SpoolTagFormat Format { get; set; } = SpoolTagFormat.BambuLab;
+
+        /// <summary>Brand written on a third-party tag. Null for a Bambu Lab tag, whose brand is implied.</summary>
+        public string? Brand { get; set; }
+
+        /// <summary>The spool's tag as the matcher and the ui take it: <see cref="Info"/> itself, or the third-party tag rebuilt from it.</summary>
+        [JsonIgnore]
+        public ISpoolTag Tag => Format == SpoolTagFormat.BambuLab ? Info : SpoolTag.FromFilamentInfo(Format, Brand, Info);
 
         /// <summary>Catalog manufacturer, e.g. <c>Bambu Lab</c>. Null when the tag didn't match the catalog.</summary>
         public string? Manufacturer { get; set; }

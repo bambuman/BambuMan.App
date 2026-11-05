@@ -66,8 +66,11 @@ namespace BambuMan.Shared.Test.PendingScans
 
         protected override Task<bool> LoadInitialDataAsync() => Task.FromResult(true);
 
-        public override async Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
+        public override async Task<bool> InventorySpool(ISpoolTag tag, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
+            // Kept in the Bambu tag's shape, as the stores keep a third-party tag.
+            var info = tag as BambuFilamentInfo ?? ((SpoolTag)tag).ToFilamentInfo();
+
             if (Gate != null) await Gate.Task;
 
             if (!Reachable)

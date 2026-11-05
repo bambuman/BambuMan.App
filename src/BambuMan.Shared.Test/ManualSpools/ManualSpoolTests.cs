@@ -252,7 +252,7 @@ namespace BambuMan.Shared.Test.ManualSpools
         {
             var manager = await Manager(storeLocally: true);
 
-            var found = new List<(SpoolFound Found, BambuFilamentInfo Info)>();
+            var found = new List<(SpoolFound Found, ISpoolTag Info)>();
             manager.OnSpoolFound += (spool, info) => found.Add((spool, info));
 
             Assert.True(await manager.AddManualSpoolAsync(ManualSpool.FromCatalog(Filament(AbsBlackId)), Card));
