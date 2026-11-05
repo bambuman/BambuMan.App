@@ -1,6 +1,7 @@
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Resolvers;
+using BambuMan.Shared.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 

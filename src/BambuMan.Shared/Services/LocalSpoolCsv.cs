@@ -303,7 +303,7 @@ namespace BambuMan.Shared.Services
                 // BambuMan's own weight column when there is one; a Bambuddy file only says how much was used.
                 Weight = ParseDecimal(cell, "weight") ?? (weightUsed > 0 ? BambuddyManager.LabelWeight(info) + (coreWeight ?? BambuddyManager.CoreWeight) - weightUsed : null),
                 EmptyWeight = coreWeight,
-                BuyDate = ParseDate(cell, "buy_date"),
+                BuyDate = ParseBuyDate(cell),
                 LotNr = cell("lot_nr"),
                 FirstScanned = ParseDate(cell, "first_scanned") ?? now,
                 LastScanned = ParseDate(cell, "last_scanned") ?? now
@@ -377,6 +377,12 @@ namespace BambuMan.Shared.Services
             return decimal.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) ? number : throw new FormatException($"{column} must be a number (got '{value}')");
         }
 
+        /// <summary>Earliest buy date a CSV import accepts.</summary>
+        public static readonly DateTime MinBuyDate = new(1900, 1, 1);
+
+        /// <summary>Latest buy date a CSV import accepts.</summary>
+        public static readonly DateTime MaxBuyDate = new(9998, 12, 31);
+
         private static DateTime? ParseDate(Func<string, string?> cell, string column)
         {
             var value = cell(column);
@@ -384,6 +390,16 @@ namespace BambuMan.Shared.Services
             if (value == null) return null;
 
             return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ? date : throw new FormatException($"{column} must be a date (got '{value}')");
+        }
+
+        private static DateTime? ParseBuyDate(Func<string, string?> cell)
+        {
+            var date = ParseDate(cell, "buy_date");
+
+            // Far-off dates are typos (0026 for 2026), and the desktop date picker can't show them.
+            if (date < MinBuyDate || date > MaxBuyDate) throw new FormatException($"buy_date must be between {MinBuyDate:yyyy-MM-dd} and {MaxBuyDate:yyyy-MM-dd} (got '{cell("buy_date")}')");
+
+            return date;
         }
 
         #endregion

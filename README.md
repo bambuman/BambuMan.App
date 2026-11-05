@@ -96,6 +96,8 @@ The Android app can inventory into [bambuddy](https://bambuddy.cool). Pick the b
 	 - The app connects to Spoolman and creates the necessary extra fields and default vendor.
  6. Once the status bar shows `Ready to inventory fillament`, you can start reading `NFC` tags. A scanned spool is created in the backend, or found again by its tag if it is already there, and its weight, price and location can be edited in the spool panel.
  7. No backend: scanned tags are only shown in the log. `Options` → `Store spools locally` keeps them on the computer, and `File` → `Export CSV...` writes them to a file that bambuddy can import.
+	 - With spools stored locally, `File` → `Stored spools...` lists them: search by name or tag, filter by location, edit a spool (double-click it: weight, empty weight, price, buy date, lot nr, location), delete spools, and import or export CSV
+	 - `File` → `Import CSV...` adds the spools of a BambuMan export to the stored spools; a spool already stored is replaced
 
 ## F-Droid repository
 

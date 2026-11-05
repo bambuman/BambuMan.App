@@ -477,23 +477,9 @@ public partial class MainForm : Form
     {
         try
         {
-            var spools = noBackendManager?.Spools ?? [];
+            if (noBackendManager == null) return;
 
-            if (spools.Count == 0)
-            {
-                AppendText(LogLevel.Warning, "There are no spools to export yet.");
-                return;
-            }
-
-            using var dialog = new SaveFileDialog();
-            dialog.Filter = "CSV files (*.csv)|*.csv";
-            dialog.FileName = LocalSpoolCsv.FileName(DateTime.Now);
-
-            if (dialog.ShowDialog(this) != DialogResult.OK) return;
-
-            using (var stream = File.Create(dialog.FileName)) LocalSpoolCsv.Write(stream, spools);
-
-            AppendText(LogLevel.Success, $"Exported {spools.Count} spools to {dialog.FileName}");
+            LocalInventoryForm.ExportCsv(this, noBackendManager, AppendText);
         }
         catch (Exception ex)
         {
@@ -507,26 +493,7 @@ public partial class MainForm : Form
         {
             if (noBackendManager is not { IsStoreLoaded: true }) return;
 
-            using var dialog = new OpenFileDialog();
-            dialog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
-
-            if (dialog.ShowDialog(this) != DialogResult.OK) return;
-
-            LocalSpoolCsvReadResult result;
-
-            using (var stream = File.OpenRead(dialog.FileName)) result = LocalSpoolCsv.Read(stream);
-
-            foreach (var error in result.Errors) AppendText(LogLevel.Warning, $"{Path.GetFileName(dialog.FileName)}: {error}");
-
-            if (result.Spools.Count == 0)
-            {
-                AppendText(LogLevel.Error, $"No spools imported from {dialog.FileName}");
-                return;
-            }
-
-            var (added, updated) = await noBackendManager.ImportSpoolsAsync(result.Spools);
-
-            AppendText(LogLevel.Success, $"Imported {added} new and {updated} existing spools from {dialog.FileName}" + (result.Errors.Count > 0 ? $", {result.Errors.Count} rows skipped" : ""));
+            await LocalInventoryForm.ImportCsvAsync(this, noBackendManager, AppendText);
         }
         catch (Exception ex)
         {
@@ -538,7 +505,7 @@ public partial class MainForm : Form
     {
         if (noBackendManager is not { IsStoreLoaded: true }) return;
 
-        using var form = new LocalInventoryForm(noBackendManager);
+        using var form = new LocalInventoryForm(noBackendManager, AppendText);
         form.ShowDialog(this);
     }
 
