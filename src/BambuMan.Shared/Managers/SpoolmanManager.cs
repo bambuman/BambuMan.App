@@ -2,6 +2,7 @@ using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
+using BambuMan.Shared.Resources.Strings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -549,7 +550,7 @@ namespace BambuMan.Shared.Managers
                         await Log(LogLevel.Success, $"Location updated to '{location}' for spool '{tag.SpoolId?.TrimTo(14, "...")}'");
                     }
 
-                    ShowMessage(false, $"Existing spool '{tag.SpoolId?.TrimTo(14, "...")}' fount");
+                    ShowMessage(false, string.Format(SharedResources.Manager_ExistingSpoolFound, tag.SpoolId?.TrimTo(14, "...")));
                     await Log(LogLevel.Success, $"Existing spool '{tag.SpoolId?.TrimTo(14, "...")}' fount");
                     OnSpoolInventoried(spool, tag);
                 }
@@ -558,7 +559,7 @@ namespace BambuMan.Shared.Managers
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await HandleNetworkError(ex, "Inventory spool");
+                await HandleNetworkError(ex, "Inventory spool", SharedResources.Manager_OperationInventorySpool);
                 return false;
             }
         }
@@ -576,7 +577,7 @@ namespace BambuMan.Shared.Managers
             {
                 var hint = UnknownFilamentEnabled ? "" : " Turn on 'Import unknown filament' in settings to add it anyway.";
                 await LogAndSetStatus(spoolmanErrorLevel, LogLevel.Warning, $"{tag.Format.DisplayName()} tag ({tag.Brand} {tag.DetailedFilamentType} #{tag.Color}) matched {result.Count} filaments in the catalog.{hint}");
-                if (!UnknownFilamentEnabled) ShowMessage(true, $"{tag.Format.DisplayName()} tag not found in the filament catalog.{hint}");
+                if (!UnknownFilamentEnabled) ShowMessage(true, string.Format(SharedResources.Manager_TagNotInCatalog, tag.Format.DisplayName()));
                 PlayErrorTone();
                 return null;
             }
@@ -700,7 +701,7 @@ namespace BambuMan.Shared.Managers
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await HandleNetworkError(ex, "Add/update filament");
+                await HandleNetworkError(ex, "Add/update filament", SharedResources.Manager_OperationAddUpdateFilament);
                 return null;
             }
         }
@@ -765,7 +766,7 @@ namespace BambuMan.Shared.Managers
                 {
                     UpdateCachedSpool(addedSpool);
                     TrackNewLocation(input.Location);
-                    ShowMessage(false, $"Spool '{label}' added");
+                    ShowMessage(false, string.Format(SharedResources.Manager_SpoolAdded, label));
                     await Log(LogLevel.Success, $"Spool '{label}' added");
                     OnSpoolInventoried(addedSpool, tag, created: true);
                     return true;
@@ -776,7 +777,7 @@ namespace BambuMan.Shared.Managers
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await HandleNetworkError(ex, "Add spool");
+                await HandleNetworkError(ex, "Add spool", SharedResources.Manager_OperationAddSpool);
                 return false;
             }
         }
@@ -803,7 +804,7 @@ namespace BambuMan.Shared.Managers
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await HandleNetworkError(ex, "Add spool");
+                await HandleNetworkError(ex, "Add spool", SharedResources.Manager_OperationAddSpool);
                 return false;
             }
         }
@@ -850,7 +851,7 @@ namespace BambuMan.Shared.Managers
                     TrackNewLocation(location);
                     var label = string.IsNullOrEmpty(trayUid) ? $"#{updatedSpool.Id}" : trayUid;
 
-                    ShowMessage(false, $"Spool '{label}' updated, used weight set to {usedWeight:0.#}g");
+                    ShowMessage(false, string.Format(SharedResources.Manager_SpoolUpdatedUsedWeight, label, $"{usedWeight:0.#}"));
                     await Log(LogLevel.Success, $"Spool '{label}' updated, used weight set to {usedWeight:0.#}g");
                 }
                 else
@@ -860,7 +861,7 @@ namespace BambuMan.Shared.Managers
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await HandleNetworkError(ex, "Update spool");
+                await HandleNetworkError(ex, "Update spool", SharedResources.Manager_OperationUpdateSpool);
             }
         }
 

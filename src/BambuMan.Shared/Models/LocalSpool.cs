@@ -1,3 +1,4 @@
+using BambuMan.Shared.Resources.Strings;
 using BambuMan.Shared.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -105,7 +106,7 @@ namespace BambuMan.Shared.Models
             {
                 var material = Info.DetailedFilamentType ?? Info.FilamentType;
 
-                return Name == null ? material ?? "Unknown filament" : $"{material} {Name}";
+                return Name == null ? material ?? SharedResources.Spool_UnknownFilament : $"{material} {Name}";
             }
         }
 

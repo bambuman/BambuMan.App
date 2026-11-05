@@ -1,0 +1,969 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Machine translation, needs review by a native speaker. -->
+  <data name="Common_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Loobu</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Kustuta</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Sulge</value>
+  </data>
+  <data name="Common_Back" xml:space="preserve">
+    <value>Tagasi</value>
+  </data>
+  <data name="Common_Clear" xml:space="preserve">
+    <value>Tühjenda</value>
+  </data>
+  <data name="Common_ImportCsv" xml:space="preserve">
+    <value>Impordi CSV</value>
+  </data>
+  <data name="Common_ExportCsv" xml:space="preserve">
+    <value>Ekspordi CSV</value>
+  </data>
+  <data name="Common_OverrideLocationTitle" xml:space="preserve">
+    <value>Kirjuta asukoht lugemisel üle</value>
+  </data>
+  <data name="Common_NoLocation" xml:space="preserve">
+    <value>Asukoht puudub</value>
+  </data>
+  <data name="Nav_Menu" xml:space="preserve">
+    <value>Menüü</value>
+  </data>
+  <data name="Nav_Scanner" xml:space="preserve">
+    <value>Skanner</value>
+  </data>
+  <data name="Nav_Spools" xml:space="preserve">
+    <value>Rullid</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>Seaded</value>
+  </data>
+  <data name="Nav_Logs" xml:space="preserve">
+    <value>Logid</value>
+  </data>
+  <data name="Main_Title" xml:space="preserve">
+    <value>Skanner</value>
+  </data>
+  <data name="Main_TestTag" xml:space="preserve">
+    <value>Testsilt</value>
+  </data>
+  <data name="Main_StatSettings" xml:space="preserve">
+    <value>Seaded</value>
+  </data>
+  <data name="Main_SettingsConfigured" xml:space="preserve">
+    <value>Seadistatud</value>
+  </data>
+  <data name="Main_SettingsIncomplete" xml:space="preserve">
+    <value>Puudulikud</value>
+  </data>
+  <data name="Main_SettingsOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Main_SettingsMissing" xml:space="preserve">
+    <value>Puudu</value>
+  </data>
+  <data name="Main_OpenSettings" xml:space="preserve">
+    <value>Ava seaded</value>
+  </data>
+  <data name="Main_StatInventory" xml:space="preserve">
+    <value>Inventar</value>
+  </data>
+  <data name="Main_BackendLocal" xml:space="preserve">
+    <value>Kohalik</value>
+  </data>
+  <data name="Main_NfcOff" xml:space="preserve">
+    <value>Väljas</value>
+  </data>
+  <data name="Main_NfcListening" xml:space="preserve">
+    <value>Kuulab</value>
+  </data>
+  <data name="Main_NfcIdle" xml:space="preserve">
+    <value>Ootel</value>
+  </data>
+  <data name="Main_StatSession" xml:space="preserve">
+    <value>See seanss</value>
+  </data>
+  <data name="Main_SpoolOne" xml:space="preserve">
+    <value>rull</value>
+  </data>
+  <data name="Main_SpoolMany" xml:space="preserve">
+    <value>rulli</value>
+  </data>
+  <data name="Main_MaterialCountOne" xml:space="preserve">
+    <value>{0} materjal</value>
+  </data>
+  <data name="Main_MaterialCountMany" xml:space="preserve">
+    <value>{0} materjali</value>
+  </data>
+  <data name="Main_Connecting" xml:space="preserve">
+    <value>Ühendan, palun oota ...</value>
+  </data>
+  <data name="Main_SessionInventory" xml:space="preserve">
+    <value>Inventar</value>
+  </data>
+  <data name="Main_ClearInventory" xml:space="preserve">
+    <value>Tühjenda inventar</value>
+  </data>
+  <data name="Main_BannerError" xml:space="preserve">
+    <value>Viga:</value>
+  </data>
+  <data name="Main_BannerSuccess" xml:space="preserve">
+    <value>Õnnestus:</value>
+  </data>
+  <data name="Main_BannerInfo" xml:space="preserve">
+    <value>Info:</value>
+  </data>
+  <data name="Main_SpoolSection" xml:space="preserve">
+    <value>Rull</value>
+  </data>
+  <data name="Main_SpoolInfo" xml:space="preserve">
+    <value>Rulli info</value>
+  </data>
+  <data name="Main_ReadyTitle" xml:space="preserve">
+    <value>Hoia rulli silti telefoni vastas</value>
+  </data>
+  <data name="Main_NfcOffTitle" xml:space="preserve">
+    <value>NFC on väljas</value>
+  </data>
+  <data name="Main_ReadyDescription" xml:space="preserve">
+    <value>Bambu Labi rullidel on silt rulli mõlemal küljel; ka OpenSpooli ja TigerTagi sildid töötavad. Loetud rull kuvatakse siin.</value>
+  </data>
+  <data name="Main_NfcOffDescription" xml:space="preserve">
+    <value>Rullide siltide lugemiseks lülita telefoni seadetes NFC sisse.</value>
+  </data>
+  <data name="Main_List" xml:space="preserve">
+    <value>Nimekiri</value>
+  </data>
+  <data name="Main_LocalSpoolsStoredHint" xml:space="preserve">
+    <value>Säilivad selles seadmes ka rakenduse taaskäivitamisel.</value>
+  </data>
+  <data name="Main_LocalSpoolsSessionHint" xml:space="preserve">
+    <value>Eksporditakse ainult selle seansi skaneeringud.</value>
+  </data>
+  <data name="Main_OverrideLocationDescription" xml:space="preserve">
+    <value>Juba tuntud rull viiakse lugemisel seadetes määratud vaikimisi asukohta.</value>
+  </data>
+  <data name="Main_StatusConnecting" xml:space="preserve">
+    <value>Ühendan: {0} …</value>
+  </data>
+  <data name="Main_StatusNeedsAttention" xml:space="preserve">
+    <value>Vajab tähelepanu</value>
+  </data>
+  <data name="Main_StatusNfcDisabled" xml:space="preserve">
+    <value>NFC on välja lülitatud</value>
+  </data>
+  <data name="Main_StatusReady" xml:space="preserve">
+    <value>Valmis rulle lugema</value>
+  </data>
+  <data name="Main_BackendOnDevice" xml:space="preserve">
+    <value>Selles seadmes</value>
+  </data>
+  <data name="Main_BackendConnecting" xml:space="preserve">
+    <value>Ühendan</value>
+  </data>
+  <data name="Main_BackendConnected" xml:space="preserve">
+    <value>Ühendatud</value>
+  </data>
+  <data name="Main_BackendUrlMissing" xml:space="preserve">
+    <value>URL puudub</value>
+  </data>
+  <data name="Main_BackendUnreachable" xml:space="preserve">
+    <value>Pole kättesaadav</value>
+  </data>
+  <data name="Main_BackendOffline" xml:space="preserve">
+    <value>Ühenduseta</value>
+  </data>
+  <data name="Main_ScannedSpools" xml:space="preserve">
+    <value>Skannitud rullid</value>
+  </data>
+  <data name="Main_StoredSpools" xml:space="preserve">
+    <value>Salvestatud rullid</value>
+  </data>
+  <data name="Main_NfcEnabled" xml:space="preserve">
+    <value>Sees</value>
+  </data>
+  <data name="Main_NfcDisabled" xml:space="preserve">
+    <value>Väljas</value>
+  </data>
+  <data name="Main_NewVersionAvailable" xml:space="preserve">
+    <value>Uus versioon on saadaval</value>
+  </data>
+  <data name="Main_NewVersionAvailableTag" xml:space="preserve">
+    <value>Uus versioon on saadaval: {0}</value>
+  </data>
+  <data name="Main_ErrorNfcNotEnabled" xml:space="preserve">
+    <value>NFC pole sisse lülitatud. Kontrolli, kas su telefon toetab NFC-d.</value>
+  </data>
+  <data name="Main_ErrorServerUrlMissing" xml:space="preserve">
+    <value>Inventariserveri URL puudub, palun sisesta see seadetes!</value>
+  </data>
+  <data name="Main_ErrorApiNotHealthy" xml:space="preserve">
+    <value>Inventari API ei tööta korralikult</value>
+  </data>
+  <data name="Main_InfoReady" xml:space="preserve">
+    <value>Valmis rulle lugema.</value>
+  </data>
+  <data name="Main_NoTagFound" xml:space="preserve">
+    <value>Silti ei leitud</value>
+  </data>
+  <data name="Main_TagTitle" xml:space="preserve">
+    <value>Silt [{0}]</value>
+  </data>
+  <data name="Main_TagInfo" xml:space="preserve">
+    <value>Sildi info</value>
+  </data>
+  <data name="Main_ErrorTagAuthenticationUnsupported" xml:space="preserve">
+    <value>See telefon ei suutnud silti avada. Mõne telefoni NFC-kiip (nt Google Pixel) ei suuda Bambu Labi (MIFARE Classic) silte lugeda.</value>
+  </data>
+  <data name="Main_ErrorTagReadInterrupted" xml:space="preserve">
+    <value>Sildi lugemine katkes. Hoia telefoni sildi vastas paigal ja proovi uuesti.</value>
+  </data>
+  <data name="Main_ErrorTagRead" xml:space="preserve">
+    <value>Sildi lugemine ebaõnnestus, palun proovi uuesti!</value>
+  </data>
+  <data name="Main_ErrorTagEmpty" xml:space="preserve">
+    <value>Tühi silt</value>
+  </data>
+  <data name="Main_ErrorUploadLimit" xml:space="preserve">
+    <value>Päevane üleslaadimise piirang on täis (1000 silti päevas). Proovi homme uuesti.</value>
+  </data>
+  <data name="Main_ExportNothing" xml:space="preserve">
+    <value>Eksportimiseks pole veel ühtegi rulli.</value>
+  </data>
+  <data name="Main_ExportShareTitle" xml:space="preserve">
+    <value>Ekspordi rullid</value>
+  </data>
+  <data name="Main_ExportFailed" xml:space="preserve">
+    <value>Eksport ebaõnnestus. Vaata logisid.</value>
+  </data>
+  <data name="Main_ImportPickerTitle" xml:space="preserve">
+    <value>Impordi rullide CSV</value>
+  </data>
+  <data name="Main_ImportNothing" xml:space="preserve">
+    <value>Failist {0} ei imporditud ühtegi rulli. {1}</value>
+  </data>
+  <data name="Main_Imported" xml:space="preserve">
+    <value>Imporditi {0} uut ja {1} olemasolevat rulli.</value>
+  </data>
+  <data name="Main_ImportRowsSkipped" xml:space="preserve">
+    <value>{0} rida jäeti vahele, vaata logisid.</value>
+  </data>
+  <data name="Main_ImportFailed" xml:space="preserve">
+    <value>Import ebaõnnestus. Vaata logisid.</value>
+  </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Seaded</value>
+  </data>
+  <data name="Settings_Subtitle" xml:space="preserve">
+    <value>Muudatused salvestatakse kohe.</value>
+  </data>
+  <data name="Settings_InventoryBackend" xml:space="preserve">
+    <value>Inventari taustasüsteem</value>
+  </data>
+  <data name="Settings_BackendBambuddyDescription" xml:space="preserve">
+    <value>Loetud rullid lisatakse sinu Bambuddy inventari või uuendatakse seal.</value>
+  </data>
+  <data name="Settings_BackendSpoolmanDescription" xml:space="preserve">
+    <value>Loetud rullid lisatakse sinu Spoolmani serverisse või uuendatakse seal.</value>
+  </data>
+  <data name="Settings_BackendNoneDescription" xml:space="preserve">
+    <value>Inventariserverisse ei saadeta midagi ja rakendus töötab ka võrguühenduseta. Loetud rullid kuvatakse ja neid saab eksportida CSV-faili — seadmesse salvestatuna ka muuta.</value>
+  </data>
+  <data name="Settings_Connection" xml:space="preserve">
+    <value>Ühendus</value>
+  </data>
+  <data name="Settings_ServerUrl" xml:space="preserve">
+    <value>Serveri URL</value>
+  </data>
+  <data name="Settings_ScanQr" xml:space="preserve">
+    <value>Skanni QR</value>
+  </data>
+  <data name="Settings_BambuddyApiKey" xml:space="preserve">
+    <value>Bambuddy API-võti</value>
+  </data>
+  <data name="Settings_Testing" xml:space="preserve">
+    <value>Testin …</value>
+  </data>
+  <data name="Settings_TestUrl" xml:space="preserve">
+    <value>Testi URL-i ({0})</value>
+  </data>
+  <data name="Settings_TextSize" xml:space="preserve">
+    <value>Teksti suurus</value>
+  </data>
+  <data name="Settings_TextSizeDescription" xml:space="preserve">
+    <value>Muudab teksti kõigil lehtedel suuremaks. Muudatus on kohe näha.</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Keel</value>
+  </data>
+  <data name="Settings_LanguageSystemDefault" xml:space="preserve">
+    <value>Süsteemi vaikimisi</value>
+  </data>
+  <data name="Settings_LanguageDescription" xml:space="preserve">
+    <value>Süsteemi vaikimisi järgib telefoni keelt.</value>
+  </data>
+  <data name="Settings_Scanning" xml:space="preserve">
+    <value>Skannimine</value>
+  </data>
+  <data name="Settings_UploadTitle" xml:space="preserve">
+    <value>Osale NFC-andmete üleslaadimises</value>
+  </data>
+  <data name="Settings_UploadDescription" xml:space="preserve">
+    <value>Laadib siltide täielikud andmed üles avalikku uurimisandmete kogusse.</value>
+  </data>
+  <data name="Settings_UploadInfo" xml:space="preserve">
+    <value>NFC-andmete üleslaadimisest</value>
+  </data>
+  <data name="Settings_StoreLocallyTitle" xml:space="preserve">
+    <value>Salvesta rullid seadmesse</value>
+  </data>
+  <data name="Settings_StoreLocallyDescription" xml:space="preserve">
+    <value>Hoiab loetud rulle selles seadmes ka rakenduse taaskäivitamisel, et neid saaks muuta, loetleda, eksportida ja importida. Väljalülitatuna loetud rullid ainult kuvatakse ja eksporditakse ainult selle seansi skaneeringud.</value>
+  </data>
+  <data name="Settings_UnknownFilamentTitle" xml:space="preserve">
+    <value>Impordi tundmatu filament</value>
+  </data>
+  <data name="Settings_UnknownFilamentDescription" xml:space="preserve">
+    <value>Lisab rullid, millele filamendikataloogis vastet pole, tundmatu filamendina, selle asemel et need tagasi lükata.</value>
+  </data>
+  <data name="Settings_ShowLogsTitle" xml:space="preserve">
+    <value>Näita logisid avalehel</value>
+  </data>
+  <data name="Settings_ShowKeyboardTitle" xml:space="preserve">
+    <value>Näita rulli lugemisel klaviatuuri</value>
+  </data>
+  <data name="Settings_ShowKeyboardDescription" xml:space="preserve">
+    <value>Rulli lugemisel liigub fookus kaaluväljale, et saaksid kaalu kohe sisestada.</value>
+  </data>
+  <data name="Settings_OverrideLocationDescription" xml:space="preserve">
+    <value>Juba tuntud rull viiakse lugemisel allpool määratud vaikimisi asukohta.</value>
+  </data>
+  <data name="Settings_Defaults" xml:space="preserve">
+    <value>Loetud rullide vaikeväärtused</value>
+  </data>
+  <data name="Settings_RefreshLocations" xml:space="preserve">
+    <value>Värskenda asukohti</value>
+  </data>
+  <data name="Settings_BackToScanner" xml:space="preserve">
+    <value>Tagasi skannerisse</value>
+  </data>
+  <data name="Settings_SetSpoolmanUrlFirst" xml:space="preserve">
+    <value>Sisesta esmalt Spoolmani URL</value>
+  </data>
+  <data name="Settings_LocationsRefreshed" xml:space="preserve">
+    <value>Asukohad värskendatud</value>
+  </data>
+  <data name="Settings_LocationsRefreshFailed" xml:space="preserve">
+    <value>Asukohtade värskendamine ebaõnnestus</value>
+  </data>
+  <data name="Settings_InvalidUrl" xml:space="preserve">
+    <value>Vigane URL</value>
+  </data>
+  <data name="Settings_SpoolmanUrlEmpty" xml:space="preserve">
+    <value>Spoolmani URL on tühi</value>
+  </data>
+  <data name="Settings_BambuddyUrlEmpty" xml:space="preserve">
+    <value>Bambuddy URL on tühi</value>
+  </data>
+  <data name="Settings_ConnectionSuccessful" xml:space="preserve">
+    <value>Ühendus õnnestus</value>
+  </data>
+  <data name="Settings_ConnectionFailed" xml:space="preserve">
+    <value>Ühendus ebaõnnestus: {0}</value>
+  </data>
+  <data name="Settings_SpoolmanTimeout" xml:space="preserve">
+    <value>Ühendus aegus — kontrolli URL-i ja veendu, et Spoolman töötab</value>
+  </data>
+  <data name="Settings_SpoolmanUnreachable" xml:space="preserve">
+    <value>Spoolmaniga ei saanud ühendust — kontrolli URL-i ja võrguühendust</value>
+  </data>
+  <data name="Settings_InvalidUrlFormat" xml:space="preserve">
+    <value>Vigane URL-i vorming</value>
+  </data>
+  <data name="Settings_ServerUrlRequired" xml:space="preserve">
+    <value>Serveri URL on kohustuslik.</value>
+  </data>
+  <data name="Settings_ServerUrlInvalid" xml:space="preserve">
+    <value>Vigane URL, peab algama http:// või https://</value>
+  </data>
+  <data name="Settings_ApiKeyRequired" xml:space="preserve">
+    <value>API-võti on kohustuslik.</value>
+  </data>
+  <data name="Spool_Weight" xml:space="preserve">
+    <value>Kaal (g)</value>
+  </data>
+  <data name="Spool_EmptyWeight" xml:space="preserve">
+    <value>Tühja rulli kaal (g)</value>
+  </data>
+  <data name="Spool_Price" xml:space="preserve">
+    <value>Hind</value>
+  </data>
+  <data name="Spool_BuyDate" xml:space="preserve">
+    <value>Ostukuupäev</value>
+  </data>
+  <data name="Spool_LotNr" xml:space="preserve">
+    <value>Partii nr</value>
+  </data>
+  <data name="Spool_Location" xml:space="preserve">
+    <value>Asukoht</value>
+  </data>
+  <data name="Spool_SaveChanges" xml:space="preserve">
+    <value>Salvesta muudatused</value>
+  </data>
+  <data name="Spool_WeightNegative" xml:space="preserve">
+    <value>Kaal ei saa olla negatiivne.</value>
+  </data>
+  <data name="Spool_EmptyWeightNegative" xml:space="preserve">
+    <value>Tühja rulli kaal ei saa olla negatiivne.</value>
+  </data>
+  <data name="Spool_PriceNegative" xml:space="preserve">
+    <value>Hind ei saa olla negatiivne.</value>
+  </data>
+  <data name="Spool_NotInCatalog" xml:space="preserve">
+    <value>Filamendikataloogist ei leitud — kuvatakse ainult sildi andmed.</value>
+  </data>
+  <data name="Spool_NotFoundTitle" xml:space="preserve">
+    <value>Rulli ei leitud</value>
+  </data>
+  <data name="Spool_NotFoundMessage" xml:space="preserve">
+    <value>Seda rulli pole enam selles seadmes salvestatud.</value>
+  </data>
+  <data name="Spool_LastScanned" xml:space="preserve">
+    <value>Viimati skannitud {0}</value>
+  </data>
+  <data name="Spool_Delete" xml:space="preserve">
+    <value>Kustuta rull</value>
+  </data>
+  <data name="Spool_DeleteMessage" xml:space="preserve">
+    <value>Kas kustutada {0} sellest seadmest?</value>
+  </data>
+  <data name="Spool_Deleted" xml:space="preserve">
+    <value>Rull kustutatud</value>
+  </data>
+  <data name="Spool_NoLongerStored" xml:space="preserve">
+    <value>Seda rulli pole enam salvestatud.</value>
+  </data>
+  <data name="Spool_Saved" xml:space="preserve">
+    <value>Rull salvestatud</value>
+  </data>
+  <data name="Spool_SaveFailed" xml:space="preserve">
+    <value>Rulli salvestamine ebaõnnestus. Vaata logisid.</value>
+  </data>
+  <data name="Spools_Title" xml:space="preserve">
+    <value>Salvestatud rullid</value>
+  </data>
+  <data name="Spools_DeleteAll" xml:space="preserve">
+    <value>Kustuta kõik</value>
+  </data>
+  <data name="Spools_Search" xml:space="preserve">
+    <value>Otsi nime või silti</value>
+  </data>
+  <data name="Spools_AllLocations" xml:space="preserve">
+    <value>Kõik asukohad</value>
+  </data>
+  <data name="Spools_Empty" xml:space="preserve">
+    <value>Salvestatud rulle veel pole. Lisamiseks skanni rull.</value>
+  </data>
+  <data name="Spools_NoMatch" xml:space="preserve">
+    <value>Filtrile ei vasta ükski rull.</value>
+  </data>
+  <data name="Spools_ClearFilter" xml:space="preserve">
+    <value>Tühjenda filter</value>
+  </data>
+  <data name="Spools_DeleteSpool" xml:space="preserve">
+    <value>Kustuta {0}</value>
+  </data>
+  <data name="Spools_DeleteAllTitle" xml:space="preserve">
+    <value>Kustuta kõik rullid</value>
+  </data>
+  <data name="Spools_DeleteAllMessage" xml:space="preserve">
+    <value>Kas kustutada sellest seadmest kõik {0} salvestatud rulli? Kui soovid neid alles hoida, ekspordi need enne CSV-faili.</value>
+  </data>
+  <data name="Spools_FilamentCountOne" xml:space="preserve">
+    <value>{0} filament</value>
+  </data>
+  <data name="Spools_FilamentCountMany" xml:space="preserve">
+    <value>{0} filamenti</value>
+  </data>
+  <data name="Spools_SpoolCountOne" xml:space="preserve">
+    <value>{0} rull</value>
+  </data>
+  <data name="Spools_SpoolCountMany" xml:space="preserve">
+    <value>{0} rulli</value>
+  </data>
+  <data name="Spools_FilteredCount" xml:space="preserve">
+    <value>{0}/{1} rulli</value>
+  </data>
+  <data name="Spools_UnknownFilament" xml:space="preserve">
+    <value>Tundmatu filament</value>
+  </data>
+  <data name="Logs_Title" xml:space="preserve">
+    <value>Logid</value>
+  </data>
+  <data name="Logs_Clear" xml:space="preserve">
+    <value>Tühjenda logid</value>
+  </data>
+  <data name="Logs_Email" xml:space="preserve">
+    <value>Saada logid e-postiga</value>
+  </data>
+  <data name="Logs_Empty" xml:space="preserve">
+    <value>Logisõnumeid veel pole.</value>
+  </data>
+  <data name="Logs_CountOne" xml:space="preserve">
+    <value>{0} sõnum, uusimad eespool</value>
+  </data>
+  <data name="Logs_CountMany" xml:space="preserve">
+    <value>{0} sõnumit, uusimad eespool</value>
+  </data>
+  <data name="Consent_Title" xml:space="preserve">
+    <value>Uurimisandmete jagamine</value>
+  </data>
+  <data name="Consent_Intro" xml:space="preserve">
+    <value>Aita parandada Bambu Labi filamentide uurimist, laadides NFC-siltide andmed üles kogusse {0}.</value>
+  </data>
+  <data name="Consent_Archive" xml:space="preserve">
+    <value>Üleslaaditud andmed on allalaaditava arhiivina saadaval ka aadressil {0}.</value>
+  </data>
+  <data name="Consent_WhatIsUploaded" xml:space="preserve">
+    <value>Mida üles laaditakse:</value>
+  </data>
+  <data name="Consent_WhatIsUploadedValue" xml:space="preserve">
+    <value>Siltide täielikud NFC-andmed koos võtmetega</value>
+  </data>
+  <data name="Consent_PublicWarning" xml:space="preserve">
+    <value>Üleslaaditud andmed on AVALIKUD ja vabalt kättesaadavad ilma piiranguteta.</value>
+  </data>
+  <data name="Consent_ScanBothSides" xml:space="preserve">
+    <value>Palun skanni rulli mõlemad küljed — igas sildis on unikaalsed andmed.</value>
+  </data>
+  <data name="Consent_DailyLimit" xml:space="preserve">
+    <value>Piirang on 1000 sildi üleslaadimist päevas.</value>
+  </data>
+  <data name="Consent_OptOut" xml:space="preserve">
+    <value>Saad sellest igal ajal seadetes loobuda.</value>
+  </data>
+  <data name="Consent_Decline" xml:space="preserve">
+    <value>Ei, aitäh</value>
+  </data>
+  <data name="Consent_Accept" xml:space="preserve">
+    <value>Osalen</value>
+  </data>
+  <data name="Common_Material" xml:space="preserve">
+    <value>Materjal</value>
+  </data>
+  <data name="Common_Colour" xml:space="preserve">
+    <value>Värv</value>
+  </data>
+  <data name="Common_MaterialRequired" xml:space="preserve">
+    <value>Sisesta materjal, nt PLA.</value>
+  </data>
+  <data name="AddSpool_Title" xml:space="preserve">
+    <value>Lisa rull</value>
+  </data>
+  <data name="AddSpool_Subtitle" xml:space="preserve">
+    <value>Rullile, mille silti ei saa lugeda — fooliumkotis või kahjustatud sildiga.</value>
+  </data>
+  <data name="AddSpool_ConnectFirst" xml:space="preserve">
+    <value>Ühenda esmalt {0}, rull salvestatakse sinna.</value>
+  </data>
+  <data name="AddSpool_StoreLocallyFirst" xml:space="preserve">
+    <value>Rulle saab käsitsi lisada, kui need salvestatakse sellesse seadmesse. Lülita seadetes sisse 'Salvesta rullid seadmesse'.</value>
+  </data>
+  <data name="AddSpool_Search" xml:space="preserve">
+    <value>Otsi materjali, nime või värvi</value>
+  </data>
+  <data name="AddSpool_NoMatch" xml:space="preserve">
+    <value>Otsingule ei vasta ükski filament. Pole kataloogis? Lisa see allpool tundmatuna.</value>
+  </data>
+  <data name="AddSpool_ShowingCount" xml:space="preserve">
+    <value>Kuvatakse {0} filamenti {1}-st. Kitsendamiseks kirjuta nimest rohkem.</value>
+  </data>
+  <data name="AddSpool_NotInList" xml:space="preserve">
+    <value>Pole nimekirjas?</value>
+  </data>
+  <data name="AddSpool_UnknownHint" xml:space="preserve">
+    <value>Lisa see hoopis sildil oleva materjali, värvi ja kaaluga.</value>
+  </data>
+  <data name="AddSpool_NotInCatalog" xml:space="preserve">
+    <value>Pole filamendikataloogis</value>
+  </data>
+  <data name="AddSpool_Change" xml:space="preserve">
+    <value>Muuda</value>
+  </data>
+  <data name="AddSpool_MaterialPlaceholder" xml:space="preserve">
+    <value>nt PLA</value>
+  </data>
+  <data name="AddSpool_LabelWeight" xml:space="preserve">
+    <value>Sildi kaal (g)</value>
+  </data>
+  <data name="AddSpool_LabelWeightRequired" xml:space="preserve">
+    <value>Sisesta sildile trükitud filamendi kaal.</value>
+  </data>
+  <data name="AddSpool_Translucent" xml:space="preserve">
+    <value>Poolläbipaistev</value>
+  </data>
+  <data name="AddSpool_Colours" xml:space="preserve">
+    <value>{0} värvi</value>
+  </data>
+  <data name="AddSpool_Failed" xml:space="preserve">
+    <value>Rulli ei õnnestunud lisada. Vaata logisid.</value>
+  </data>
+  <data name="AddSpool_Added" xml:space="preserve">
+    <value>Rull {0} lisatud</value>
+  </data>
+  <data name="Main_AddSpoolHint" xml:space="preserve">
+    <value>Silti ei saa lugeda, nt on rull veel fooliumkotis? Vali 'Lisa rull' abil filament käsitsi.</value>
+  </data>
+  <data name="Main_SendNow" xml:space="preserve">
+    <value>Saada kohe</value>
+  </data>
+  <data name="Main_ErrorApiUnreachableQueued" xml:space="preserve">
+    <value>Inventariserver pole kättesaadav. Loetud rullid pannakse ootele ja saadetakse, kui server on tagasi.</value>
+  </data>
+  <data name="Pending_Title" xml:space="preserve">
+    <value>Ootel skaneeringud</value>
+  </data>
+  <data name="Pending_SendAll" xml:space="preserve">
+    <value>Saada kõik</value>
+  </data>
+  <data name="Pending_DiscardAll" xml:space="preserve">
+    <value>Loobu kõigist</value>
+  </data>
+  <data name="Pending_Empty" xml:space="preserve">
+    <value>Ootel skaneeringuid pole. Rull, mis loetakse ajal, kui inventariserver pole kättesaadav, hoitakse siin ja saadetakse, kui server on tagasi.</value>
+  </data>
+  <data name="Pending_Rejected" xml:space="preserve">
+    <value>Tagasi lükatud: {0}</value>
+  </data>
+  <data name="Pending_Send" xml:space="preserve">
+    <value>Saada {0}</value>
+  </data>
+  <data name="Pending_Discard" xml:space="preserve">
+    <value>Loobu: {0}</value>
+  </data>
+  <data name="Pending_Footer" xml:space="preserve">
+    <value>Ootel skaneeringud saadetakse automaatselt, vanimad enne, niipea kui inventariserver on taas kättesaadav. Tagasi lükatud skaneering (nt sobivat filamenti pole) jääb siia, kuni saadad selle uuesti või loobud sellest.</value>
+  </data>
+  <data name="Pending_DiscardAllTitle" xml:space="preserve">
+    <value>Loobu ootel skaneeringutest</value>
+  </data>
+  <data name="Pending_DiscardAllMessage" xml:space="preserve">
+    <value>Kas loobuda kõigist {0} ootel skaneeringust? Neid ei saadeta inventariserverisse.</value>
+  </data>
+  <data name="Pending_CountOne" xml:space="preserve">
+    <value>{0} skaneering ootel</value>
+  </data>
+  <data name="Pending_CountMany" xml:space="preserve">
+    <value>{0} skaneeringut ootel</value>
+  </data>
+  <data name="Pending_CountRejected" xml:space="preserve">
+    <value>{0} tagasi lükatud</value>
+  </data>
+  <data name="Pending_ForBackend" xml:space="preserve">
+    <value>Serverile {0}</value>
+  </data>
+  <data name="Queue_LoadFailed" xml:space="preserve">
+    <value>Ootel skaneeringuid ei õnnestunud lugeda. Vaata logisid.</value>
+  </data>
+  <data name="Queue_NotReady" xml:space="preserve">
+    <value>{0} pole veel valmis. Rull pannakse ootele ja saadetakse, kui see on valmis.</value>
+  </data>
+  <data name="Queue_Unreachable" xml:space="preserve">
+    <value>{0} pole kättesaadav. Rull pannakse ootele ja saadetakse, kui see on tagasi.</value>
+  </data>
+  <data name="Queue_AlreadySending" xml:space="preserve">
+    <value>Ootel skaneeringuid juba saadetakse.</value>
+  </data>
+  <data name="Queue_SentOne" xml:space="preserve">
+    <value>Saadeti 1 ootel skaneering serverisse {0}.</value>
+  </data>
+  <data name="Queue_SentMany" xml:space="preserve">
+    <value>Saadeti {0} ootel skaneeringut serverisse {1}.</value>
+  </data>
+  <data name="Queue_RejectedOne" xml:space="preserve">
+    <value>{0} lükkas tagasi 1 ootel skaneeringu. Vaata 'Ootel skaneeringud'.</value>
+  </data>
+  <data name="Queue_RejectedMany" xml:space="preserve">
+    <value>{0} lükkas tagasi {1} ootel skaneeringut. Vaata 'Ootel skaneeringud'.</value>
+  </data>
+  <data name="Queue_StillUnreachable" xml:space="preserve">
+    <value>{0} pole endiselt kättesaadav. Skaneeringud jäävad ootele.</value>
+  </data>
+  <data name="Queue_SendFailed" xml:space="preserve">
+    <value>Ootel skaneeringute saatmine ebaõnnestus. Vaata logisid.</value>
+  </data>
+  <data name="Queue_SentAutomatically" xml:space="preserve">
+    <value>Saadetakse automaatselt, kui {0} on taas kättesaadav.</value>
+  </data>
+  <data name="Queue_RejectedHintOne" xml:space="preserve">
+    <value>1 lükati tagasi, ava nimekiri, et see uuesti saata või sellest loobuda.</value>
+  </data>
+  <data name="Queue_RejectedHintMany" xml:space="preserve">
+    <value>{0} lükati tagasi, ava nimekiri, et need uuesti saata või neist loobuda.</value>
+  </data>
+  <data name="Queue_OtherBackendOne" xml:space="preserve">
+    <value>1 on teise serveri jaoks.</value>
+  </data>
+  <data name="Queue_OtherBackendMany" xml:space="preserve">
+    <value>{0} on teise serveri jaoks.</value>
+  </data>
+  <data name="Send_BusyScan" xml:space="preserve">
+    <value>Salvestatud rulle saadetakse. Skanni uuesti, kui see on lõppenud.</value>
+  </data>
+  <data name="Send_BusyAdd" xml:space="preserve">
+    <value>Salvestatud rulle saadetakse. Lisa rull, kui see on lõppenud.</value>
+  </data>
+  <data name="Send_SelectServer" xml:space="preserve">
+    <value>Salvestatud rullide saatmiseks vali seadetes Spoolman või Bambuddy.</value>
+  </data>
+  <data name="Send_CantReach" xml:space="preserve">
+    <value>{0} pole kättesaadav. Kontrolli selle URL-i seadetes ja proovi uuesti.</value>
+  </data>
+  <data name="Send_Failed" xml:space="preserve">
+    <value>Salvestatud rullide saatmine ebaõnnestus. Vaata logisid.</value>
+  </data>
+  <data name="Settings_StoredSpoolsOne" xml:space="preserve">
+    <value>Selles seadmes on veel 1 salvestatud rull. Ava menüüst Rullid, et see saata serverisse {0}.</value>
+  </data>
+  <data name="Settings_StoredSpoolsMany" xml:space="preserve">
+    <value>Selles seadmes on veel {0} salvestatud rulli. Ava menüüst Rullid, et need saata serverisse {1}.</value>
+  </data>
+  <data name="Spools_SendTo" xml:space="preserve">
+    <value>Saada serverisse {0}</value>
+  </data>
+  <data name="Spools_SendCountTo" xml:space="preserve">
+    <value>Saada {0} serverisse {1}</value>
+  </data>
+  <data name="Spools_Send" xml:space="preserve">
+    <value>Saada</value>
+  </data>
+  <data name="Spools_SendMessageOne" xml:space="preserve">
+    <value>Kas saata 1 rull serverisse {0}? Rull, mis serveris {0} juba olemas on (sama silt), uuendatakse siin salvestatud väärtustega, muidu lisatakse. Rullid jäävad sellesse seadmesse, märgituna saadetuks.</value>
+  </data>
+  <data name="Spools_SendMessageMany" xml:space="preserve">
+    <value>Kas saata {0} rulli serverisse {1}? Rull, mis serveris {1} juba olemas on (sama silt), uuendatakse siin salvestatud väärtustega, muidu lisatakse. Rullid jäävad sellesse seadmesse, märgituna saadetuks.</value>
+  </data>
+  <data name="Spools_EmptyOnDevice" xml:space="preserve">
+    <value>Selles seadmes pole salvestatud rulle.</value>
+  </data>
+  <data name="Spools_Sent" xml:space="preserve">
+    <value>Saadetud</value>
+  </data>
+  <data name="Spools_Sending" xml:space="preserve">
+    <value>Saadan …</value>
+  </data>
+  <data name="Spools_SentTo" xml:space="preserve">
+    <value>Saadetud serverisse {0}</value>
+  </data>
+  <data name="Spools_NotSentTo" xml:space="preserve">
+    <value>Pole saadetud serverisse {0}</value>
+  </data>
+  <data name="Spools_FilterAll" xml:space="preserve">
+    <value>Kõik rullid</value>
+  </data>
+  <data name="Spools_SendBanner" xml:space="preserve">
+    <value>Skannitud rullid lähevad nüüd serverisse {0}. Need rullid salvestati varem sellesse seadmesse; saada need, et need sinna lisada. Rull, mis serveris {0} juba olemas on, uuendatakse, mitte ei lisata topelt, ja iga rull jääb siia, kuni selle kustutad.</value>
+  </data>
+  <data name="Spools_SendingTo" xml:space="preserve">
+    <value>Saadan serverisse {0}</value>
+  </data>
+  <data name="Spools_Server" xml:space="preserve">
+    <value>server</value>
+  </data>
+  <data name="Spools_Stop" xml:space="preserve">
+    <value>Peata</value>
+  </data>
+  <data name="Spools_Stopping" xml:space="preserve">
+    <value>Peatan …</value>
+  </data>
+  <data name="Spools_SendConnecting" xml:space="preserve">
+    <value>Ühendan …</value>
+  </data>
+  <data name="Spools_SendProgress" xml:space="preserve">
+    <value>{0}/{1} saadetud</value>
+  </data>
+  <data name="Spools_SendProgressCurrent" xml:space="preserve">
+    <value>{0}/{1} saadetud · {2}</value>
+  </data>
+  <data name="Spools_SendFailuresHint" xml:space="preserve">
+    <value>Ebaõnnestunud rullid jäetakse muutmata. Paranda need (või server) ja saada uuesti.</value>
+  </data>
+  <data name="Spools_SendKeptHint" xml:space="preserve">
+    <value>Rullid jäävad sellesse seadmesse, märgituna saadetuks. Kustuta need siit, kui neid enam vaja pole.</value>
+  </data>
+  <data name="Spool_AddedManuallyAt" xml:space="preserve">
+    <value>Käsitsi lisatud {0}</value>
+  </data>
+  <data name="Spool_SentTo" xml:space="preserve">
+    <value>Saadetud serverisse {0} {1}</value>
+  </data>
+  <data name="WriteTag_Title" xml:space="preserve">
+    <value>Kirjuta silt</value>
+  </data>
+  <data name="WriteTag_Subtitle" xml:space="preserve">
+    <value>Lisa OpenSpooli silt rullile, millel silti pole</value>
+  </data>
+  <data name="WriteTag_CopyLastRead" xml:space="preserve">
+    <value>Kopeeri viimati loetud rull</value>
+  </data>
+  <data name="WriteTag_Brand" xml:space="preserve">
+    <value>Kaubamärk</value>
+  </data>
+  <data name="WriteTag_BrandHelp" xml:space="preserve">
+    <value>Nii, nagu slicer / printer seda tunneb, nt Generic, Bambu Lab, Polymaker.</value>
+  </data>
+  <data name="WriteTag_MinTemperature" xml:space="preserve">
+    <value>Min düüsi temperatuur (°C)</value>
+  </data>
+  <data name="WriteTag_MaxTemperature" xml:space="preserve">
+    <value>Max düüsi temperatuur (°C)</value>
+  </data>
+  <data name="WriteTag_Waiting" xml:space="preserve">
+    <value>Hoia tühja NTAG215 või NTAG216 silti telefoni vastas ...</value>
+  </data>
+  <data name="WriteTag_Footer" xml:space="preserve">
+    <value>Sildile kirjutatakse üks OpenSpooli kirje (protokoll 1.0: tüüp, värv, kaubamärk, düüsi temperatuurid). Kirjutatakse ainult tühja või OpenSpooli silti; muid andmeid sisaldav silt jäetakse puutumata. Rullide lugemine on peatatud, kuni silt on kirjutatud või katkestad.</value>
+  </data>
+  <data name="WriteTag_TemperatureRange" xml:space="preserve">
+    <value>Temperatuurid peavad olema vahemikus 0 kuni 500 °C.</value>
+  </data>
+  <data name="WriteTag_TemperatureOrder" xml:space="preserve">
+    <value>Miinimum on suurem kui maksimum.</value>
+  </data>
+  <data name="WriteTag_CantWrite" xml:space="preserve">
+    <value>See seade ei saa NFC-silte kirjutada.</value>
+  </data>
+  <data name="WriteTag_NoNdef" xml:space="preserve">
+    <value>Sellele sildile ei mahu OpenSpooli kirje. Kasuta tühja NTAG215 või NTAG216 silti.</value>
+  </data>
+  <data name="WriteTag_ReadIncomplete" xml:space="preserve">
+    <value>Silti ei õnnestunud täielikult lugeda, seda ei kirjutatud. Hoia seda uuesti telefoni vastas.</value>
+  </data>
+  <data name="WriteTag_OtherData" xml:space="preserve">
+    <value>Sellel sildil on juba muud andmed (nt TigerTag), seda ei kirjutatud üle. Kasuta tühja NTAG215 või NTAG216 silti.</value>
+  </data>
+  <data name="WriteTag_ReadOnly" xml:space="preserve">
+    <value>See silt on ainult loetav.</value>
+  </data>
+  <data name="WriteTag_Written" xml:space="preserve">
+    <value>OpenSpooli silt kirjutatud: {0}</value>
+  </data>
+  <data name="WriteTag_Failed" xml:space="preserve">
+    <value>Sildi kirjutamine ebaõnnestus: {0}</value>
+  </data>
+  <data name="Scale_Title" xml:space="preserve">
+    <value>Bluetooth-kaal</value>
+  </data>
+  <data name="Scale_EnableTitle" xml:space="preserve">
+    <value>Kaalu Bluetooth-kaaluga</value>
+  </data>
+  <data name="Scale_EnableDescription" xml:space="preserve">
+    <value>Täidab loetud rulli kaalu kaalult: pane rull kaalule ja hoia siis selle silti telefoni vastas. Kaalu saab endiselt muuta.</value>
+  </data>
+  <data name="Scale_Unnamed" xml:space="preserve">
+    <value>Nimetu kaal</value>
+  </data>
+  <data name="Scale_Tare" xml:space="preserve">
+    <value>Nulli</value>
+  </data>
+  <data name="Scale_Forget" xml:space="preserve">
+    <value>Unusta kaal</value>
+  </data>
+  <data name="Scale_Searching" xml:space="preserve">
+    <value>Otsin …</value>
+  </data>
+  <data name="Scale_Find" xml:space="preserve">
+    <value>Leia kaal</value>
+  </data>
+  <data name="Scale_FindAnother" xml:space="preserve">
+    <value>Leia teine kaal</value>
+  </data>
+  <data name="Scale_Signal" xml:space="preserve">
+    <value>Signaal {0} dBm</value>
+  </data>
+  <data name="Scale_Use" xml:space="preserve">
+    <value>Kasuta</value>
+  </data>
+  <data name="Scale_Supported" xml:space="preserve">
+    <value>Töötab kaaludega, mis pakuvad standardset Bluetooth Weight Scale Service'it, ja isetehtud kaaludega, mis kasutavad BambuMani kaaluprotokolli (vt projekti docs/scale-protocol.md). Enamik köögikaale kasutab tootja enda protokolli ja neid ei leita.</value>
+  </data>
+  <data name="Scale_PermissionSettings" xml:space="preserve">
+    <value>Kaal vajab Bluetoothi luba ("Lähedalasuvad seadmed"). Luba see rakenduse süsteemiseadetes.</value>
+  </data>
+  <data name="Scale_Permission" xml:space="preserve">
+    <value>Kaal vajab Bluetoothi luba ("Lähedalasuvad seadmed").</value>
+  </data>
+  <data name="Scale_TurnOnBluetooth" xml:space="preserve">
+    <value>Kaalu leidmiseks lülita Bluetooth sisse.</value>
+  </data>
+  <data name="Scale_NoneFound" xml:space="preserve">
+    <value>Kaalu ei leitud. Lülita see sisse, hoia lähedal ja proovi uuesti.</value>
+  </data>
+  <data name="Scale_Zeroed" xml:space="preserve">
+    <value>Kaal nullitud</value>
+  </data>
+  <data name="Scale_ZeroFailed" xml:space="preserve">
+    <value>Kaalu ei õnnestunud nullida</value>
+  </data>
+  <data name="Scale_ConnectedProtocol" xml:space="preserve">
+    <value>Ühendatud · {0}</value>
+  </data>
+  <data name="Scale_WeightFromScale" xml:space="preserve">
+    <value>Kaalult · {0} g filamenti</value>
+  </data>
+  <data name="Scale_WeightSettling" xml:space="preserve">
+    <value>Kaalult, stabiliseerub … · {0} g filamenti</value>
+  </data>
+  <data name="Scale_PutOnScale" xml:space="preserve">
+    <value>Kaalu täitmiseks pane rull kaalule</value>
+  </data>
+  <data name="Scale_State" xml:space="preserve">
+    <value>Kaal: {0}</value>
+  </data>
+</root>

@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -43,9 +44,9 @@ namespace BambuMan.Components.Common
         /// <summary>Checks the card before it is written back; each failing field gets its message.</summary>
         public bool Validate()
         {
-            WeightError = Weight < 0 ? "Weight can't be negative." : null;
-            EmptyWeightError = EmptyWeight < 0 ? "Empty weight can't be negative." : null;
-            PriceError = Price < 0 ? "Price can't be negative." : null;
+            WeightError = Weight < 0 ? AppResources.Spool_WeightNegative : null;
+            EmptyWeightError = EmptyWeight < 0 ? AppResources.Spool_EmptyWeightNegative : null;
+            PriceError = Price < 0 ? AppResources.Spool_PriceNegative : null;
 
             return WeightError == null && EmptyWeightError == null && PriceError == null;
         }

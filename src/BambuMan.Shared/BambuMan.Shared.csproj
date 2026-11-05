@@ -4,6 +4,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<NeutralLanguage>en</NeutralLanguage>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -14,6 +15,12 @@
 	<ItemGroup>
 	  <EmbeddedResource Include="Resources\filaments.json" />
 	  <EmbeddedResource Include="Resources\tigertag.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Messages the managers show and the spool info labels. The SharedResources class is generated at build time from
+		     the English resx; SharedResources.<culture>.resx files beside it become satellite assemblies. -->
+		<EmbeddedResource Update="Resources\Strings\SharedResources.resx" StronglyTypedLanguage="CSharp" StronglyTypedNamespace="BambuMan.Shared.Resources.Strings" StronglyTypedClassName="SharedResources" StronglyTypedFileName="$(IntermediateOutputPath)SharedResources.Designer.cs" PublicClass="true" />
 	</ItemGroup>
 
 	<ItemGroup>

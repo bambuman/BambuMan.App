@@ -1,7 +1,9 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Resolvers;
 using BambuMan.Shared.Scale;
+using BambuMan.Shared.Resources.Strings;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -34,6 +36,7 @@ public partial class SettingsPage
     public const string KeyScaleEnabled = "scale_enabled";
     public const string KeyScaleDeviceId = "scale_device_id";
     public const string KeyScaleDeviceName = "scale_device_name";
+    public const string KeyLanguage = "language";
 
     /// <summary>Raised after a setting is stored, for parts of the ui outside this page that depend on it (the menu).</summary>
     public static event Action? SettingsChanged;
@@ -119,6 +122,43 @@ public partial class SettingsPage
         else await scale.StartAsync(id.Value, Preferences.Default.Get(KeyScaleDeviceName, string.Empty) is { Length: > 0 } name ? name : null);
     }
 
+    /// <summary>The saved ui language; the device language until one is chosen.</summary>
+    public static AppLanguage GetLanguage() =>
+        Enum.TryParse<AppLanguage>(Preferences.Default.Get(KeyLanguage, string.Empty), out var language) ? language : AppLanguage.SystemDefault;
+
+    /// <summary>
+    /// Shows the ui in <paramref name="language"/> from the next string read on, on every thread. Sets the resource
+    /// classes' culture rather than <see cref="CultureInfo.CurrentUICulture"/>: that one flows with the async context, so
+    /// a change made in an event handler would be undone when the handler returns. Only the language changes — number
+    /// and date formats keep following the device.
+    /// </summary>
+    public static void ApplyLanguage(AppLanguage language)
+    {
+        var cultureName = language.CultureName();
+        var culture = cultureName == null ? null : CultureInfo.GetCultureInfo(cultureName);
+
+        // Null looks strings up in the device language.
+        AppResources.Culture = culture;
+        SharedResources.Culture = culture;
+
+        // For anything else that reads the ui culture; null goes back to the device language too.
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+    }
+
+    /// <summary>
+    /// The culture name of the language the strings are actually shown in, e.g. <c>et</c> for a phone set to et-EE.
+    /// <see cref="AppLanguage.SystemDefault"/> resolves to the device language when the app has it, English otherwise.
+    /// </summary>
+    public static string ShownCultureName()
+    {
+        var translated = Enum.GetValues<AppLanguage>().Select(x => x.CultureName()).OfType<string>().ToHashSet();
+
+        for (var culture = AppResources.Culture ?? CultureInfo.CurrentUICulture; !Equals(culture, CultureInfo.InvariantCulture); culture = culture.Parent)
+            if (translated.Contains(culture.Name)) return culture.Name;
+
+        return AppLanguage.English.CultureName()!;
+    }
+
     protected override void OnInitialized()
     {
         try
@@ -128,6 +168,7 @@ public partial class SettingsPage
 
             Vm.InventoryBackend = GetInventoryBackend();
             Vm.TextScale = GetTextScale();
+            Vm.Language = GetLanguage();
             Vm.SpoolmanUrl = Preferences.Default.Get(KeySpoolmanUrl, string.Empty);
             Vm.BambuddyUrl = Preferences.Default.Get(KeyBambuddyUrl, string.Empty);
             Vm.BambuddyApiKey = Preferences.Default.Get(KeyBambuddyApiKey, string.Empty);
@@ -240,6 +281,15 @@ public partial class SettingsPage
         SettingsChanged?.Invoke();
     }
 
+    private void SelectLanguage()
+    {
+        Preferences.Default.Set(KeyLanguage, Vm.Language.ToString());
+        ApplyLanguage(Vm.Language);
+
+        // The layout rebuilds every page in the new language, this one included.
+        SettingsChanged?.Invoke();
+    }
+
     private void ClearApiKey() => Set(() => Vm.BambuddyApiKey = null);
 
     #endregion
@@ -300,7 +350,7 @@ public partial class SettingsPage
             if (enabled && !await ScaleService.RequestPermissionsAsync())
             {
                 Vm.ScaleEnabled = false;
-                Toasts.Show("The scale needs the Bluetooth permission (\"Nearby devices\"). Allow it in the app's system settings.", ToastKind.Error, true);
+                Toasts.Show(AppResources.Scale_PermissionSettings, ToastKind.Error, true);
                 return;
             }
 
@@ -339,7 +389,7 @@ public partial class SettingsPage
         {
             if (!await ScaleService.RequestPermissionsAsync())
             {
-                Toasts.Show("The scale needs the Bluetooth permission (\"Nearby devices\").", ToastKind.Error, true);
+                Toasts.Show(AppResources.Scale_Permission, ToastKind.Error, true);
                 return;
             }
 
@@ -357,8 +407,8 @@ public partial class SettingsPage
             }), scaleScan.Token);
 
             // Not scanned while another scan still runs (the switch turned off and on quickly): that one reports its own result.
-            if (!scanned && !ScaleService.IsScanning) Toasts.Show("Turn on Bluetooth to find the scale.", ToastKind.Error, true);
-            else if (scanned && foundScales.Count == 0 && scaleScan is { IsCancellationRequested: false }) Toasts.Show("No scale found. Turn it on, keep it close, and try again.", ToastKind.Error, true);
+            if (!scanned && !ScaleService.IsScanning) Toasts.Show(AppResources.Scale_TurnOnBluetooth, ToastKind.Error, true);
+            else if (scanned && foundScales.Count == 0 && scaleScan is { IsCancellationRequested: false }) Toasts.Show(AppResources.Scale_NoneFound, ToastKind.Error, true);
         }
         catch (Exception e)
         {
@@ -412,8 +462,8 @@ public partial class SettingsPage
 
     private async Task TareScaleAsync()
     {
-        if (await ScaleService.TareAsync()) Toasts.Show("Scale zeroed", ToastKind.Success);
-        else Toasts.Show("Couldn't zero the scale", ToastKind.Error);
+        if (await ScaleService.TareAsync()) Toasts.Show(AppResources.Scale_Zeroed, ToastKind.Success);
+        else Toasts.Show(AppResources.Scale_ZeroFailed, ToastKind.Error);
     }
 
     private string ScaleDot => ScaleService.State switch
@@ -425,7 +475,7 @@ public partial class SettingsPage
     };
 
     private string ScaleStatusText => ScaleService is { State: ScaleConnectionState.Connected, Protocol: { } protocol }
-        ? $"Connected · {protocol.DisplayName()}"
+        ? string.Format(AppResources.Scale_ConnectedProtocol, protocol.DisplayName())
         : ScaleService.State.DisplayName();
 
     #endregion
@@ -507,17 +557,17 @@ public partial class SettingsPage
         {
             if (!EnsureApiHost())
             {
-                Toasts.Show("Set a Spoolman URL first");
+                Toasts.Show(AppResources.Settings_SetSpoolmanUrlFirst);
                 return;
             }
 
             await FetchLocationsAsync();
 
-            Toasts.Show("Locations refreshed", ToastKind.Success);
+            Toasts.Show(AppResources.Settings_LocationsRefreshed, ToastKind.Success);
         }
         catch (Exception)
         {
-            Toasts.Show("Failed to refresh locations", ToastKind.Error);
+            Toasts.Show(AppResources.Settings_LocationsRefreshFailed, ToastKind.Error);
         }
     }
 
@@ -533,7 +583,7 @@ public partial class SettingsPage
         {
             if (!Vm.ValidateServerUrl())
             {
-                Toasts.Show(Vm.ServerUrlError ?? "Invalid URL", ToastKind.Error, true);
+                Toasts.Show(Vm.ServerUrlError ?? AppResources.Settings_InvalidUrl, ToastKind.Error, true);
                 return;
             }
 
@@ -553,7 +603,7 @@ public partial class SettingsPage
             var url = Vm.SpoolmanUrl;
             if (string.IsNullOrWhiteSpace(url))
             {
-                Toasts.Show("Spoolman URL is empty", ToastKind.Error);
+                Toasts.Show(AppResources.Settings_SpoolmanUrlEmpty, ToastKind.Error);
                 return;
             }
 
@@ -562,25 +612,25 @@ public partial class SettingsPage
             var defaultApi = testHost.Services.GetRequiredService<IDefaultApi>();
             var healthResult = await defaultApi.HealthHealthGetAsync();
 
-            if (healthResult.TryOk(out _)) Toasts.Show("Connection successful", ToastKind.Success, true);
-            else Toasts.Show($"Connection failed: {healthResult.RawContent}", ToastKind.Error, true);
+            if (healthResult.TryOk(out _)) Toasts.Show(AppResources.Settings_ConnectionSuccessful, ToastKind.Success, true);
+            else Toasts.Show(string.Format(AppResources.Settings_ConnectionFailed, healthResult.RawContent), ToastKind.Error, true);
         }
         catch (TaskCanceledException)
         {
-            Toasts.Show("Connection timed out — check the URL and ensure Spoolman is running", ToastKind.Error, true);
+            Toasts.Show(AppResources.Settings_SpoolmanTimeout, ToastKind.Error, true);
         }
         catch (HttpRequestException)
         {
-            Toasts.Show("Could not reach Spoolman — check the URL and network connection", ToastKind.Error, true);
+            Toasts.Show(AppResources.Settings_SpoolmanUnreachable, ToastKind.Error, true);
         }
         catch (UriFormatException)
         {
-            Toasts.Show("Invalid URL format", ToastKind.Error, true);
+            Toasts.Show(AppResources.Settings_InvalidUrlFormat, ToastKind.Error, true);
         }
         catch (Exception ex)
         {
             Logger.LogDebug("Test Spoolman URL failed: {Message}", ex.Message);
-            Toasts.Show($"Connection failed: {ex.Message}", ToastKind.Error, true);
+            Toasts.Show(string.Format(AppResources.Settings_ConnectionFailed, ex.Message), ToastKind.Error, true);
         }
     }
 
@@ -591,19 +641,19 @@ public partial class SettingsPage
             var url = Vm.BambuddyUrl;
             if (string.IsNullOrWhiteSpace(url))
             {
-                Toasts.Show("Bambuddy URL is empty", ToastKind.Error);
+                Toasts.Show(AppResources.Settings_BambuddyUrlEmpty, ToastKind.Error);
                 return;
             }
 
             var (ok, error) = await BambuddyManager.TestConnectionAsync(url, Vm.BambuddyApiKey);
 
-            if (ok) Toasts.Show("Connection successful", ToastKind.Success, true);
-            else Toasts.Show($"Connection failed: {error}", ToastKind.Error, true);
+            if (ok) Toasts.Show(AppResources.Settings_ConnectionSuccessful, ToastKind.Success, true);
+            else Toasts.Show(string.Format(AppResources.Settings_ConnectionFailed, error), ToastKind.Error, true);
         }
         catch (Exception ex)
         {
             Logger.LogDebug("Test Bambuddy URL failed: {Message}", ex.Message);
-            Toasts.Show($"Connection failed: {ex.Message}", ToastKind.Error, true);
+            Toasts.Show(string.Format(AppResources.Settings_ConnectionFailed, ex.Message), ToastKind.Error, true);
         }
     }
 

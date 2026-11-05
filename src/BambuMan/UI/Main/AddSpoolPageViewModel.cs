@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Components.Common;
 using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
@@ -95,8 +96,8 @@ namespace BambuMan.UI.Main
             if (Selected != null) return Selected.Spool;
             if (!IsUnknown) return null;
 
-            UnknownMaterialError = string.IsNullOrWhiteSpace(UnknownMaterial) ? "Enter the material, e.g. PLA." : null;
-            UnknownLabelWeightError = UnknownLabelWeight is null or <= 0 ? "Enter the filament weight printed on the label." : null;
+            UnknownMaterialError = string.IsNullOrWhiteSpace(UnknownMaterial) ? AppResources.Common_MaterialRequired : null;
+            UnknownLabelWeightError = UnknownLabelWeight is null or <= 0 ? AppResources.AddSpool_LabelWeightRequired : null;
 
             if (UnknownMaterialError != null || UnknownLabelWeightError != null) return null;
 
@@ -147,8 +148,8 @@ namespace BambuMan.UI.Main
             {
                 $"{filament.Weight.ToString("0", CultureInfo.InvariantCulture)} g",
                 $"{filament.Diameter.ToString("0.00", CultureInfo.InvariantCulture)} mm",
-                filament.Translucent == true ? "Translucent" : null,
-                filament.ColorHexes is { Count: > 1 } ? $"{filament.ColorHexes.Count} colours" : null
+                filament.Translucent == true ? AppResources.AddSpool_Translucent : null,
+                filament.ColorHexes is { Count: > 1 } ? string.Format(AppResources.AddSpool_Colours, filament.ColorHexes.Count) : null
             };
 
             return new ManualFilamentItem(

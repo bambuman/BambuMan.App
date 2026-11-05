@@ -1,11 +1,11 @@
 @page "/pending"
 @inherits ObservingComponentBase
 
-<PageHeader Title="Queued scans" Icon="Lucide.Server">
+<PageHeader Title="@AppResources.Pending_Title" Icon="Lucide.Server">
     <Subtitle>@Vm.CountText</Subtitle>
     <Actions>
-        <button class="btn btn-secondary" disabled="@(!Vm.HasSendable || Queue.IsSending)" @onclick="SendAllAsync"><Blazicon Svg="Lucide.RefreshCw" /> Send all</button>
-        <button class="btn btn-tertiary" disabled="@(Vm.TotalCount == 0)" @onclick="DiscardAllAsync"><Blazicon Svg="Lucide.Trash" /> Discard all</button>
+        <button class="btn btn-secondary" disabled="@(!Vm.HasSendable || Queue.IsSending)" @onclick="SendAllAsync"><Blazicon Svg="Lucide.RefreshCw" /> @AppResources.Pending_SendAll</button>
+        <button class="btn btn-tertiary" disabled="@(Vm.TotalCount == 0)" @onclick="DiscardAllAsync"><Blazicon Svg="Lucide.Trash" /> @AppResources.Pending_DiscardAll</button>
     </Actions>
 </PageHeader>
 
@@ -15,8 +15,8 @@
         @if (Vm.TotalCount == 0)
         {
             <div class="empty">
-                No scans are waiting. A spool read while the inventory server can't be reached is kept here and sent once it's back.
-                <div><a class="btn btn-outline btn-sm" href="">Scanner</a></div>
+                @AppResources.Pending_Empty
+                <div><a class="btn btn-outline btn-sm" href="">@AppResources.Nav_Scanner</a></div>
             </div>
         }
         else
@@ -32,15 +32,15 @@
                                 <div class="list-row-sub">@item.Subtitle</div>
                                 @if (item.Error != null)
                                 {
-                                    <div class="list-row-error">Rejected: @item.Error</div>
+                                    <div class="list-row-error">@(string.Format(AppResources.Pending_Rejected, item.Error))</div>
                                 }
                             </div>
                         </div>
                         @if (item.CanSend)
                         {
-                            <button class="btn btn-secondary btn-sm" aria-label="Send @item.Title" disabled="@Queue.IsSending" @onclick="() => SendAsync(item.Id)"><Blazicon Svg="Lucide.RefreshCw" /></button>
+                            <button class="btn btn-secondary btn-sm" aria-label="@(string.Format(AppResources.Pending_Send, item.Title))" disabled="@Queue.IsSending" @onclick="() => SendAsync(item.Id)"><Blazicon Svg="Lucide.RefreshCw" /></button>
                         }
-                        <button class="btn btn-secondary btn-sm" aria-label="Discard @item.Title" @onclick="() => DiscardAsync(item.Id)"><Blazicon Svg="Lucide.Trash" /></button>
+                        <button class="btn btn-secondary btn-sm" aria-label="@(string.Format(AppResources.Pending_Discard, item.Title))" @onclick="() => DiscardAsync(item.Id)"><Blazicon Svg="Lucide.Trash" /></button>
                     </div>
                 }
             </div>
@@ -50,8 +50,7 @@
     @if (Vm.TotalCount > 0)
     {
         <div class="small subtle">
-            Queued scans are sent automatically, oldest first, as soon as the inventory server is reachable again. A rejected scan
-            (e.g. no matching filament) stays here until you send it again or discard it.
+            @AppResources.Pending_Footer
         </div>
     }
 

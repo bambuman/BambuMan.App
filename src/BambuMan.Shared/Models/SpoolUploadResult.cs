@@ -1,3 +1,4 @@
+using BambuMan.Shared.Resources.Strings;
 using BambuMan.Shared.Enums;
 
 namespace BambuMan.Shared.Models
@@ -14,7 +15,14 @@ namespace BambuMan.Shared.Models
     public record SpoolUploadResult(LocalSpool Spool, SpoolUploadStatus Status, string? Message = null, decimal? KeptServerWeight = null)
     {
         /// <summary>The outcome as the send summary lists it, e.g. <c>Updated (kept server weight: 600 g)</c>.</summary>
-        public string StatusText => KeptServerWeight is { } weight ? $"{Status} (kept server weight: {weight:0.#} g)" : Status.ToString();
+        public string StatusText => KeptServerWeight is { } weight ? string.Format(SharedResources.Upload_StatusKeptServerWeight, StatusName, $"{weight:0.#}") : StatusName;
+
+        private string StatusName => Status switch
+        {
+            SpoolUploadStatus.Created => SharedResources.Upload_StatusCreated,
+            SpoolUploadStatus.Updated => SharedResources.Upload_StatusUpdated,
+            _ => SharedResources.Upload_StatusFailed
+        };
     }
 
     /// <summary>Sending progress: <paramref name="Done"/> of <paramref name="Total"/> spools handled, <paramref name="Current"/> the one being sent now (null once finished).</summary>

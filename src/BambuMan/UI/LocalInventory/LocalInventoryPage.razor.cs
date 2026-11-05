@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Resolvers;
@@ -78,7 +79,7 @@ public partial class LocalInventoryPage
             var page = Application.Current?.Windows.FirstOrDefault()?.Page;
             if (page == null) return;
 
-            if (!await page.DisplayAlertAsync("Delete all spools", $"Delete all {manager.Spools.Count} stored spools from this device? Export them to CSV first if you want to keep them.", "Delete all", "Cancel")) return;
+            if (!await page.DisplayAlertAsync(AppResources.Spools_DeleteAllTitle, string.Format(AppResources.Spools_DeleteAllMessage, manager.Spools.Count), AppResources.Spools_DeleteAll, AppResources.Common_Cancel)) return;
 
             await manager.ClearSpoolsAsync();
             Vm.Load(manager.Spools);
@@ -104,9 +105,8 @@ public partial class LocalInventoryPage
             if (page == null) return;
 
             var name = backend.DisplayName();
-            var spools = keys.Count == 1 ? "1 spool" : $"{keys.Count} spools";
-
-            if (!await page.DisplayAlertAsync($"Send to {name}", $"Send {spools} to {name}? A spool {name} already has (same tag) is updated with the values stored here, otherwise it is added. The spools stay on this device, marked as sent.", "Send", "Cancel")) return;
+            
+            if (!await page.DisplayAlertAsync(string.Format(AppResources.Spools_SendTo, name), keys.Count == 1 ? string.Format(AppResources.Spools_SendMessageOne, name) : string.Format(AppResources.Spools_SendMessageMany, keys.Count, name), AppResources.Spools_Send, AppResources.Common_Cancel)) return;
 
             cancelRequested = false;
 

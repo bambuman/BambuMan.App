@@ -1,3 +1,4 @@
+using BambuMan.Shared.Resources.Strings;
 using BambuMan.Shared.Enums;
 
 namespace BambuMan.Shared.Models
@@ -26,12 +27,14 @@ namespace BambuMan.Shared.Models
             get
             {
                 var weightsKept = WeightsKept.Count();
-                var parts = new List<string> { $"{Created} created", weightsKept > 0 ? $"{Updated} updated ({weightsKept} kept server weight)" : $"{Updated} updated" };
+                var parts = new List<string> { string.Format(SharedResources.Summary_Created, Created), weightsKept > 0 ? string.Format(SharedResources.Summary_UpdatedKept, Updated, weightsKept) : string.Format(SharedResources.Summary_Updated, Updated) };
 
-                if (Failed > 0) parts.Add($"{Failed} failed");
-                if (Skipped > 0) parts.Add($"{Skipped} not sent");
+                if (Failed > 0) parts.Add(string.Format(SharedResources.Summary_Failed, Failed));
+                if (Skipped > 0) parts.Add(string.Format(SharedResources.Summary_Skipped, Skipped));
 
-                return $"{(Cancelled ? "Sending cancelled. " : "")}Sent to {Backend.DisplayName()}: {string.Join(", ", parts)}.";
+                var text = string.Format(SharedResources.Summary_SentTo, Backend.DisplayName(), string.Join(", ", parts));
+
+                return Cancelled ? string.Format(SharedResources.Summary_Cancelled, text) : text;
             }
         }
     }

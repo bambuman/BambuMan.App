@@ -1,3 +1,5 @@
+using BambuMan.Shared.Resources.Strings;
+
 namespace BambuMan.Shared.Enums
 {
     /// <summary>Where the connection to the chosen Bluetooth scale stands.</summary>
@@ -28,13 +30,13 @@ namespace BambuMan.Shared.Enums
         /// <summary>How the state is labelled in the ui.</summary>
         public static string DisplayName(this ScaleConnectionState state) => state switch
         {
-            ScaleConnectionState.BluetoothOff => "Bluetooth is off",
-            ScaleConnectionState.NoPermission => "No Bluetooth permission",
-            ScaleConnectionState.Connecting => "Connecting",
-            ScaleConnectionState.Connected => "Connected",
-            ScaleConnectionState.Reconnecting => "Waiting for the scale",
-            ScaleConnectionState.NotAScale => "Not a supported scale",
-            _ => "Off"
+            ScaleConnectionState.BluetoothOff => SharedResources.Scale_BluetoothOff,
+            ScaleConnectionState.NoPermission => SharedResources.Scale_NoPermission,
+            ScaleConnectionState.Connecting => SharedResources.Scale_Connecting,
+            ScaleConnectionState.Connected => SharedResources.Scale_Connected,
+            ScaleConnectionState.Reconnecting => SharedResources.Scale_Reconnecting,
+            ScaleConnectionState.NotAScale => SharedResources.Scale_NotAScale,
+            _ => SharedResources.Scale_Off
         };
     }
 }

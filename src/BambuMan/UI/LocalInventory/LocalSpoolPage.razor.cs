@@ -1,4 +1,5 @@
 using BambuMan.Components.Common;
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
@@ -29,7 +30,7 @@ public partial class LocalSpoolPage
     private NoBackendManager Manager => (NoBackendManager)Backends.Resolve(InventoryBackend.NoBackend);
 
     private string Title => spool == null
-        ? "Spool"
+        ? AppResources.Main_SpoolSection
         : string.Join(" ", new[] { spool.Info.DetailedFilamentType ?? spool.Info.FilamentType, spool.Name }.Where(x => !string.IsNullOrEmpty(x)));
 
     protected override async Task OnParametersSetAsync()
@@ -65,16 +66,16 @@ public partial class LocalSpoolPage
 
             if (!await Manager.UpdateSpoolAsync(Key, edit.ToInput()))
             {
-                Toasts.Show("This spool is no longer stored.", ToastKind.Error);
+                Toasts.Show(AppResources.Spool_NoLongerStored, ToastKind.Error);
                 return;
             }
 
-            Toasts.Show("Spool saved", ToastKind.Success);
+            Toasts.Show(AppResources.Spool_Saved, ToastKind.Success);
             GoBack();
         }
         catch (Exception e)
         {
-            Toasts.Show("Saving the spool failed. See logs.", ToastKind.Error, true);
+            Toasts.Show(AppResources.Spool_SaveFailed, ToastKind.Error, true);
             Logger.LogError(e, "Error saving spool {Key}", Key);
         }
     }
@@ -99,11 +100,11 @@ public partial class LocalSpoolPage
             var page = Application.Current?.Windows.FirstOrDefault()?.Page;
             if (page == null) return;
 
-            if (!await page.DisplayAlertAsync("Delete spool", $"Delete {Title} from this device?", "Delete", "Cancel")) return;
+            if (!await page.DisplayAlertAsync(AppResources.Spool_Delete, string.Format(AppResources.Spool_DeleteMessage, Title), AppResources.Common_Delete, AppResources.Common_Cancel)) return;
 
             await Manager.RemoveSpoolAsync(Key);
 
-            Toasts.Show("Spool deleted");
+            Toasts.Show(AppResources.Spool_Deleted);
             GoBack();
         }
         catch (Exception e)

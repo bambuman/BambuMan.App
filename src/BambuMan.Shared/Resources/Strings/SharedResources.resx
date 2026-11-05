@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SpoolInfo_Manufacturer" xml:space="preserve">
+    <value>Manufacturer</value>
+  </data>
+  <data name="SpoolInfo_Material" xml:space="preserve">
+    <value>Material</value>
+  </data>
+  <data name="SpoolInfo_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SpoolInfo_FilamentCode" xml:space="preserve">
+    <value>Filament code</value>
+  </data>
+  <data name="SpoolInfo_Variant" xml:space="preserve">
+    <value>Variant</value>
+  </data>
+  <data name="SpoolInfo_Manufactured" xml:space="preserve">
+    <value>Manufactured</value>
+  </data>
+  <data name="SpoolInfo_Colour" xml:space="preserve">
+    <value>Colour</value>
+  </data>
+  <data name="SpoolInfo_ColourType" xml:space="preserve">
+    <value>Colour type</value>
+  </data>
+  <data name="SpoolInfo_Diameter" xml:space="preserve">
+    <value>Diameter</value>
+  </data>
+  <data name="SpoolInfo_SpoolWeight" xml:space="preserve">
+    <value>Spool weight</value>
+  </data>
+  <data name="SpoolInfo_DryingTemperature" xml:space="preserve">
+    <value>Drying temperature</value>
+  </data>
+  <data name="SpoolInfo_DryingTime" xml:space="preserve">
+    <value>Drying time</value>
+  </data>
+  <data name="SpoolInfo_HotendTemperature" xml:space="preserve">
+    <value>Hotend temperature</value>
+  </data>
+  <data name="SpoolInfo_MinNozzleDiameter" xml:space="preserve">
+    <value>Min nozzle diameter</value>
+  </data>
+  <data name="SpoolInfo_TagSerial" xml:space="preserve">
+    <value>Tag serial</value>
+  </data>
+  <data name="SpoolInfo_TrayUid" xml:space="preserve">
+    <value>Tray uid</value>
+    <comment>The AMS tray uid; a technical identifier.</comment>
+  </data>
+  <data name="Backend_NoBackend" xml:space="preserve">
+    <value>No backend</value>
+    <comment>The offline mode without an inventory server; a short button label.</comment>
+  </data>
+  <data name="Manager_ExistingSpoolFound" xml:space="preserve">
+    <value>Existing spool '{0}' found</value>
+    <comment>{0} is the start of the spool's tray uid.</comment>
+  </data>
+  <data name="Manager_SpoolAdded" xml:space="preserve">
+    <value>Spool '{0}' added</value>
+    <comment>{0} is the start of the spool's tray uid.</comment>
+  </data>
+  <data name="Manager_SpoolUpdatedUsedWeight" xml:space="preserve">
+    <value>Spool '{0}' updated, used weight set to {1}g</value>
+    <comment>{0} is the spool's tray uid, {1} a weight in grams.</comment>
+  </data>
+  <data name="Manager_SpoolUpdatedUsedWeightNoName" xml:space="preserve">
+    <value>Spool updated, used weight set to {0}g</value>
+    <comment>{0} is a weight in grams.</comment>
+  </data>
+  <data name="Manager_LocalSpoolUpdated" xml:space="preserve">
+    <value>Spool {0} updated.</value>
+    <comment>{0} is the spool's name, e.g. PLA Basic Black.</comment>
+  </data>
+  <data name="Manager_LocalStoreReadFailed" xml:space="preserve">
+    <value>Could not read the locally stored spools. See logs.</value>
+  </data>
+  <data name="Manager_LocalStoreSaveFailed" xml:space="preserve">
+    <value>Could not save the locally stored spools. See logs.</value>
+  </data>
+  <data name="Manager_NetworkTimedOut" xml:space="preserve">
+    <value>{0} timed out. Will retry automatically.</value>
+    <comment>{0} is one of the Manager_Operation* texts.</comment>
+  </data>
+  <data name="Manager_NetworkFailed" xml:space="preserve">
+    <value>{0} failed. Will retry automatically.</value>
+    <comment>{0} is one of the Manager_Operation* texts.</comment>
+  </data>
+  <data name="Manager_OperationInventorySpool" xml:space="preserve">
+    <value>Inventory spool</value>
+  </data>
+  <data name="Manager_OperationAddUpdateFilament" xml:space="preserve">
+    <value>Add/update filament</value>
+  </data>
+  <data name="Manager_OperationAddSpool" xml:space="preserve">
+    <value>Add spool</value>
+  </data>
+  <data name="Manager_OperationUpdateSpool" xml:space="preserve">
+    <value>Update spool</value>
+  </data>
+  <data name="Manager_ConnectionTimedOut" xml:space="preserve">
+    <value>Connection timed out</value>
+  </data>
+  <data name="Manager_InvalidUrlFormat" xml:space="preserve">
+    <value>Invalid URL format</value>
+  </data>
+  <data name="SpoolInfo_TagFormat" xml:space="preserve">
+    <value>Tag format</value>
+  </data>
+  <data name="SpoolInfo_Remaining" xml:space="preserve">
+    <value>Remaining</value>
+  </data>
+  <data name="SpoolInfo_BedTemperature" xml:space="preserve">
+    <value>Bed temperature</value>
+  </data>
+  <data name="SpoolInfo_Message" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Manager_UploadTimedOut" xml:space="preserve">
+    <value>{0} timed out</value>
+    <comment>{0} is one of the Manager_Operation* texts.</comment>
+  </data>
+  <data name="Manager_UploadFailed" xml:space="preserve">
+    <value>{0} failed: {1}</value>
+    <comment>{0} is one of the Manager_Operation* texts, {1} the error.</comment>
+  </data>
+  <data name="Manager_ManualSpoolAdded" xml:space="preserve">
+    <value>Spool {0} added.</value>
+  </data>
+  <data name="Manager_TagNotInCatalog" xml:space="preserve">
+    <value>{0} tag not found in the filament catalog. Turn on 'Import unknown filament' in settings to add it anyway.</value>
+    <comment>{0} is the tag format, e.g. OpenSpool.</comment>
+  </data>
+  <data name="Send_UrlNotSet" xml:space="preserve">
+    <value>{0} url is not set</value>
+    <comment>{0} is the backend, e.g. Spoolman.</comment>
+  </data>
+  <data name="Send_NotInventoried" xml:space="preserve">
+    <value>Not inventoried, see logs</value>
+  </data>
+  <data name="Upload_CantSendTo" xml:space="preserve">
+    <value>Spools can't be sent to {0}</value>
+  </data>
+  <data name="Upload_NotConnected" xml:space="preserve">
+    <value>Not connected to {0}</value>
+  </data>
+  <data name="Upload_ManualSpool" xml:space="preserve">
+    <value>Added by hand without a tag, so {0} can't tell it from a new spool. Add it there by hand.</value>
+  </data>
+  <data name="Upload_NotAdded" xml:space="preserve">
+    <value>Not added to {0}, see logs</value>
+  </data>
+  <data name="Upload_AddedDetailsNotSaved" xml:space="preserve">
+    <value>Added, but its weight and details weren't saved: {0}</value>
+  </data>
+  <data name="Upload_StatusCreated" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="Upload_StatusUpdated" xml:space="preserve">
+    <value>Updated</value>
+  </data>
+  <data name="Upload_StatusFailed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="Upload_StatusKeptServerWeight" xml:space="preserve">
+    <value>{0} (kept server weight: {1} g)</value>
+    <comment>{0} is Upload_StatusCreated/Updated.</comment>
+  </data>
+  <data name="Summary_Created" xml:space="preserve">
+    <value>{0} created</value>
+  </data>
+  <data name="Summary_Updated" xml:space="preserve">
+    <value>{0} updated</value>
+  </data>
+  <data name="Summary_UpdatedKept" xml:space="preserve">
+    <value>{0} updated ({1} kept server weight)</value>
+  </data>
+  <data name="Summary_Failed" xml:space="preserve">
+    <value>{0} failed</value>
+  </data>
+  <data name="Summary_Skipped" xml:space="preserve">
+    <value>{0} not sent</value>
+  </data>
+  <data name="Summary_SentTo" xml:space="preserve">
+    <value>Sent to {0}: {1}.</value>
+    <comment>{0} is the backend, {1} the Summary_* counts joined by commas.</comment>
+  </data>
+  <data name="Summary_Cancelled" xml:space="preserve">
+    <value>Sending cancelled. {0}</value>
+    <comment>{0} is Summary_SentTo.</comment>
+  </data>
+  <data name="Spool_AddedManually" xml:space="preserve">
+    <value>Added manually</value>
+  </data>
+  <data name="Spool_UnknownFilament" xml:space="preserve">
+    <value>Unknown filament</value>
+  </data>
+  <data name="Scale_BluetoothOff" xml:space="preserve">
+    <value>Bluetooth is off</value>
+  </data>
+  <data name="Scale_NoPermission" xml:space="preserve">
+    <value>No Bluetooth permission</value>
+  </data>
+  <data name="Scale_Connecting" xml:space="preserve">
+    <value>Connecting</value>
+  </data>
+  <data name="Scale_Connected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="Scale_Reconnecting" xml:space="preserve">
+    <value>Waiting for the scale</value>
+  </data>
+  <data name="Scale_NotAScale" xml:space="preserve">
+    <value>Not a supported scale</value>
+  </data>
+  <data name="Scale_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Scale_ProtocolBambuMan" xml:space="preserve">
+    <value>BambuMan scale</value>
+  </data>
+</root>

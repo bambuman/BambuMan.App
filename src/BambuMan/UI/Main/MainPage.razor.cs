@@ -1,5 +1,6 @@
 using BambuMan.Components.Common;
 using BambuMan.Interfaces;
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
 using BambuMan.Shared.Scale;
@@ -42,10 +43,10 @@ namespace BambuMan.UI.Main
 
         private string StatusText => Vm switch
         {
-            { SpoolmanConnecting: true } => $"Connecting to {Vm.BackendLabel} …",
-            { ErrorMessage: not null } => "Needs attention",
-            { NfcIsEnabled: false } => "NFC is disabled",
-            _ => "Ready to read spools"
+            { SpoolmanConnecting: true } => string.Format(AppResources.Main_StatusConnecting, Vm.BackendLabel),
+            { ErrorMessage: not null } => AppResources.Main_StatusNeedsAttention,
+            { NfcIsEnabled: false } => AppResources.Main_StatusNfcDisabled,
+            _ => AppResources.Main_StatusReady
         };
 
         private string NfcStatus => Vm switch
@@ -68,22 +69,22 @@ namespace BambuMan.UI.Main
                 if (ScaleService.DeviceId == null || edit.WeightTyped) return null;
 
                 if (Vm.AppliedScaleReading is { } reading && edit.Weight is { } weight)
-                    return $"From the scale{(reading.IsStable ? "" : ", settling …")} · {ScaleWeight.FilamentLeft(weight, edit.EmptyWeight):0} g of filament";
+                    return string.Format(reading.IsStable ? AppResources.Scale_WeightFromScale : AppResources.Scale_WeightSettling, $"{ScaleWeight.FilamentLeft(weight, edit.EmptyWeight):0}");
 
                 return ScaleService.State == ScaleConnectionState.Connected
-                    ? "Put the spool on the scale to fill in its weight"
-                    : $"Scale: {ScaleService.State.DisplayName()}";
+                    ? AppResources.Scale_PutOnScale
+                    : string.Format(AppResources.Scale_State, ScaleService.State.DisplayName());
             }
         }
 
         private (string Kind, string Text) BackendPill => Vm switch
         {
-            { Backend: InventoryBackend.NoBackend } => ("primary", "On this device"),
-            { SpoolmanConnecting: true } => ("info", "Connecting"),
-            { SpoolmanOk: true } => ("success", "Connected"),
-            { BackendStatus: ManagerStatusType.ApiUrlMissing } => ("error", "Url missing"),
-            { BackendStatus: ManagerStatusType.CantConnectToApi } => ("error", "Unreachable"),
-            _ => ("error", "Offline")
+            { Backend: InventoryBackend.NoBackend } => ("primary", AppResources.Main_BackendOnDevice),
+            { SpoolmanConnecting: true } => ("info", AppResources.Main_BackendConnecting),
+            { SpoolmanOk: true } => ("success", AppResources.Main_BackendConnected),
+            { BackendStatus: ManagerStatusType.ApiUrlMissing } => ("error", AppResources.Main_BackendUrlMissing),
+            { BackendStatus: ManagerStatusType.CantConnectToApi } => ("error", AppResources.Main_BackendUnreachable),
+            _ => ("error", AppResources.Main_BackendOffline)
         };
 
         protected override async Task OnInitializedAsync()

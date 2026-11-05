@@ -1,6 +1,7 @@
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
+using BambuMan.Shared.Resources.Strings;
 using BambuMan.Shared.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -390,7 +391,7 @@ namespace BambuMan.Shared.Managers
 
             try
             {
-                if (Status == ManagerStatusType.ApiUrlMissing) return new ScanSendResult(ScanSendStatus.Rejected, $"{BackendName} url is not set");
+                if (Status == ManagerStatusType.ApiUrlMissing) return new ScanSendResult(ScanSendStatus.Rejected, string.Format(SharedResources.Send_UrlNotSet, BackendName));
                 if (!CanSendScans) return new ScanSendResult(ScanSendStatus.Unreachable);
 
                 SendingScan = scan;
@@ -408,7 +409,7 @@ namespace BambuMan.Shared.Managers
                 {
                     if (scan.IsQueued && Status != status) await SetStatus(status);
 
-                    return new ScanSendResult(ScanSendStatus.Rejected, sendError ?? "Not inventoried, see logs");
+                    return new ScanSendResult(ScanSendStatus.Rejected, sendError ?? SharedResources.Send_NotInventoried);
                 }
 
                 await MarkUnreachableAsync();
@@ -465,11 +466,11 @@ namespace BambuMan.Shared.Managers
         /// </summary>
         public async Task<SpoolUploadResult> UploadSpoolAsync(LocalSpool spool)
         {
-            if (IsReadOnly) return new(spool, SpoolUploadStatus.Failed, $"Spools can't be sent to {Backend.DisplayName()}");
-            if (!IsInitialized) return new(spool, SpoolUploadStatus.Failed, $"Not connected to {BackendName}");
+            if (IsReadOnly) return new(spool, SpoolUploadStatus.Failed, string.Format(SharedResources.Upload_CantSendTo, Backend.DisplayName()));
+            if (!IsInitialized) return new(spool, SpoolUploadStatus.Failed, string.Format(SharedResources.Upload_NotConnected, BackendName));
 
             // Without a tag the server couldn't find the spool again, so every send would add another one.
-            if (spool.IsManual) return new(spool, SpoolUploadStatus.Failed, $"Added by hand without a tag, so {BackendName} can't tell it from a new spool. Add it there by hand.");
+            if (spool.IsManual) return new(spool, SpoolUploadStatus.Failed, string.Format(SharedResources.Upload_ManualSpool, BackendName));
 
             // One at a time with queued scans: both go through the scan path, which keeps a single current spool and the counters
             // SendScanAsync reads.
@@ -482,7 +483,7 @@ namespace BambuMan.Shared.Managers
             {
                 await InventorySpool(spool.Tag, spool.BuyDate, spool.Price, spool.LotNr, spool.Location);
 
-                if (capture.Found == null) return new(spool, SpoolUploadStatus.Failed, capture.Error ?? capture.Warning ?? $"Not added to {BackendName}, see logs");
+                if (capture.Found == null) return new(spool, SpoolUploadStatus.Failed, capture.Error ?? capture.Warning ?? string.Format(SharedResources.Upload_NotAdded, BackendName));
 
                 var found = capture.Found;
                 var created = capture.Created;
@@ -507,7 +508,7 @@ namespace BambuMan.Shared.Managers
 
                     await UpdateCurrentSpoolAsync(input);
 
-                    if (capture.Error != null) return new(spool, SpoolUploadStatus.Failed, created ? $"Added, but its weight and details weren't saved: {capture.Error}" : capture.Error);
+                    if (capture.Error != null) return new(spool, SpoolUploadStatus.Failed, created ? string.Format(SharedResources.Upload_AddedDetailsNotSaved, capture.Error) : capture.Error);
                 }
 
                 return new(spool, created ? SpoolUploadStatus.Created : SpoolUploadStatus.Updated, capture.Warning, keptServerWeight);
@@ -642,18 +643,13 @@ namespace BambuMan.Shared.Managers
 
         #region Error handling
 
-        protected async Task HandleNetworkError(Exception ex, string operation)
+        /// <summary>Shows that <paramref name="displayOperation"/> (translated) failed; the log names <paramref name="operation"/>.</summary>
+        protected async Task HandleNetworkError(Exception ex, string operation, string displayOperation)
         {
             // A stored spool being sent isn't retried: its result says why it failed, and it can simply be sent again.
-            if (upload.Value is { } capture) capture.Error ??= ex is TaskCanceledException ? $"{operation} timed out" : $"{operation} failed: {ex.Message}";
-            else
-            {
-                var message = ex is TaskCanceledException
-                    ? $"{operation} timed out. Will retry automatically."
-                    : $"{operation} failed. Will retry automatically.";
-
-                OnShowMessage?.Invoke(true, message);
-            }
+            if (upload.Value is { } capture)
+                capture.Error ??= ex is TaskCanceledException ? string.Format(SharedResources.Manager_UploadTimedOut, displayOperation) : string.Format(SharedResources.Manager_UploadFailed, displayOperation, ex.Message);
+            else OnShowMessage?.Invoke(true, string.Format(ex is TaskCanceledException ? SharedResources.Manager_NetworkTimedOut : SharedResources.Manager_NetworkFailed, displayOperation));
 
             networkErrors++;
 

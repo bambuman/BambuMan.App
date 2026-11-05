@@ -1,5 +1,6 @@
 using BambuMan.Components.Common;
 using BambuMan.Interfaces;
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Managers;
@@ -241,7 +242,7 @@ namespace BambuMan
             {
                 var manager = ActiveManager;
 
-                if (viewModel.SpoolmanConnecting && manager.Status == ManagerStatusType.Ready) await viewModel.ShowInfoMessage("Ready to read spools.");
+                if (viewModel.SpoolmanConnecting && manager.Status == ManagerStatusType.Ready) await viewModel.ShowInfoMessage(AppResources.Main_InfoReady);
 
                 if (manager.Status >= ManagerStatusType.Ready) viewModel.SpoolmanConnecting = false;
 
@@ -491,7 +492,7 @@ namespace BambuMan
                 if (CrossNfc.IsSupported)
                 {
                     viewModel.NfcIsEnabled = CrossNfc.Current.IsEnabled;
-                    viewModel.NfcText = CrossNfc.Current.IsEnabled ? "Enabled" : "Disabled";
+                    viewModel.NfcText = CrossNfc.Current.IsEnabled ? AppResources.Main_NfcEnabled : AppResources.Main_NfcDisabled;
 
                     await viewModel.Validate(ActiveManager);
 
@@ -513,7 +514,7 @@ namespace BambuMan
         /// <param name="title">Alert title</param>
         /// <returns>The task to be performed</returns>
         private static Task ShowAlert(string message, string? title = null) =>
-            MainThread.InvokeOnMainThreadAsync(() => Application.Current?.Windows.FirstOrDefault()?.Page?.DisplayAlertAsync(string.IsNullOrWhiteSpace(title) ? "NFC" : title, message, "OK") ?? Task.CompletedTask);
+            MainThread.InvokeOnMainThreadAsync(() => Application.Current?.Windows.FirstOrDefault()?.Page?.DisplayAlertAsync(string.IsNullOrWhiteSpace(title) ? "NFC" : title, message, AppResources.Common_Ok) ?? Task.CompletedTask);
 
         /// <summary>
         /// Task to start listening for NFC tags if the user's device platform is not iOS
@@ -611,7 +612,7 @@ namespace BambuMan
             try
             {
                 viewModel.NfcIsEnabled = isEnabled;
-                viewModel.NfcText = isEnabled ? "Enabled" : "Disabled";
+                viewModel.NfcText = isEnabled ? AppResources.Main_NfcEnabled : AppResources.Main_NfcDisabled;
 
                 await viewModel.Validate(ActiveManager);
             }
@@ -634,14 +635,14 @@ namespace BambuMan
                 if (tagInfo == null)
                 {
                     SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
-                    await ShowAlert("No tag found");
+                    await ShowAlert(AppResources.Main_NoTagFound);
                     return;
                 }
 
                 // Customized serial number
                 var identifier = tagInfo.Identifier;
                 var serialNumber = NfcUtils.ByteArrayToHexString(identifier, ":");
-                var title = !string.IsNullOrWhiteSpace(serialNumber) ? $"Tag [{serialNumber}]" : "Tag Info";
+                var title = !string.IsNullOrWhiteSpace(serialNumber) ? string.Format(AppResources.Main_TagTitle, serialNumber) : AppResources.Main_TagInfo;
 
                 if (tagInfo is BambuFilamentInfo bambuFilamentInfo)
                 {
@@ -676,21 +677,21 @@ namespace BambuMan
                     await viewModel.AddLog(LogLevel.Warning, failure.ToString());
 
                     await viewModel.ShowErrorMessage(failure.IsAuthenticationUnsupported
-                        ? "This phone couldn't unlock the tag. Some phones' NFC chips (e.g. Google Pixel) can't read Bambu Lab (MIFARE Classic) tags."
-                        : "Tag read was interrupted, hold the phone still on the tag and try again.");
+                        ? AppResources.Main_ErrorTagAuthenticationUnsupported
+                        : AppResources.Main_ErrorTagReadInterrupted);
 
                     if (toneGenerator != null) await toneGenerator.PlayAlarmTone();
                 }
                 else if (!tagInfo.IsSupported)
                 {
                     SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
-                    await viewModel.ShowErrorMessage("Error reading tag, please try again!");
+                    await viewModel.ShowErrorMessage(AppResources.Main_ErrorTagRead);
                     if (toneGenerator != null) await toneGenerator.PlayAlarmTone();
                 }
                 else if (tagInfo.IsEmpty)
                 {
                     SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
-                    await viewModel.ShowErrorMessage("Empty tag");
+                    await viewModel.ShowErrorMessage(AppResources.Main_ErrorTagEmpty);
                 }
                 else if (tagInfo.Records is { Length: > 0 })
                 {
@@ -721,8 +722,8 @@ namespace BambuMan
             // scan in between would mix the two up.
             if (IsSendingSpools)
             {
-                await viewModel.ShowErrorMessage("Stored spools are being sent. Scan again once that's done.");
-                toasts.Show("Stored spools are being sent. Scan again once that's done.", ToastKind.Error);
+                await viewModel.ShowErrorMessage(AppResources.Send_BusyScan);
+                toasts.Show(AppResources.Send_BusyScan, ToastKind.Error);
                 return;
             }
 
@@ -750,7 +751,7 @@ namespace BambuMan
                 var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(info);
                 if (rateLimited)
                 {
-                    await viewModel.ShowErrorMessage("Daily upload limit reached (1000 tags/day). Try again tomorrow.");
+                    await viewModel.ShowErrorMessage(AppResources.Main_ErrorUploadLimit);
                 }
             }
         }
@@ -803,7 +804,7 @@ namespace BambuMan
             catch (Exception e)
             {
                 logger.LogError(e, "Error loading queued scans");
-                toasts.Show("Could not read the queued scans. See logs.", ToastKind.Error, true);
+                toasts.Show(AppResources.Queue_LoadFailed, ToastKind.Error, true);
             }
 
             UpdatePendingScans();
@@ -816,8 +817,8 @@ namespace BambuMan
 
             // A healthy server whose setup hasn't finished (still connecting, or it failed — see logs) isn't "unreachable".
             var message = manager.IsHealth
-                ? $"{name} isn't ready yet. The spool is queued and will be sent once it is."
-                : $"{name} can't be reached. The spool is queued and will be sent when it's back.";
+                ? string.Format(AppResources.Queue_NotReady, name)
+                : string.Format(AppResources.Queue_Unreachable, name);
 
             await viewModel.ShowInfoMessage(message);
             toasts.Show(message, ToastKind.Info, true);
@@ -837,7 +838,7 @@ namespace BambuMan
                 // Another send (e.g. the one a reconnect started) would make this one return without doing anything.
                 if (manual && pendingScans.IsSending)
                 {
-                    toasts.Show("Queued scans are already being sent.", ToastKind.Info);
+                    toasts.Show(AppResources.Queue_AlreadySending, ToastKind.Info);
                     return;
                 }
 
@@ -846,18 +847,18 @@ namespace BambuMan
                 var result = await send(active);
 
                 if (result.Sent > 0)
-                    toasts.Show(result.Sent == 1 ? $"Sent 1 queued scan to {name}." : $"Sent {result.Sent} queued scans to {name}.", ToastKind.Success, true);
+                    toasts.Show(result.Sent == 1 ? string.Format(AppResources.Queue_SentOne, name) : string.Format(AppResources.Queue_SentMany, result.Sent, name), ToastKind.Success, true);
 
                 if (result.Rejected > 0)
-                    toasts.Show(result.Rejected == 1 ? $"{name} rejected 1 queued scan. See Queued scans." : $"{name} rejected {result.Rejected} queued scans. See Queued scans.", ToastKind.Error, true);
+                    toasts.Show(result.Rejected == 1 ? string.Format(AppResources.Queue_RejectedOne, name) : string.Format(AppResources.Queue_RejectedMany, name, result.Rejected), ToastKind.Error, true);
 
                 if (manual && result.Unreachable)
-                    toasts.Show($"{name} still can't be reached. The scans stay queued.", ToastKind.Error, true);
+                    toasts.Show(string.Format(AppResources.Queue_StillUnreachable, name), ToastKind.Error, true);
             }
             catch (Exception e)
             {
                 logger.LogError(e, "Error sending queued scans");
-                toasts.Show("Sending the queued scans failed. See logs.", ToastKind.Error, true);
+                toasts.Show(AppResources.Queue_SendFailed, ToastKind.Error, true);
             }
         }
 
@@ -874,9 +875,9 @@ namespace BambuMan
 
             var parts = new List<string>();
 
-            if (waiting > 0) parts.Add($"Sent automatically when {backend.DisplayName()} is reachable again.");
-            if (rejected > 0) parts.Add(rejected == 1 ? "1 was rejected, open the list to send it again or discard it." : $"{rejected} were rejected, open the list to send them again or discard them.");
-            if (otherBackend > 0) parts.Add(otherBackend == 1 ? "1 is for another backend." : $"{otherBackend} are for another backend.");
+            if (waiting > 0) parts.Add(string.Format(AppResources.Queue_SentAutomatically, backend.DisplayName()));
+            if (rejected > 0) parts.Add(rejected == 1 ? AppResources.Queue_RejectedHintOne : string.Format(AppResources.Queue_RejectedHintMany, rejected));
+            if (otherBackend > 0) parts.Add(otherBackend == 1 ? AppResources.Queue_OtherBackendOne : string.Format(AppResources.Queue_OtherBackendMany, otherBackend));
 
             var count = scans.Count;
             var text = string.Join(" ", parts);
@@ -931,7 +932,7 @@ namespace BambuMan
                 string tagName = data["tag_name"]?.ToString() ?? currentTagName;
 
                 viewModel.NewVersionAvailable = !tagName.Equals(currentTagName, StringComparison.CurrentCultureIgnoreCase);
-                viewModel.NewVersionText = $"New version available: {tagName}";
+                viewModel.NewVersionTag = tagName;
 
                 //In debug we should not show it hoggs screen
 #if DEBUG
@@ -1081,7 +1082,7 @@ namespace BambuMan
                 // Sending leaves the sent spool as the current one; one added meanwhile would take its place.
                 if (IsSendingSpools)
                 {
-                    await viewModel.ShowErrorMessage("Stored spools are being sent. Add the spool once that's done.");
+                    await viewModel.ShowErrorMessage(AppResources.Send_BusyAdd);
                     return false;
                 }
 
@@ -1115,7 +1116,7 @@ namespace BambuMan
             {
                 viewModel.LocalSpoolsStored = stored;
                 viewModel.LocalSpoolsCount = count;
-                viewModel.LocalSpoolsText = stored ? "Stored spools" : "Scanned spools";
+                viewModel.LocalSpoolsText = stored ? AppResources.Main_StoredSpools : AppResources.Main_ScannedSpools;
             });
         }
 
@@ -1127,7 +1128,7 @@ namespace BambuMan
 
                 if (spools.Count == 0)
                 {
-                    await viewModel.ShowInfoMessage("There are no spools to export yet.");
+                    await viewModel.ShowInfoMessage(AppResources.Main_ExportNothing);
                     return;
                 }
 
@@ -1137,13 +1138,13 @@ namespace BambuMan
 
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
-                    Title = "Export spools",
+                    Title = AppResources.Main_ExportShareTitle,
                     File = new ShareFile(path, "text/csv")
                 });
             }
             catch (Exception ex)
             {
-                await viewModel.ShowErrorMessage("Export failed. See logs.");
+                await viewModel.ShowErrorMessage(AppResources.Main_ExportFailed);
                 logger.LogError(ex, "Error in ExportCsvAsync");
             }
         }
@@ -1159,7 +1160,7 @@ namespace BambuMan
         {
             try
             {
-                var file = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Import spools CSV", FileTypes = CsvFileType });
+                var file = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = AppResources.Main_ImportPickerTitle, FileTypes = CsvFileType });
 
                 if (file == null) return;
 
@@ -1171,14 +1172,14 @@ namespace BambuMan
 
                 if (result.Spools.Count == 0)
                 {
-                    await viewModel.ShowErrorMessage($"No spools imported from {file.FileName}. {result.Errors.FirstOrDefault()}");
+                    await viewModel.ShowErrorMessage(string.Format(AppResources.Main_ImportNothing, file.FileName, result.Errors.FirstOrDefault()));
                     return;
                 }
 
                 var (added, updated) = await NoBackend.ImportSpoolsAsync(result.Spools);
 
-                var message = $"Imported {added} new and {updated} existing spools.";
-                if (result.Errors.Count > 0) message += $" {result.Errors.Count} rows skipped, see logs.";
+                var message = string.Format(AppResources.Main_Imported, added, updated);
+                if (result.Errors.Count > 0) message += " " + string.Format(AppResources.Main_ImportRowsSkipped, result.Errors.Count);
 
                 await viewModel.ShowSuccessMessage(message);
 
@@ -1187,8 +1188,8 @@ namespace BambuMan
             }
             catch (Exception ex)
             {
-                await viewModel.ShowErrorMessage("Import failed. See logs.");
-                toasts.Show("Import failed. See logs.", ToastKind.Error, true);
+                await viewModel.ShowErrorMessage(AppResources.Main_ImportFailed);
+                toasts.Show(AppResources.Main_ImportFailed, ToastKind.Error, true);
                 logger.LogError(ex, "Error in ImportCsvAsync");
             }
         }
@@ -1238,13 +1239,13 @@ namespace BambuMan
 
                 if (active is not ISpoolUploadTarget target)
                 {
-                    toasts.Show("Select Spoolman or Bambuddy in Settings to send the stored spools there.", ToastKind.Error, true);
+                    toasts.Show(AppResources.Send_SelectServer, ToastKind.Error, true);
                     return;
                 }
 
                 if (active.Status != ManagerStatusType.Ready)
                 {
-                    toasts.Show($"Can't reach {active.Backend.DisplayName()}. Check its url in Settings and try again.", ToastKind.Error, true);
+                    toasts.Show(string.Format(AppResources.Send_CantReach, active.Backend.DisplayName()), ToastKind.Error, true);
                     return;
                 }
 
@@ -1258,7 +1259,7 @@ namespace BambuMan
             }
             catch (Exception ex)
             {
-                toasts.Show("Sending the stored spools failed. See logs.", ToastKind.Error, true);
+                toasts.Show(AppResources.Send_Failed, ToastKind.Error, true);
                 logger.LogError(ex, "Error in SendStoredSpoolsAsync");
             }
             finally
@@ -1323,7 +1324,7 @@ namespace BambuMan
         {
             if (!CanWriteTags)
             {
-                toasts.Show("This device can't write NFC tags.", ToastKind.Error, true);
+                toasts.Show(AppResources.WriteTag_CantWrite, ToastKind.Error, true);
                 return;
             }
 
@@ -1363,27 +1364,27 @@ namespace BambuMan
                 // A Bambu Lab (MIFARE Classic) tag has no NDEF memory to write to.
                 if (!tagInfo.IsSupported)
                 {
-                    toasts.Show("This tag can't hold an OpenSpool record. Use a blank NTAG215 or NTAG216.", ToastKind.Error, true);
+                    toasts.Show(AppResources.WriteTag_NoNdef, ToastKind.Error, true);
                     return;
                 }
 
                 // Without the raw pages a TigerTag (binary, not NDEF) can't be ruled out, so never write blind.
                 if (tagInfo is not TagInfo { UserMemory: not null })
                 {
-                    toasts.Show("The tag couldn't be read completely, it was not written. Hold it to the phone again.", ToastKind.Error, true);
+                    toasts.Show(AppResources.WriteTag_ReadIncomplete, ToastKind.Error, true);
                     return;
                 }
 
                 // Only a blank tag or an OpenSpool one is overwritten; a TigerTag or other data is kept.
                 if (!SpoolTagReader.CanOverwrite(tagInfo))
                 {
-                    toasts.Show("This tag already holds other data (e.g. a TigerTag), it was not overwritten. Use a blank NTAG215 or NTAG216.", ToastKind.Error, true);
+                    toasts.Show(AppResources.WriteTag_OtherData, ToastKind.Error, true);
                     return;
                 }
 
                 if (!tagInfo.IsWritable)
                 {
-                    toasts.Show("This tag is read-only.", ToastKind.Error, true);
+                    toasts.Show(AppResources.WriteTag_ReadOnly, ToastKind.Error, true);
                     return;
                 }
 
@@ -1397,14 +1398,14 @@ namespace BambuMan
                 var name = string.Join(" ", new[] { spool.Brand, spool.DetailedFilamentType }.Where(x => !string.IsNullOrWhiteSpace(x)));
 
                 await viewModel.AddLog(LogLevel.Success, $"OpenSpool tag {NfcUtils.ByteArrayToHexString(tagInfo.Identifier)} written: {OpenSpool.CreateJson(spool)}");
-                toasts.Show($"OpenSpool tag written: {name}", ToastKind.Success, true);
+                toasts.Show(string.Format(AppResources.WriteTag_Written, name), ToastKind.Success, true);
             }
             catch (Exception e)
             {
                 EndTagWrite();
 
                 logger.LogWarning(e, "Error writing OpenSpool tag");
-                toasts.Show($"Writing the tag failed: {e.Message}", ToastKind.Error, true);
+                toasts.Show(string.Format(AppResources.WriteTag_Failed, e.Message), ToastKind.Error, true);
             }
         }
 

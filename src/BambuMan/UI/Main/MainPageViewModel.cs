@@ -1,4 +1,5 @@
 ﻿using BambuMan.Components.Common;
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
@@ -41,7 +42,7 @@ namespace BambuMan.UI.Main
         // The no-backend spool bar: export always, list + import only while spools are stored on the device.
         [ObservableProperty] private bool showLocalSpools;
         [ObservableProperty] private bool localSpoolsStored;
-        [ObservableProperty] private string? localSpoolsText = "Scanned spools";
+        [ObservableProperty] private string? localSpoolsText = AppResources.Main_ScannedSpools;
         [ObservableProperty] private int localSpoolsCount;
 
         // Scans kept on the device while the backend couldn't be reached, waiting to be sent.
@@ -70,14 +71,19 @@ namespace BambuMan.UI.Main
         // Edit-panel field visibility, driven by the active backend's BaseManager.EditFields.
         [ObservableProperty] private SpoolEditFields editFields = new(BuyDate: true, LotNr: true);
 
-        [ObservableProperty] private string nfcText = "Enabled";
+        [ObservableProperty] private string nfcText = AppResources.Main_NfcEnabled;
 
         [ObservableProperty] private string? errorMessage;
         [ObservableProperty] private string? successMessage;
         [ObservableProperty] private string? infoMessage;
 
         [ObservableProperty] private bool newVersionAvailable;
-        [ObservableProperty] private string? newVersionText = "New version available";
+        // The release tag, not the banner text: the text is formatted on every read, so it follows a language switch.
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(NewVersionText))]
+        private string? newVersionTag;
+
+        public string NewVersionText => NewVersionTag == null ? AppResources.Main_NewVersionAvailable : string.Format(AppResources.Main_NewVersionAvailableTag, NewVersionTag);
 
         [ObservableProperty] private IEnumerable<string> existingLocations = [];
 
@@ -155,14 +161,14 @@ namespace BambuMan.UI.Main
                 SpoolmanOk = manager.Status == ManagerStatusType.Ready;
 
                 if (!SpoolmanConnecting && !NfcIsEnabled)
-                    await ShowErrorMessage("NFC is not enabled. Check if you're phone supports nfc.");
+                    await ShowErrorMessage(AppResources.Main_ErrorNfcNotEnabled);
 
                 return;
             }
 
             if (string.IsNullOrEmpty(manager.ApiUrl))
             {
-                await ShowErrorMessage("Inventory server url is missing, please fill in settings page!");
+                await ShowErrorMessage(AppResources.Main_ErrorServerUrlMissing);
                 return;
             }
 
@@ -172,12 +178,12 @@ namespace BambuMan.UI.Main
 
             if (!SpoolmanConnecting && !manager.IsHealth)
             {
-                await ShowErrorMessage("Inventory server can't be reached. Read spools are queued and sent once it's back.");
+                await ShowErrorMessage(AppResources.Main_ErrorApiUnreachableQueued);
                 return;
             }
 
             if (!SpoolmanConnecting && !NfcIsEnabled)
-                await ShowErrorMessage("NFC is not enabled. Check if you're phone supports nfc.");
+                await ShowErrorMessage(AppResources.Main_ErrorNfcNotEnabled);
         }
 
         public void InventorySpool(SpoolFound found, ISpoolTag tag)

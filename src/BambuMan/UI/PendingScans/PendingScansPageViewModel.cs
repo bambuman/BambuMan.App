@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -25,8 +26,8 @@ namespace BambuMan.UI.PendingScans
 
             var rejected = Items.Count(x => x.Error != null);
 
-            CountText = Items.Count == 1 ? "1 scan waiting" : $"{Items.Count} scans waiting";
-            if (rejected > 0) CountText += $" · {rejected} rejected";
+            CountText = string.Format(Items.Count == 1 ? AppResources.Pending_CountOne : AppResources.Pending_CountMany, Items.Count);
+            if (rejected > 0) CountText += " · " + string.Format(AppResources.Pending_CountRejected, rejected);
 
             OnPropertyChanged(nameof(TotalCount));
             OnPropertyChanged(nameof(HasSendable));
@@ -35,12 +36,12 @@ namespace BambuMan.UI.PendingScans
         private static PendingScanItem ToItem(PendingScan scan, InventoryBackend activeBackend)
         {
             var info = scan.Info;
-            var title = info.DetailedFilamentType ?? info.FilamentType ?? "Unknown filament";
+            var title = info.DetailedFilamentType ?? info.FilamentType ?? AppResources.Spools_UnknownFilament;
             var canSend = scan.Backend == activeBackend;
 
             var subtitle = string.Join(" · ", new[]
             {
-                canSend ? null : $"For {scan.Backend.DisplayName()}",
+                canSend ? null : string.Format(AppResources.Pending_ForBackend, scan.Backend.DisplayName()),
                 scan.Location,
                 info.TrayUid ?? info.SerialNumber,
                 scan.QueuedAt?.ToString("yyyy-MM-dd HH:mm")

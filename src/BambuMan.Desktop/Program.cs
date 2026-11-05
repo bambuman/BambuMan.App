@@ -1,3 +1,6 @@
+using BambuMan.Shared.Resources.Strings;
+using System.Globalization;
+
 namespace BambuMan.Desktop
 {
     internal static class Program
@@ -13,6 +16,10 @@ namespace BambuMan.Desktop
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             Application.ThreadException += (_, e) => ReportFatal(e.Exception);
             AppDomain.CurrentDomain.UnhandledException += (_, e) => ReportFatal(e.ExceptionObject as Exception);
+
+            // Only the Android app is translated. Keep the messages and labels this ui shows from BambuMan.Shared in
+            // English too, rather than mixing in the Windows display language.
+            SharedResources.Culture = CultureInfo.GetCultureInfo("en");
 
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.

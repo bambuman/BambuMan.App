@@ -1,3 +1,4 @@
+using BambuMan.Shared.Resources.Strings;
 using BambuMan.Shared.Models;
 
 namespace BambuMan.Shared.Services
@@ -8,7 +9,7 @@ namespace BambuMan.Shared.Services
         /// <summary>The tag the spool is known by — its tray uid, else tag uid — or that it was added by hand without one.</summary>
         public string Tag => TagOf(Spool);
 
-        public static string TagOf(LocalSpool spool) => spool.IsManual ? "Added manually" : spool.Info.TrayUid ?? spool.Info.SerialNumber;
+        public static string TagOf(LocalSpool spool) => spool.IsManual ? SharedResources.Spool_AddedManually : spool.Info.TrayUid ?? spool.Info.SerialNumber;
     }
 
     /// <summary>Spools of the same filament (material, colour name and colour), shown as one expandable row.</summary>
@@ -39,7 +40,7 @@ namespace BambuMan.Shared.Services
         {
             var info = spool.Info;
             var material = info.DetailedFilamentType ?? info.FilamentType;
-            var title = spool.Name == null ? material ?? "Unknown filament" : $"{material} {spool.Name}";
+            var title = spool.Name == null ? material ?? SharedResources.Spool_UnknownFilament : $"{material} {spool.Name}";
             var subtitle = string.Join(" · ", new[] { spool.Location, LocalSpoolItem.TagOf(spool), $"{spool.LastScanned:yyyy-MM-dd}" }.Where(x => !string.IsNullOrEmpty(x)));
 
             // Same colour the read-only card shows for this tag, as #AARRGGBB.

@@ -1,3 +1,5 @@
+using BambuMan.Shared.Resources.Strings;
+
 namespace BambuMan.Shared.Enums
 {
     /// <summary>The GATT protocol a Bluetooth scale speaks. Persisted by name, so this order is safe to change.</summary>
@@ -16,7 +18,7 @@ namespace BambuMan.Shared.Enums
         public static string DisplayName(this ScaleProtocol protocol) => protocol switch
         {
             ScaleProtocol.WeightScaleService => "Weight Scale Service",
-            _ => "BambuMan scale"
+            _ => SharedResources.Scale_ProtocolBambuMan
         };
     }
 }

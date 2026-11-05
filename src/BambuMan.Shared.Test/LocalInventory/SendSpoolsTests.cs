@@ -473,7 +473,7 @@ namespace BambuMan.Shared.Test.LocalInventory
 
                 if (NetworkError != null)
                 {
-                    await HandleNetworkError(NetworkError, "Inventory spool");
+                    await HandleNetworkError(NetworkError, "Inventory spool", "Inventory spool");
                     return false;
                 }
 

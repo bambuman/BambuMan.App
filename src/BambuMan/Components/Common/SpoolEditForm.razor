@@ -3,33 +3,33 @@
 <form class="form-grid" @onsubmit="OnSave" @onsubmit:preventDefault>
     @ChildContent
 
-    <FormField Label="Weight (g)" Icon="Lucide.Weight" Error="@Model.WeightError" Help="@WeightHelp">
+    <FormField Label="@AppResources.Spool_Weight" Icon="Lucide.Weight" Error="@Model.WeightError" Help="@WeightHelp">
         <input type="number" inputmode="decimal" step="any" min="0" @ref="weightInput" @bind="Model.Weight" @oninput="OnWeightInputAsync" />
     </FormField>
 
-    <FormField Label="Empty weight (g)" Icon="Lucide.Cylinder" Error="@Model.EmptyWeightError">
+    <FormField Label="@AppResources.Spool_EmptyWeight" Icon="Lucide.Cylinder" Error="@Model.EmptyWeightError">
         <input type="number" inputmode="decimal" step="any" min="0" @bind="Model.EmptyWeight" />
     </FormField>
 
-    <FormField Label="Price" Icon="Lucide.Tag" Error="@Model.PriceError" HasValue="Model.Price != null" OnClear="() => Model.Price = null">
+    <FormField Label="@AppResources.Spool_Price" Icon="Lucide.Tag" Error="@Model.PriceError" HasValue="Model.Price != null" OnClear="() => Model.Price = null">
         <input type="number" inputmode="decimal" step="any" min="0" @bind="Model.Price" />
     </FormField>
 
     @if (Fields.BuyDate)
     {
-        <FormField Label="Buy date" Icon="Lucide.Calendar">
+        <FormField Label="@AppResources.Spool_BuyDate" Icon="Lucide.Calendar">
             <input type="date" @bind="Model.BuyDate" />
         </FormField>
     }
 
     @if (Fields.LotNr)
     {
-        <FormField Label="Lot nr" Icon="Lucide.Hash" HasValue="!string.IsNullOrEmpty(Model.LotNr)" OnClear="() => Model.LotNr = null">
+        <FormField Label="@AppResources.Spool_LotNr" Icon="Lucide.Hash" HasValue="!string.IsNullOrEmpty(Model.LotNr)" OnClear="() => Model.LotNr = null">
             <input type="text" @bind="Model.LotNr" />
         </FormField>
     }
 
-    <FormField Label="Location" Icon="Lucide.MapPin" HasValue="!string.IsNullOrEmpty(Model.Location)" OnClear="() => Model.Location = null">
+    <FormField Label="@AppResources.Spool_Location" Icon="Lucide.MapPin" HasValue="!string.IsNullOrEmpty(Model.Location)" OnClear="() => Model.Location = null">
         <input type="text" list="@locationListId" autocomplete="off" @bind="Model.Location" />
         <datalist id="@locationListId">
             @foreach (var location in Locations)
@@ -63,9 +63,9 @@
     /// <summary>Raised on the first keystroke in the weight field, which makes the weight the user's own.</summary>
     [Parameter] public EventCallback OnWeightTyped { get; set; }
 
-    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public string CancelText { get; set; } = AppResources.Common_Cancel;
 
-    [Parameter] public string SaveText { get; set; } = "Save changes";
+    [Parameter] public string SaveText { get; set; } = AppResources.Spool_SaveChanges;
 
     /// <summary>Disables the save button, e.g. while the spool is being sent to the server.</summary>
     [Parameter] public bool Saving { get; set; }

@@ -7,44 +7,41 @@
         <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="consent-title" @onclick:stopPropagation>
 
             <div class="dialog-title" id="consent-title">
-                <Blazicon Svg="Lucide.FlaskConical" /> Research Data Contribution
+                <Blazicon Svg="Lucide.FlaskConical" /> @AppResources.Consent_Title
             </div>
 
             <p>
-                Help improve Bambu Lab filament research by uploading NFC tag data to the
-                <a href="" @onclick='() => OpenAsync("https://github.com/queengooborg/Bambu-Lab-RFID-Library")' @onclick:preventDefault>Bambu-Lab-RFID-Library</a>.
+                @Intro.Before<a href="" @onclick='() => OpenAsync("https://github.com/queengooborg/Bambu-Lab-RFID-Library")' @onclick:preventDefault>Bambu-Lab-RFID-Library</a>@Intro.After
             </p>
 
             <p>
-                The uploaded data will also be available at
-                <a href="" @onclick='() => OpenAsync("https://bambuman.ee")' @onclick:preventDefault>bambuman.ee</a>
-                as a downloadable archive.
+                @Archive.Before<a href="" @onclick='() => OpenAsync("https://bambuman.ee")' @onclick:preventDefault>bambuman.ee</a>@Archive.After
             </p>
 
             <div class="banner">
-                <div>What is uploaded: <strong>Full NFC tag data with keys</strong>.</div>
+                <div>@AppResources.Consent_WhatIsUploaded <strong>@AppResources.Consent_WhatIsUploadedValue</strong>.</div>
             </div>
 
             <div class="banner error">
                 <Blazicon Svg="Lucide.TriangleAlert" />
-                <div>The uploaded data will be PUBLIC and freely available without restrictions.</div>
+                <div>@AppResources.Consent_PublicWarning</div>
             </div>
 
             <div class="banner caution">
                 <Blazicon Svg="Lucide.Info" />
                 <ul>
-                    <li>Please scan both sides of the spool — each tag contains unique data.</li>
-                    <li>Limited to 1000 tag uploads per day.</li>
+                    <li>@AppResources.Consent_ScanBothSides</li>
+                    <li>@AppResources.Consent_DailyLimit</li>
                 </ul>
             </div>
 
             <div class="dialog-note">
-                <Blazicon Svg="Lucide.Settings" /> You can opt out anytime in Settings.
+                <Blazicon Svg="Lucide.Settings" /> @AppResources.Consent_OptOut
             </div>
 
             <div class="dialog-actions">
-                <button type="button" class="btn btn-tertiary" @onclick="() => OnResult.InvokeAsync(false)">No Thanks</button>
-                <button type="button" class="btn btn-primary" @onclick="() => OnResult.InvokeAsync(true)">Participate</button>
+                <button type="button" class="btn btn-tertiary" @onclick="() => OnResult.InvokeAsync(false)">@AppResources.Consent_Decline</button>
+                <button type="button" class="btn btn-primary" @onclick="() => OnResult.InvokeAsync(true)">@AppResources.Consent_Accept</button>
             </div>
         </div>
     </div>
@@ -59,6 +56,18 @@
     [Parameter] public EventCallback<bool> OnResult { get; set; }
 
     [Parameter] public EventCallback OnDismissed { get; set; }
+
+    private static (string Before, string After) Intro => AroundLink(AppResources.Consent_Intro);
+
+    private static (string Before, string After) Archive => AroundLink(AppResources.Consent_Archive);
+
+    /// <summary>The text before and after the <c>{0}</c> the link goes in, so a translation can put the link anywhere in its sentence.</summary>
+    private static (string Before, string After) AroundLink(string text)
+    {
+        var index = text.IndexOf("{0}", StringComparison.Ordinal);
+
+        return index < 0 ? (text, string.Empty) : (text[..index], text[(index + 3)..]);
+    }
 
     private Task OnBackdropClick() => Dismissible ? OnDismissed.InvokeAsync() : Task.CompletedTask;
 

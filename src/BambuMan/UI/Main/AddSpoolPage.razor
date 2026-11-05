@@ -1,35 +1,35 @@
 @page "/add-spool"
 @inherits ObservingComponentBase
 
-<PageHeader Title="Add spool" Icon="Lucide.PackagePlus">
-    <Subtitle>For a spool whose tag can't be read — in a foil bag, or with a damaged tag.</Subtitle>
+<PageHeader Title="@AppResources.AddSpool_Title" Icon="Lucide.PackagePlus">
+    <Subtitle>@AppResources.AddSpool_Subtitle</Subtitle>
 </PageHeader>
 
 <div class="stack">
 
-    <Banner Kind="error" Label="Error:" Icon="Lucide.CircleAlert" Message="@Vm.ErrorMessage" />
+    <Banner Kind="error" Label="@AppResources.Main_BannerError" Icon="Lucide.CircleAlert" Message="@Vm.ErrorMessage" />
 
     @if (!canAdd)
     {
         <div class="card empty">
             @(Scanner.ActiveManager.CanEditSpools
-                ? $"Connect to {Scanner.ViewModel.BackendLabel} first, the spool is saved there."
-                : "Spools can be added by hand when they are stored on this device. Turn on 'Store spools locally' in settings.")
-            <div><a class="btn btn-outline btn-sm" href="">Back to scanner</a></div>
+                ? string.Format(AppResources.AddSpool_ConnectFirst, Scanner.ViewModel.BackendLabel)
+                : AppResources.AddSpool_StoreLocallyFirst)
+            <div><a class="btn btn-outline btn-sm" href="">@AppResources.Settings_BackToScanner</a></div>
         </div>
     }
     else if (Vm.IsPicking)
     {
         <div class="filters">
             <FormField Icon="Lucide.Search" Class="filter-search" HasValue="!string.IsNullOrEmpty(Vm.Search)" OnClear="() => Vm.Search = null">
-                <input type="text" enterkeyhint="search" placeholder="Search material, name or colour" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search material, name or colour" @bind="Vm.Search" @bind:event="oninput" />
+                <input type="text" enterkeyhint="search" placeholder="@AppResources.AddSpool_Search" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="@AppResources.AddSpool_Search" @bind="Vm.Search" @bind:event="oninput" />
             </FormField>
         </div>
 
         <div class="card">
             @if (Vm.Results.Count == 0)
             {
-                <div class="empty">No filament matches the search. Not a catalog filament? Add it as unknown below.</div>
+                <div class="empty">@AppResources.AddSpool_NoMatch</div>
             }
             else
             {
@@ -48,23 +48,23 @@
 
                 @if (Vm.MatchCount > Vm.Results.Count)
                 {
-                    <div class="small subtle">Showing @Vm.Results.Count of @Vm.MatchCount filaments. Type more of the name to narrow it down.</div>
+                    <div class="small subtle">@(string.Format(AppResources.AddSpool_ShowingCount, Vm.Results.Count, Vm.MatchCount))</div>
                 }
             }
         </div>
 
         <div class="card">
             <div class="card-header">
-                <div class="card-title"><Blazicon Svg="Lucide.Package" /> Not in the list?</div>
-                <button class="btn btn-secondary btn-sm" @onclick="SelectUnknown">Unknown filament</button>
+                <div class="card-title"><Blazicon Svg="Lucide.Package" /> @AppResources.AddSpool_NotInList</div>
+                <button class="btn btn-secondary btn-sm" @onclick="SelectUnknown">@AppResources.Spools_UnknownFilament</button>
             </div>
-            <div class="small subtle">Add it with the material, colour and weight from its label instead.</div>
+            <div class="small subtle">@AppResources.AddSpool_UnknownHint</div>
         </div>
     }
     else if (Vm.Edit != null)
     {
         <div class="card spool-card">
-            <div class="section-title">Spool</div>
+            <div class="section-title">@AppResources.Main_SpoolSection</div>
 
             <div class="spool-head">
                 @if (Vm.Selected != null)
@@ -76,17 +76,17 @@
                     <div class="swatch" style="background: @Vm.UnknownColor"></div>
                 }
                 <div class="spool-head-text">
-                    <div class="spool-title">@(Vm.Selected?.Title ?? "Unknown filament")</div>
-                    <div class="small subtle">@(Vm.Selected?.Subtitle ?? "Not in the filament catalog")</div>
+                    <div class="spool-title">@(Vm.Selected?.Title ?? AppResources.Spools_UnknownFilament)</div>
+                    <div class="small subtle">@(Vm.Selected?.Subtitle ?? AppResources.AddSpool_NotInCatalog)</div>
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm" @onclick="Vm.ClearSelection">Change</button>
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="Vm.ClearSelection">@AppResources.AddSpool_Change</button>
             </div>
 
-            <SpoolEditForm Model="Vm.Edit" Fields="Scanner.ActiveManager.EditFields" Locations="Scanner.ActiveManager.ExistingLocations" SaveText="Add spool" Saving="Vm.Saving" OnSave="SaveAsync" OnCancel="GoBack">
+            <SpoolEditForm Model="Vm.Edit" Fields="Scanner.ActiveManager.EditFields" Locations="Scanner.ActiveManager.ExistingLocations" SaveText="@AppResources.AddSpool_Title" Saving="Vm.Saving" OnSave="SaveAsync" OnCancel="GoBack">
                 @if (Vm.IsUnknown)
                 {
-                    <FormField Label="Material" Icon="Lucide.Package" Error="@Vm.UnknownMaterialError" Class="span-2">
-                        <input type="text" list="@materialListId" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. PLA" @bind="Vm.UnknownMaterial" />
+                    <FormField Label="@AppResources.Common_Material" Icon="Lucide.Package" Error="@Vm.UnknownMaterialError" Class="span-2">
+                        <input type="text" list="@materialListId" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="@AppResources.AddSpool_MaterialPlaceholder" @bind="Vm.UnknownMaterial" />
                         <datalist id="@materialListId">
                             @foreach (var material in Vm.Materials)
                             {
@@ -95,11 +95,11 @@
                         </datalist>
                     </FormField>
 
-                    <FormField Label="Colour" Icon="Lucide.Palette">
+                    <FormField Label="@AppResources.Common_Colour" Icon="Lucide.Palette">
                         <input type="color" @bind="Vm.UnknownColor" />
                     </FormField>
 
-                    <FormField Label="Label weight (g)" Icon="Lucide.Weight" Error="@Vm.UnknownLabelWeightError">
+                    <FormField Label="@AppResources.AddSpool_LabelWeight" Icon="Lucide.Weight" Error="@Vm.UnknownLabelWeightError">
                         <input type="number" inputmode="numeric" step="1" min="1" @bind="Vm.UnknownLabelWeight" />
                     </FormField>
                 }

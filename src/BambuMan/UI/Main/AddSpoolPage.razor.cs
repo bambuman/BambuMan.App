@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 
@@ -65,16 +66,16 @@ namespace BambuMan.UI.Main
 
                 if (!await Scanner.AddManualSpoolAsync(spool, edit))
                 {
-                    Vm.ErrorMessage = "The spool couldn't be added. See logs.";
+                    Vm.ErrorMessage = AppResources.AddSpool_Failed;
                     return;
                 }
 
-                Toasts.Show($"Spool {spool.Label} added", ToastKind.Success);
+                Toasts.Show(string.Format(AppResources.AddSpool_Added, spool.Label), ToastKind.Success);
                 GoBack();
             }
             catch (Exception e)
             {
-                Vm.ErrorMessage = "The spool couldn't be added. See logs.";
+                Vm.ErrorMessage = AppResources.AddSpool_Failed;
                 Logger.LogError(e, "Error adding a spool manually");
             }
             finally

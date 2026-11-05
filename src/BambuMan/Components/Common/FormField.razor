@@ -11,7 +11,7 @@
         @ChildContent
         @if (CanClear)
         {
-            <button type="button" class="input-clear" aria-label="Clear" @onclick="OnClear"><Blazicon Svg="Lucide.X" /></button>
+            <button type="button" class="input-clear" aria-label="@AppResources.Common_Clear" @onclick="OnClear"><Blazicon Svg="Lucide.X" /></button>
         }
     </div>
     @if (!string.IsNullOrEmpty(Error))

@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
@@ -79,7 +80,7 @@ public partial class PendingScansPage
             var page = Application.Current?.Windows.FirstOrDefault()?.Page;
             if (page == null) return;
 
-            if (!await page.DisplayAlertAsync("Discard queued scans", $"Discard all {Queue.Items.Count} queued scans? They won't be sent to the inventory server.", "Discard all", "Cancel")) return;
+            if (!await page.DisplayAlertAsync(AppResources.Pending_DiscardAllTitle, string.Format(AppResources.Pending_DiscardAllMessage, Queue.Items.Count), AppResources.Pending_DiscardAll, AppResources.Common_Cancel)) return;
 
             await Queue.ClearAsync();
         }

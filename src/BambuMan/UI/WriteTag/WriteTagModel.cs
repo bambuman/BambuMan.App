@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
 
@@ -42,10 +43,10 @@ public class WriteTagModel
 
     public bool Validate()
     {
-        MaterialError = string.IsNullOrWhiteSpace(Material) ? "Enter the material, e.g. PLA." : null;
+        MaterialError = string.IsNullOrWhiteSpace(Material) ? AppResources.Common_MaterialRequired : null;
 
-        TemperatureError = MinTemperature is < 0 or > 500 || MaxTemperature is < 0 or > 500 ? "Temperatures must be between 0 and 500 °C."
-            : MinTemperature > MaxTemperature ? "The minimum is above the maximum."
+        TemperatureError = MinTemperature is < 0 or > 500 || MaxTemperature is < 0 or > 500 ? AppResources.WriteTag_TemperatureRange
+            : MinTemperature > MaxTemperature ? AppResources.WriteTag_TemperatureOrder
             : null;
 
         return MaterialError == null && TemperatureError == null;

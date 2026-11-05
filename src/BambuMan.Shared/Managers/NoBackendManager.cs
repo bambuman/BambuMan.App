@@ -2,6 +2,7 @@ using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
+using BambuMan.Shared.Resources.Strings;
 using BambuMan.Shared.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -192,7 +193,7 @@ namespace BambuMan.Shared.Managers
             currentKey = localSpool.Key;
 
             await Log(LogLevel.Success, $"Spool {spool.Label} added manually");
-            ShowMessage(false, $"Spool {spool.Label} added.");
+            ShowMessage(false, string.Format(SharedResources.Manager_ManualSpoolAdded, spool.Label));
 
             RaiseSpoolFound(new SpoolFound(
                 Material: filament?.Material ?? spool.Info.FilamentType,
@@ -294,7 +295,7 @@ namespace BambuMan.Shared.Managers
             var name = string.Join(" ", new[] { spool.Info.DetailedFilamentType ?? spool.Info.FilamentType, spool.Name }.Where(x => !string.IsNullOrEmpty(x)));
 
             await Log(LogLevel.Success, $"Spool {name} updated");
-            ShowMessage(false, $"Spool {name} updated.");
+            ShowMessage(false, string.Format(SharedResources.Manager_LocalSpoolUpdated, name));
 
             return true;
         }
@@ -530,7 +531,7 @@ namespace BambuMan.Shared.Managers
             {
                 // Leave the store unloaded: saving now would overwrite whatever is in the damaged file.
                 await Log(LogLevel.Error, $"Could not read the locally stored spools: {e.Message}", e);
-                ShowMessage(true, "Could not read the locally stored spools. See logs.");
+                ShowMessage(true, SharedResources.Manager_LocalStoreReadFailed);
                 return;
             }
 
@@ -567,7 +568,7 @@ namespace BambuMan.Shared.Managers
                 catch (Exception e)
                 {
                     await Log(LogLevel.Error, $"Could not save the locally stored spools: {e.Message}", e);
-                    ShowMessage(true, "Could not save the locally stored spools. See logs.");
+                    ShowMessage(true, SharedResources.Manager_LocalStoreSaveFailed);
                 }
             }
 

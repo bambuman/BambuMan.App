@@ -14,7 +14,7 @@
 
         <nav class="nav">
             <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
-                <Blazicon Svg="Lucide.Nfc" /> Scanner
+                <Blazicon Svg="Lucide.Nfc" /> @AppResources.Nav_Scanner
             </NavLink>
 
             @* The device store is the only spool list the app keeps itself; the servers have their own UIs. With a server
@@ -22,7 +22,7 @@
             @if (ShowLocalSpools)
             {
                 <NavLink class="nav-item" href="spools">
-                    <Blazicon Svg="Lucide.Boxes" /> Spools
+                    <Blazicon Svg="Lucide.Boxes" /> @AppResources.Nav_Spools
                 </NavLink>
             }
 
@@ -30,16 +30,16 @@
             @if (ScannerService.CanWriteTags)
             {
                 <NavLink class="nav-item" href="write-tag">
-                    <Blazicon Svg="Lucide.Pencil" /> Write tag
+                    <Blazicon Svg="Lucide.Pencil" /> @AppResources.WriteTag_Title
                 </NavLink>
             }
 
             <NavLink class="nav-item" href="settings">
-                <Blazicon Svg="Lucide.Settings" /> Settings
+                <Blazicon Svg="Lucide.Settings" /> @AppResources.Nav_Settings
             </NavLink>
 
             <NavLink class="nav-item" href="logs">
-                <Blazicon Svg="Lucide.ScrollText" /> Logs
+                <Blazicon Svg="Lucide.ScrollText" /> @AppResources.Nav_Logs
             </NavLink>
         </nav>
 

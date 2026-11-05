@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Machine translation, needs review by a native speaker. -->
+  <data name="SpoolInfo_Manufacturer" xml:space="preserve">
+    <value>Tootja</value>
+  </data>
+  <data name="SpoolInfo_Material" xml:space="preserve">
+    <value>Materjal</value>
+  </data>
+  <data name="SpoolInfo_Name" xml:space="preserve">
+    <value>Nimi</value>
+  </data>
+  <data name="SpoolInfo_FilamentCode" xml:space="preserve">
+    <value>Filamendi kood</value>
+  </data>
+  <data name="SpoolInfo_Variant" xml:space="preserve">
+    <value>Variant</value>
+  </data>
+  <data name="SpoolInfo_Manufactured" xml:space="preserve">
+    <value>Valmistatud</value>
+  </data>
+  <data name="SpoolInfo_Colour" xml:space="preserve">
+    <value>Värv</value>
+  </data>
+  <data name="SpoolInfo_ColourType" xml:space="preserve">
+    <value>Värvi tüüp</value>
+  </data>
+  <data name="SpoolInfo_Diameter" xml:space="preserve">
+    <value>Läbimõõt</value>
+  </data>
+  <data name="SpoolInfo_SpoolWeight" xml:space="preserve">
+    <value>Rulli kaal</value>
+  </data>
+  <data name="SpoolInfo_DryingTemperature" xml:space="preserve">
+    <value>Kuivatustemperatuur</value>
+  </data>
+  <data name="SpoolInfo_DryingTime" xml:space="preserve">
+    <value>Kuivatusaeg</value>
+  </data>
+  <data name="SpoolInfo_HotendTemperature" xml:space="preserve">
+    <value>Düüsi temperatuur</value>
+  </data>
+  <data name="SpoolInfo_MinNozzleDiameter" xml:space="preserve">
+    <value>Min düüsi läbimõõt</value>
+  </data>
+  <data name="SpoolInfo_TagSerial" xml:space="preserve">
+    <value>Sildi seerianumber</value>
+  </data>
+  <data name="SpoolInfo_TrayUid" xml:space="preserve">
+    <value>Tray UID</value>
+  </data>
+  <data name="Backend_NoBackend" xml:space="preserve">
+    <value>Serverita</value>
+  </data>
+  <data name="Manager_ExistingSpoolFound" xml:space="preserve">
+    <value>Leiti olemasolev rull '{0}'</value>
+  </data>
+  <data name="Manager_SpoolAdded" xml:space="preserve">
+    <value>Rull '{0}' lisatud</value>
+  </data>
+  <data name="Manager_SpoolUpdatedUsedWeight" xml:space="preserve">
+    <value>Rull '{0}' uuendatud, kasutatud kaaluks määrati {1} g</value>
+  </data>
+  <data name="Manager_SpoolUpdatedUsedWeightNoName" xml:space="preserve">
+    <value>Rull uuendatud, kasutatud kaaluks määrati {0} g</value>
+  </data>
+  <data name="Manager_LocalSpoolUpdated" xml:space="preserve">
+    <value>Rull {0} uuendatud.</value>
+  </data>
+  <data name="Manager_LocalStoreReadFailed" xml:space="preserve">
+    <value>Seadmesse salvestatud rulle ei õnnestunud lugeda. Vaata logisid.</value>
+  </data>
+  <data name="Manager_LocalStoreSaveFailed" xml:space="preserve">
+    <value>Seadmesse salvestatud rulle ei õnnestunud salvestada. Vaata logisid.</value>
+  </data>
+  <data name="Manager_NetworkTimedOut" xml:space="preserve">
+    <value>{0}: ühendus aegus. Proovin automaatselt uuesti.</value>
+  </data>
+  <data name="Manager_NetworkFailed" xml:space="preserve">
+    <value>{0}: ebaõnnestus. Proovin automaatselt uuesti.</value>
+  </data>
+  <data name="Manager_OperationInventorySpool" xml:space="preserve">
+    <value>Rulli inventeerimine</value>
+  </data>
+  <data name="Manager_OperationAddUpdateFilament" xml:space="preserve">
+    <value>Filamendi lisamine/uuendamine</value>
+  </data>
+  <data name="Manager_OperationAddSpool" xml:space="preserve">
+    <value>Rulli lisamine</value>
+  </data>
+  <data name="Manager_OperationUpdateSpool" xml:space="preserve">
+    <value>Rulli uuendamine</value>
+  </data>
+  <data name="Manager_ConnectionTimedOut" xml:space="preserve">
+    <value>Ühendus aegus</value>
+  </data>
+  <data name="Manager_InvalidUrlFormat" xml:space="preserve">
+    <value>Vigane URL-i vorming</value>
+  </data>
+  <data name="SpoolInfo_TagFormat" xml:space="preserve">
+    <value>Sildi vorming</value>
+  </data>
+  <data name="SpoolInfo_Remaining" xml:space="preserve">
+    <value>Järel</value>
+  </data>
+  <data name="SpoolInfo_BedTemperature" xml:space="preserve">
+    <value>Aluse temperatuur</value>
+  </data>
+  <data name="SpoolInfo_Message" xml:space="preserve">
+    <value>Sõnum</value>
+  </data>
+  <data name="Manager_UploadTimedOut" xml:space="preserve">
+    <value>{0}: ühendus aegus</value>
+  </data>
+  <data name="Manager_UploadFailed" xml:space="preserve">
+    <value>{0} ebaõnnestus: {1}</value>
+  </data>
+  <data name="Manager_ManualSpoolAdded" xml:space="preserve">
+    <value>Rull {0} lisatud.</value>
+  </data>
+  <data name="Manager_TagNotInCatalog" xml:space="preserve">
+    <value>{0} silti ei leitud filamendikataloogist. Selle lisamiseks lülita seadetes sisse 'Impordi tundmatu filament'.</value>
+  </data>
+  <data name="Send_UrlNotSet" xml:space="preserve">
+    <value>{0} URL pole määratud</value>
+  </data>
+  <data name="Send_NotInventoried" xml:space="preserve">
+    <value>Ei inventeeritud, vaata logisid</value>
+  </data>
+  <data name="Upload_CantSendTo" xml:space="preserve">
+    <value>Rulle ei saa saata serverisse {0}</value>
+  </data>
+  <data name="Upload_NotConnected" xml:space="preserve">
+    <value>Pole ühendatud serveriga {0}</value>
+  </data>
+  <data name="Upload_ManualSpool" xml:space="preserve">
+    <value>Käsitsi lisatud ilma sildita, seega ei erista {0} seda uuest rullist. Lisa see sinna käsitsi.</value>
+  </data>
+  <data name="Upload_NotAdded" xml:space="preserve">
+    <value>Serverisse {0} ei lisatud, vaata logisid</value>
+  </data>
+  <data name="Upload_AddedDetailsNotSaved" xml:space="preserve">
+    <value>Lisatud, kuid selle kaalu ja andmeid ei salvestatud: {0}</value>
+  </data>
+  <data name="Upload_StatusCreated" xml:space="preserve">
+    <value>Loodud</value>
+  </data>
+  <data name="Upload_StatusUpdated" xml:space="preserve">
+    <value>Uuendatud</value>
+  </data>
+  <data name="Upload_StatusFailed" xml:space="preserve">
+    <value>Ebaõnnestus</value>
+  </data>
+  <data name="Upload_StatusKeptServerWeight" xml:space="preserve">
+    <value>{0} (serveri kaal jäeti alles: {1} g)</value>
+  </data>
+  <data name="Summary_Created" xml:space="preserve">
+    <value>{0} loodud</value>
+  </data>
+  <data name="Summary_Updated" xml:space="preserve">
+    <value>{0} uuendatud</value>
+  </data>
+  <data name="Summary_UpdatedKept" xml:space="preserve">
+    <value>{0} uuendatud ({1} puhul jäeti serveri kaal alles)</value>
+  </data>
+  <data name="Summary_Failed" xml:space="preserve">
+    <value>{0} ebaõnnestus</value>
+  </data>
+  <data name="Summary_Skipped" xml:space="preserve">
+    <value>{0} saatmata</value>
+  </data>
+  <data name="Summary_SentTo" xml:space="preserve">
+    <value>Saadetud serverisse {0}: {1}.</value>
+  </data>
+  <data name="Summary_Cancelled" xml:space="preserve">
+    <value>Saatmine katkestati. {0}</value>
+  </data>
+  <data name="Spool_AddedManually" xml:space="preserve">
+    <value>Käsitsi lisatud</value>
+  </data>
+  <data name="Spool_UnknownFilament" xml:space="preserve">
+    <value>Tundmatu filament</value>
+  </data>
+  <data name="Scale_BluetoothOff" xml:space="preserve">
+    <value>Bluetooth on välja lülitatud</value>
+  </data>
+  <data name="Scale_NoPermission" xml:space="preserve">
+    <value>Bluetoothi luba puudub</value>
+  </data>
+  <data name="Scale_Connecting" xml:space="preserve">
+    <value>Ühendan</value>
+  </data>
+  <data name="Scale_Connected" xml:space="preserve">
+    <value>Ühendatud</value>
+  </data>
+  <data name="Scale_Reconnecting" xml:space="preserve">
+    <value>Ootan kaalu</value>
+  </data>
+  <data name="Scale_NotAScale" xml:space="preserve">
+    <value>Pole toetatud kaal</value>
+  </data>
+  <data name="Scale_Off" xml:space="preserve">
+    <value>Väljas</value>
+  </data>
+  <data name="Scale_ProtocolBambuMan" xml:space="preserve">
+    <value>BambuMani kaal</value>
+  </data>
+</root>

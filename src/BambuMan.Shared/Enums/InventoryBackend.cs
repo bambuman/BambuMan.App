@@ -1,3 +1,5 @@
+using BambuMan.Shared.Resources.Strings;
+
 namespace BambuMan.Shared.Enums
 {
     /// <summary>
@@ -21,7 +23,7 @@ namespace BambuMan.Shared.Enums
         /// </summary>
         public static string DisplayName(this InventoryBackend backend) => backend switch
         {
-            InventoryBackend.NoBackend => "No backend",
+            InventoryBackend.NoBackend => SharedResources.Backend_NoBackend,
             _ => backend.ToString()
         };
     }

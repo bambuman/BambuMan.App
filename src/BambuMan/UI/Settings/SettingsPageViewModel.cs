@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Shared;
 using BambuMan.Shared.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -28,6 +29,8 @@ namespace BambuMan.UI.Settings
         [ObservableProperty] private string? bambuddyApiKey;
 
         [ObservableProperty] private TextScale textScale;
+
+        [ObservableProperty] private AppLanguage language;
 
         /// <summary>Single URL field shown in the UI; proxies to the active backend's stored URL (reloads on backend switch).</summary>
         public string? ServerUrl
@@ -89,8 +92,8 @@ namespace BambuMan.UI.Settings
         /// <summary>Re-checks the fields that have rules, setting each one's message. True when the url is fine to store.</summary>
         public bool ValidateServerUrl()
         {
-            if (string.IsNullOrWhiteSpace(ServerUrl)) ServerUrlError = "Server url is required.";
-            else if (!ServerUrl.IsHttpUrl()) ServerUrlError = "Invalid url, must start with http:// or https://";
+            if (string.IsNullOrWhiteSpace(ServerUrl)) ServerUrlError = AppResources.Settings_ServerUrlRequired;
+            else if (!ServerUrl.IsHttpUrl()) ServerUrlError = AppResources.Settings_ServerUrlInvalid;
             else ServerUrlError = null;
 
             return ServerUrlError == null;
@@ -98,14 +101,14 @@ namespace BambuMan.UI.Settings
 
         public bool ValidateBambuddyApiKey()
         {
-            BambuddyApiKeyError = string.IsNullOrWhiteSpace(BambuddyApiKey) ? "API key is required." : null;
+            BambuddyApiKeyError = string.IsNullOrWhiteSpace(BambuddyApiKey) ? AppResources.Settings_ApiKeyRequired : null;
 
             return BambuddyApiKeyError == null;
         }
 
         public bool ValidateDefaultPrice()
         {
-            DefaultPriceError = DefaultPrice < 0 ? "Price can't be negative." : null;
+            DefaultPriceError = DefaultPrice < 0 ? AppResources.Spool_PriceNegative : null;
 
             return DefaultPriceError == null;
         }

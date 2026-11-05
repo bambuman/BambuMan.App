@@ -2,16 +2,16 @@
 
 <div class="card">
     <div class="card-header">
-        <div class="card-title"><Blazicon Svg="Lucide.ScrollText" /> Logs</div>
+        <div class="card-title"><Blazicon Svg="Lucide.ScrollText" /> @AppResources.Logs_Title</div>
         <div class="card-actions">
-            <button class="btn btn-tertiary btn-sm" @onclick="OnClear"><Blazicon Svg="Lucide.Eraser" /> Clear logs</button>
-            <button class="btn btn-secondary btn-sm" @onclick="OnEmail"><Blazicon Svg="Lucide.Mail" /> Email logs</button>
+            <button class="btn btn-tertiary btn-sm" @onclick="OnClear"><Blazicon Svg="Lucide.Eraser" /> @AppResources.Logs_Clear</button>
+            <button class="btn btn-secondary btn-sm" @onclick="OnEmail"><Blazicon Svg="Lucide.Mail" /> @AppResources.Logs_Email</button>
         </div>
     </div>
 
     @if (Logs.Count == 0)
     {
-        <div class="empty">No log messages yet.</div>
+        <div class="empty">@AppResources.Logs_Empty</div>
     }
     else
     {

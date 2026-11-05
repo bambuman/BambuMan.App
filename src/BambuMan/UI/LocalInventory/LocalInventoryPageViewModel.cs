@@ -1,4 +1,5 @@
 using BambuMan.Shared.Enums;
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Models;
 using BambuMan.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -83,7 +84,13 @@ namespace BambuMan.UI.LocalInventory
             // Groups keep the order of their most recently scanned spool, since allSpools is sorted that way.
             Groups = new ObservableCollection<LocalSpoolGroup>(LocalSpoolFilter.Group(filtered));
 
-            CountText = LocalSpoolFilter.CountText(filtered.Count, allSpools.Count, Groups.Count, IsFiltered);
+            var groupText = string.Format(Groups.Count == 1 ? AppResources.Spools_FilamentCountOne : AppResources.Spools_FilamentCountMany, Groups.Count);
+
+            var spoolText = IsFiltered
+                ? string.Format(AppResources.Spools_FilteredCount, filtered.Count, allSpools.Count)
+                : string.Format(allSpools.Count == 1 ? AppResources.Spools_SpoolCountOne : AppResources.Spools_SpoolCountMany, allSpools.Count);
+
+            CountText = $"{spoolText} · {groupText}";
 
             OnPropertyChanged(nameof(TotalCount));
             OnPropertyChanged(nameof(IsFiltered));

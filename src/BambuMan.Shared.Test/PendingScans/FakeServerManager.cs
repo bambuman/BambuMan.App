@@ -75,7 +75,7 @@ namespace BambuMan.Shared.Test.PendingScans
 
             if (!Reachable)
             {
-                await HandleNetworkError(new HttpRequestException("Connection refused"), "Inventory spool");
+                await HandleNetworkError(new HttpRequestException("Connection refused"), "Inventory spool", "Inventory spool");
                 return false;
             }
 
