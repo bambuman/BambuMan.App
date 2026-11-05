@@ -129,19 +129,19 @@ namespace BambuMan
             }
         }
 
-        private void ManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
+        private void ManagerOnSpoolFound(SpoolFound found, ISpoolTag tag)
         {
             // On the main thread, so the inventory counter is updated before HasInventoryItems is read back from it.
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 try
                 {
-                    viewModel.InventorySpool(found, info);
+                    viewModel.InventorySpool(found, tag);
 
                     // A backend that can't save edits shows the info card from OnSpoolInfoRead instead.
                     if (!ActiveManager.CanEditSpools) return;
 
-                    viewModel.ShowSpool(found, info);
+                    viewModel.ShowSpool(found, tag);
 
                     if (viewModel.ShowKeyboardOnSpoolRead) SpoolEditFocusRequested?.Invoke(true);
                 }
@@ -546,6 +546,15 @@ namespace BambuMan
                     return;
                 }
 
+                // NTAG-based formats (OpenSpool, TigerTag) arrive as NDEF records / raw user memory and are decoded here.
+                if (SpoolTagReader.TryRead(tagInfo) is SpoolTag spoolTag)
+                {
+                    await viewModel.AddLog(LogLevel.Information, $"{spoolTag.Format.DisplayName()} tag: {JsonConvert.SerializeObject(spoolTag, Formatting.Indented)}");
+
+                    await InventorySpoolAsync(spoolTag);
+                    return;
+                }
+
                 if (tagInfo is MifareReadFailure failure)
                 {
                     SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
@@ -586,8 +595,11 @@ namespace BambuMan
             }
         }
 
-        /// <summary>Inventory a read tag against the active backend with the configured defaults, then upload it if opted in.</summary>
-        private async Task InventorySpoolAsync(BambuFilamentInfo info)
+        /// <summary>
+        /// Inventory a read tag against the active backend with the configured defaults, then upload it if opted in.
+        /// Only Bambu Lab tags are uploaded: the upload consent covers those, and the tag database is built from them.
+        /// </summary>
+        private async Task InventorySpoolAsync(ISpoolTag tag)
         {
             var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
             var defaultPrice = decimal.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? (decimal?)result : null;
@@ -609,9 +621,9 @@ namespace BambuMan
             }
 
             SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
-            await active.InventorySpool(info, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+            await active.InventorySpool(tag, buyDate, defaultPrice, defaultLotNr, defaultLocation);
 
-            if (viewModel.FullTagScanAndUpload)
+            if (viewModel.FullTagScanAndUpload && tag is BambuFilamentInfo info)
             {
                 var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(info);
                 if (rateLimited)

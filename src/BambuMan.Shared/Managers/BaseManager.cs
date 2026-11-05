@@ -19,7 +19,7 @@ namespace BambuMan.Shared.Managers
         public delegate void ShowMessageEventHandler(bool isError, string message);
         public delegate void LogMessageEventHandler(LogLevel level, string message);
         public delegate void PlayErrorToneEventHandler();
-        public delegate void SpoolFoundEventHandler(SpoolFound found, BambuFilamentInfo info);
+        public delegate void SpoolFoundEventHandler(SpoolFound found, ISpoolTag tag);
         public delegate void SpoolInfoReadEventHandler(SpoolDisplayInfo info);
         public delegate void LocationsLoadedEventHandler();
 
@@ -40,8 +40,11 @@ namespace BambuMan.Shared.Managers
         /// <summary>Raise <see cref="OnPlayErrorTone"/> from a subclass.</summary>
         protected void PlayErrorTone() => OnPlayErrorTone?.Invoke();
 
-        /// <summary>Raise <see cref="OnSpoolFound"/> from a subclass. Pass the scanned <paramref name="info"/> so consumers can read raw tag fields without extending <see cref="SpoolFound"/>.</summary>
-        protected void RaiseSpoolFound(SpoolFound found, BambuFilamentInfo info) => OnSpoolFound?.Invoke(found, info);
+        /// <summary>
+        /// Raise <see cref="OnSpoolFound"/> from a subclass. Pass the scanned <paramref name="tag"/> as read (a
+        /// <see cref="BambuFilamentInfo"/> or <see cref="SpoolTag"/>) so consumers can read raw tag fields without extending <see cref="SpoolFound"/>.
+        /// </summary>
+        protected void RaiseSpoolFound(SpoolFound found, ISpoolTag tag) => OnSpoolFound?.Invoke(found, tag);
 
         /// <summary>Raise <see cref="OnSpoolInfoRead"/> from a subclass.</summary>
         protected void RaiseSpoolInfoRead(SpoolDisplayInfo info) => OnSpoolInfoRead?.Invoke(info);
@@ -285,8 +288,11 @@ namespace BambuMan.Shared.Managers
 
         #region Inventory operations
 
-        /// <summary>Inventory a scanned spool: match, create-or-find, link, then fire <see cref="OnSpoolFound"/>. Returns false on no/ambiguous filament match.</summary>
-        public abstract Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location);
+        /// <summary>
+        /// Inventory a scanned spool of any tag format: match, create-or-find (by <see cref="ISpoolTag.SpoolId"/>), link,
+        /// then fire <see cref="OnSpoolFound"/>. Returns false on no/ambiguous filament match.
+        /// </summary>
+        public abstract Task<bool> InventorySpool(ISpoolTag tag, DateTime? buyDate, decimal? price, string? lotNr, string? location);
 
         /// <summary>Persist edits to the spool most recently surfaced via <see cref="OnSpoolFound"/>. Fields the backend doesn't model are ignored.</summary>
         public abstract Task UpdateCurrentSpoolAsync(SpoolEditInput input);

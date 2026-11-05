@@ -29,7 +29,7 @@ namespace BambuMan.Shared.Managers
 
         // The spool + scan info most recently surfaced via OnSpoolFound, retained for UpdateCurrentSpoolAsync.
         private SpoolResponse? currentSpool;
-        private BambuFilamentInfo? currentInfo;
+        private ISpoolTag? currentTag;
 
         private bool catalogLoaded;
         private bool spoolsLoaded;
@@ -153,22 +153,25 @@ namespace BambuMan.Shared.Managers
             }
         }
 
-        public override async Task<bool> InventorySpool(BambuFilamentInfo info, DateTime? buyDate, decimal? price, string? lotNr, string? location)
+        public override async Task<bool> InventorySpool(ISpoolTag tag, DateTime? buyDate, decimal? price, string? lotNr, string? location)
         {
             if (ApiHost == null) return false;
 
             try
             {
-                var (ok, matched) = await ResolveFilament(info);
+                var (ok, matched) = await ResolveFilament(tag);
                 if (!ok) return false;
 
                 var inventoryApi = ApiHost.Services.GetRequiredService<IInventoryApi>();
 
-                var existing = await FindSpoolByTagAsync(info.TrayUid, info.SerialNumber);
+                // Only Bambu Lab tags carry a tray uuid; any other format is found by its tag uid alone.
+                var trayUid = (tag as BambuFilamentInfo)?.TrayUid;
+
+                var existing = await FindSpoolByTagAsync(trayUid, tag.SerialNumber);
 
                 if (existing == null)
                 {
-                    var createResult = await inventoryApi.CreateSpoolApiV1InventorySpoolsPostAsync(BuildSpoolCreate(info, matched, price, location));
+                    var createResult = await inventoryApi.CreateSpoolApiV1InventorySpoolsPostAsync(BuildSpoolCreate(tag, matched, price, location));
 
                     if (!createResult.TryOk(out var created) || created == null)
                     {
@@ -178,17 +181,17 @@ namespace BambuMan.Shared.Managers
 
                     var linkResult = await inventoryApi.LinkTagToSpoolApiV1InventorySpoolsSpoolIdLinkTagPatchAsync(created.Id,
                         new LinkTagRequest(
-                            tagUid: new Option<string?>(info.SerialNumber),
-                            trayUuid: new Option<string?>(info.TrayUid),
-                            tagType: new Option<string?>("bambu_rfid"),
+                            tagUid: new Option<string?>(tag.SerialNumber),
+                            trayUuid: new Option<string?>(trayUid),
+                            tagType: new Option<string?>(tag.Format.TagType()),
                             dataOrigin: new Option<string?>("nfc_scan")));
 
                     var spool = linkResult.TryOk(out var linked) && linked != null ? linked : created;
 
                     AddToCache(spool);
-                    ShowMessage(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
-                    await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
-                    OnSpoolInventoried(spool, info);
+                    ShowMessage(false, $"Spool '{tag.SpoolId?.TrimTo(14, "...")}' added");
+                    await Log(LogLevel.Success, $"Spool '{tag.SpoolId?.TrimTo(14, "...")}' added");
+                    OnSpoolInventoried(spool, tag);
                 }
                 else
                 {
@@ -200,13 +203,13 @@ namespace BambuMan.Shared.Managers
                         {
                             existing = updated;
                             AddToCache(updated);
-                            await Log(LogLevel.Success, $"Location updated to '{location}' for spool '{info.TrayUid?.TrimTo(14, "...")}'");
+                            await Log(LogLevel.Success, $"Location updated to '{location}' for spool '{tag.SpoolId?.TrimTo(14, "...")}'");
                         }
                     }
 
-                    ShowMessage(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' found");
-                    await Log(LogLevel.Success, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' found");
-                    OnSpoolInventoried(existing, info);
+                    ShowMessage(false, $"Existing spool '{tag.SpoolId?.TrimTo(14, "...")}' found");
+                    await Log(LogLevel.Success, $"Existing spool '{tag.SpoolId?.TrimTo(14, "...")}' found");
+                    OnSpoolInventoried(existing, tag);
                 }
 
                 return true;
@@ -243,12 +246,12 @@ namespace BambuMan.Shared.Managers
                 // before this mapping existed (our edit panel doesn't expose these fields). Unset Options when we
                 // have no scan info, so the PATCH leaves the stored values untouched.
                 Option<string?> material = default, subtype = default, brand = default, slicerFilament = default, slicerFilamentName = default;
-                if (currentInfo != null)
+                if (currentTag != null)
                 {
-                    var derived = DeriveFilament(currentInfo);
+                    var derived = DeriveFilament(currentTag);
                     material = new Option<string?>(derived.material);
                     subtype = new Option<string?>(derived.subtype); // null clears subtype (correct for ASA)
-                    brand = new Option<string?>("Bambu");
+                    brand = new Option<string?>(BrandOf(currentTag));
                     if (derived.slicerFilament != null)
                     {
                         slicerFilament = new Option<string?>(derived.slicerFilament);
@@ -336,17 +339,25 @@ namespace BambuMan.Shared.Managers
             }
         }
 
-        private async Task<(bool ok, ExternalFilament? matched)> ResolveFilament(BambuFilamentInfo info)
+        private async Task<(bool ok, ExternalFilament? matched)> ResolveFilament(ISpoolTag tag)
         {
-            var result = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, info, Overrides);
+            var result = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, tag, Overrides);
 
             if (result.Count == 1) return (true, result.First());
+
+            // Bambuddy keeps the material, brand and colour a third-party tag carries, so a catalog entry only adds a
+            // colour name — and the embedded catalog only knows Bambu Lab. Such a tag goes in as read, no error tone.
+            if (tag.Format != SpoolTagFormat.BambuLab)
+            {
+                await Log(LogLevel.Information, $"{tag.Format.DisplayName()} tag not in the filament catalog, adding it with the tag data");
+                return (true, null);
+            }
 
             var statusLevel = UnknownFilamentEnabled ? ManagerStatusType.Ready : ManagerStatusType.Error;
             var logLevel = UnknownFilamentEnabled ? LogLevel.Warning : LogLevel.Error;
             var message = result.Count == 0 ? "No matching filament found" : "Found more then 1 matching filament";
 
-            await LogAndSetStatus(statusLevel, logLevel, message, new Exception(info.ToDiagnosticJson()));
+            await LogAndSetStatus(statusLevel, logLevel, message, new Exception(tag.ToDiagnosticJson()));
             PlayErrorTone();
 
             // When unknown filaments are enabled, proceed with raw tag data (no catalog enrichment).
@@ -425,33 +436,40 @@ namespace BambuMan.Shared.Managers
         public const int CoreWeight = 250;
 
         /// <summary>Filament weight (g) printed on the label; a tag without one is taken as a 1 kg spool.</summary>
-        public static int LabelWeight(BambuFilamentInfo info) => info.SpoolWeight ?? 1000;
+        public static int LabelWeight(ISpoolTag tag) => tag.SpoolWeight ?? 1000;
+
+        /// <summary>
+        /// Bambuddy's brand for a tag: "Bambu" for Bambu Lab spools (matches its slicer presets), whichever way a
+        /// third-party tag spells it; any other brand as written on the tag.
+        /// </summary>
+        public static string? BrandOf(ISpoolTag tag) =>
+            tag is BambuFilamentInfo || ExternalFilamentMatcher.NormalizeBrand(tag.Brand) == BambuFilamentInfo.BambuLabBrand ? "Bambu" : ExternalFilamentMatcher.NormalizeBrand(tag.Brand);
 
         /// <summary>Bambuddy prices by the kilogram; BambuMan's price is for the whole spool.</summary>
         public static decimal? CostPerKg(decimal? price, int labelWeight) => price.HasValue ? price.Value / (labelWeight / 1000m) : null;
 
         /// <summary>Map a scanned tag + matched catalog entry to a Bambuddy spool-create body, converting per-spool price to cost_per_kg.</summary>
-        public static SpoolCreate BuildSpoolCreate(BambuFilamentInfo info, ExternalFilament? matched, decimal? price, string? location)
+        public static SpoolCreate BuildSpoolCreate(ISpoolTag tag, ExternalFilament? matched, decimal? price, string? location)
         {
-            var labelWeight = LabelWeight(info);
+            var labelWeight = LabelWeight(tag);
             var costPerKg = CostPerKg(price, labelWeight);
-            var (material, subtype, slicerFilament, slicerFilamentName) = DeriveFilament(info);
+            var (material, subtype, slicerFilament, slicerFilamentName) = DeriveFilament(tag);
 
             return new SpoolCreate(
                 material: material,
                 subtype: new Option<string?>(subtype),
-                colorName: new Option<string?>(matched?.Name ?? info.Color),
-                rgba: new Option<string?>(info.Color),
-                brand: new Option<string?>("Bambu"), // Bambuddy's brand for Bambu filaments is "Bambu" (matches its slicer presets)
+                colorName: new Option<string?>(matched?.Name ?? tag.Color),
+                rgba: new Option<string?>(tag.Color),
+                brand: new Option<string?>(BrandOf(tag)),
                 labelWeight: new Option<int?>(labelWeight),
                 coreWeight: new Option<int?>(CoreWeight),
                 slicerFilament: new Option<string?>(slicerFilament),
                 slicerFilamentName: new Option<string?>(slicerFilamentName),
-                nozzleTempMin: new Option<int?>((int?)info.MinTemperatureForHotend),
-                nozzleTempMax: new Option<int?>((int?)info.MaxTemperatureForHotend),
+                nozzleTempMin: new Option<int?>((int?)tag.MinTemperatureForHotend),
+                nozzleTempMax: new Option<int?>((int?)tag.MaxTemperatureForHotend),
                 costPerKg: new Option<decimal?>(costPerKg),
                 dataOrigin: new Option<string?>("nfc_scan"),
-                tagType: new Option<string?>("bambu_rfid"),
+                tagType: new Option<string?>(tag.Format.TagType()),
                 storageLocation: new Option<string?>(location));
         }
 
@@ -461,12 +479,14 @@ namespace BambuMan.Shared.Managers
         /// prefix ("PLA Wood" → "Wood"; "ASA" → none); slicer_filament = the Bambu filament code, which is the tag's
         /// unique material id with a leading 'G' ("FA16" → "GFA16" = Bambu PLA Wood). Setting slicer_filament on
         /// create stops Bambuddy's edit form demanding a preset (and keeps our brand instead of it forcing "Bambu").
+        /// A third-party tag has no colour-variant code or material id, so only the material / subtype split applies.
         /// </summary>
-        public static (string material, string? subtype, string? slicerFilament, string? slicerFilamentName) DeriveFilament(BambuFilamentInfo info)
+        public static (string material, string? subtype, string? slicerFilament, string? slicerFilamentName) DeriveFilament(ISpoolTag tag)
         {
-            var material = info.FilamentType ?? "Unknown";
+            var info = tag as BambuFilamentInfo;
+            var material = tag.FilamentType ?? "Unknown";
             string? subtype = null;
-            var detailed = info.DetailedFilamentType;
+            var detailed = tag.DetailedFilamentType;
 
             if (!string.IsNullOrEmpty(detailed))
             {
@@ -484,7 +504,7 @@ namespace BambuMan.Shared.Managers
 
             // Gradient / dual / tri-color variants aren't in the detailed type; the color-variant code carries them
             // ("A05-M*" = Silk Dual Color, other "*-M*" = Gradient, "*-T*" = Tri Color).
-            var variant = info.MaterialVariantIdentifier;
+            var variant = info?.MaterialVariantIdentifier;
             if (!string.IsNullOrEmpty(variant) && variant.Contains('-'))
             {
                 var dash = variant.IndexOf('-');
@@ -504,20 +524,20 @@ namespace BambuMan.Shared.Managers
             }
 
             // tray_info_idx = "G" + unique material id (e.g. "FA16" -> "GFA16"); name falls back to "Bambu <detailed>".
-            var slicerFilament = string.IsNullOrEmpty(info.UniqueMaterialIdentifier) ? null : $"G{info.UniqueMaterialIdentifier}";
+            var slicerFilament = string.IsNullOrEmpty(info?.UniqueMaterialIdentifier) ? null : $"G{info.UniqueMaterialIdentifier}";
             var slicerFilamentName = slicerFilament == null ? null : (string.IsNullOrEmpty(detailed) ? null : $"Bambu {detailed}");
 
             return (material, subtype, slicerFilament, slicerFilamentName);
         }
 
-        private void OnSpoolInventoried(SpoolResponse spool, BambuFilamentInfo info)
+        private void OnSpoolInventoried(SpoolResponse spool, ISpoolTag tag)
         {
             currentSpool = spool;
-            currentInfo = info;
-            RaiseSpoolFound(BuildSpoolFound(spool, info), info);
+            currentTag = tag;
+            RaiseSpoolFound(BuildSpoolFound(spool, tag), tag);
         }
 
-        private static SpoolFound BuildSpoolFound(SpoolResponse s, BambuFilamentInfo info)
+        private static SpoolFound BuildSpoolFound(SpoolResponse s, ISpoolTag tag)
         {
             // current total = label_weight + core_weight - weight_used; convert cost_per_kg back to per-spool price.
             decimal? weight = (s.LabelWeight ?? 0) + (s.CoreWeight ?? 0) - s.WeightUsed.GetValueOrDefault();
@@ -525,7 +545,7 @@ namespace BambuMan.Shared.Managers
 
             return new SpoolFound(
                 Material: s.Material,
-                TrayUid: info.TrayUid ?? s.TrayUuid,
+                TrayUid: tag.SpoolId ?? s.TrayUuid,
                 Weight: weight,
                 EmptyWeight: (decimal?)s.CoreWeight,
                 Price: price,

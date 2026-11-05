@@ -15,7 +15,7 @@ namespace BambuMan.Desktop;
 public class NfcReader
 {
     public delegate void LogMessageEventHandler(LogLevel level, string message);
-    public delegate void SpoolFoundEventHandler(BambuFilamentInfo info);
+    public delegate void SpoolFoundEventHandler(ISpoolTag tag);
 
     public event LogMessageEventHandler? OnLogMessage;
     public event SpoolFoundEventHandler? OnSpoolFound;

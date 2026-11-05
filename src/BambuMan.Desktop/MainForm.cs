@@ -39,7 +39,7 @@ public partial class MainForm : Form
     private readonly TagApiService? tagApiService;
     private readonly FilamentOverrideService? filamentOverrideService;
     private Spool? currentSpool;
-    private BambuFilamentInfo? currentBambuFilamentInfo;
+    private ISpoolTag? currentTag;
 
     private InventoryBackend backend;
 
@@ -167,21 +167,23 @@ public partial class MainForm : Form
 
     #region Events
 
-    private async void NfcReaderOnOnSpoolFound(BambuFilamentInfo info)
+    private async void NfcReaderOnOnSpoolFound(ISpoolTag tag)
     {
         try
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new MethodInvoker(delegate { NfcReaderOnOnSpoolFound(info); }));
+                BeginInvoke(new MethodInvoker(delegate { NfcReaderOnOnSpoolFound(tag); }));
                 return;
             }
 
-            var json = JsonConvert.SerializeObject(info, Formatting.Indented);
+            var json = JsonConvert.SerializeObject(tag, Formatting.Indented);
             AppendText(LogLevel.Information, json);
 
-            if (ActiveManager != null) await ActiveManager.InventorySpool(info, dtpBuyDate.Value, nudPrice.Value, txtLotNr.Text, txtLocation.Text);
-            if (fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null) await tagApiService.UploadNfcTagAsync(info);
+            if (ActiveManager != null) await ActiveManager.InventorySpool(tag, dtpBuyDate.Value, nudPrice.Value, txtLotNr.Text, txtLocation.Text);
+
+            // Only Bambu Lab tags are uploaded — the upload consent and the tag database cover those.
+            if (fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null && tag is BambuFilamentInfo info) await tagApiService.UploadNfcTagAsync(info);
         }
         catch (Exception ex)
         {
@@ -211,11 +213,11 @@ public partial class MainForm : Form
         AppendText(level, message);
     }
 
-    private void SpoolmanManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
+    private void SpoolmanManagerOnSpoolFound(SpoolFound found, ISpoolTag tag)
     {
         if (InvokeRequired)
         {
-            BeginInvoke(new MethodInvoker(delegate { SpoolmanManagerOnSpoolFound(found, info); }));
+            BeginInvoke(new MethodInvoker(delegate { SpoolmanManagerOnSpoolFound(found, tag); }));
             return;
         }
 
@@ -236,23 +238,23 @@ public partial class MainForm : Form
         nudSpoolWeight.Select(0, 40);
 
         currentSpool = spool;
-        currentBambuFilamentInfo = info;
+        currentTag = tag;
     }
 
     /// <summary>
     /// Same edit panel as Spoolman, fed from the backend-neutral <see cref="SpoolFound"/>. Bambuddy keeps no buy date
     /// or lot nr, and its label weight comes from the tag, so those fields stay disabled.
     /// </summary>
-    private void BambuddyManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
+    private void BambuddyManagerOnSpoolFound(SpoolFound found, ISpoolTag tag)
     {
         if (InvokeRequired)
         {
-            BeginInvoke(new MethodInvoker(delegate { BambuddyManagerOnSpoolFound(found, info); }));
+            BeginInvoke(new MethodInvoker(delegate { BambuddyManagerOnSpoolFound(found, tag); }));
             return;
         }
 
         SetValue(nudEmptyWeight, found.EmptyWeight);
-        SetValue(nudInitialWeight, info.SpoolWeight);
+        SetValue(nudInitialWeight, tag.SpoolWeight);
         SetValue(nudSpoolWeight, found.Weight);
         SetValue(nudSpoolPrice, found.Price);
         txtSpoolLocation.Text = found.Location;
@@ -262,7 +264,7 @@ public partial class MainForm : Form
         nudSpoolWeight.Focus();
         nudSpoolWeight.Select(0, 40);
 
-        currentBambuFilamentInfo = info;
+        currentTag = tag;
     }
 
     private void ManagerOnStatusChanged() => UpdateBackendUi();
@@ -579,8 +581,8 @@ public partial class MainForm : Form
                 nudEmptyWeight.Value,
                 nudInitialWeight.Value,
                 nudSpoolWeight.Value,
-                currentBambuFilamentInfo?.TrayUid,
-                currentBambuFilamentInfo?.ProductionDateTime);
+                currentTag?.SpoolId,
+                currentTag?.ProductionDateTime);
 
             gbSpoolInfo.Enabled = false;
         }

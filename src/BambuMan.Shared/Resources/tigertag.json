@@ -1,0 +1,1525 @@
+{
+ "Source": "TigerTag-Project/TigerTag-RFID-Guide database folder (CC0-1.0)",
+ "Materials": [
+  {
+   "Id": 425,
+   "Label": "ABS-CF",
+   "MaterialType": "ABS",
+   "Density": 1.04
+  },
+  {
+   "Id": 735,
+   "Label": "ABS-AF",
+   "MaterialType": "ABS",
+   "Density": 1.04
+  },
+  {
+   "Id": 1173,
+   "Label": "PA6-GF",
+   "MaterialType": "PA6",
+   "Density": 1.14
+  },
+  {
+   "Id": 1680,
+   "Label": "PE-GF",
+   "MaterialType": "PE",
+   "Density": 1.12
+  },
+  {
+   "Id": 2053,
+   "Label": "PA12-GF",
+   "MaterialType": "PA12",
+   "Density": 1.13
+  },
+  {
+   "Id": 3368,
+   "Label": "PC-ABS",
+   "MaterialType": "PC",
+   "Density": 1.19
+  },
+  {
+   "Id": 3481,
+   "Label": "PCTG-GF",
+   "MaterialType": "PCTG",
+   "Density": 1.3
+  },
+  {
+   "Id": 4587,
+   "Label": "PC-PBT",
+   "MaterialType": "PC",
+   "Density": 1.2
+  },
+  {
+   "Id": 5238,
+   "Label": "PETG-PTFE",
+   "MaterialType": "PETG",
+   "Density": 1.27
+  },
+  {
+   "Id": 5733,
+   "Label": "TPU-AMS",
+   "MaterialType": "TPU",
+   "Density": 1.21
+  },
+  {
+   "Id": 6605,
+   "Label": "PA11-GF",
+   "MaterialType": "PA11",
+   "Density": 1.2
+  },
+  {
+   "Id": 7649,
+   "Label": "PETG HS",
+   "MaterialType": "PETG",
+   "Density": 1.27
+  },
+  {
+   "Id": 7951,
+   "Label": "PETG-rCF",
+   "MaterialType": "PETG",
+   "Density": 1.27
+  },
+  {
+   "Id": 8345,
+   "Label": "PLA+ Silk",
+   "MaterialType": "PLA",
+   "Density": 1.24
+  },
+  {
+   "Id": 8394,
+   "Label": "Castable Resin",
+   "MaterialType": "",
+   "Density": 1.05
+  },
+  {
+   "Id": 8504,
+   "Label": "PPA-CF",
+   "MaterialType": "PPA",
+   "Density": 1.42
+  },
+  {
+   "Id": 9456,
+   "Label": "PLA Marble",
+   "MaterialType": "PLA",
+   "Density": 1.24
+  },
+  {
+   "Id": 9483,
+   "Label": "PVA",
+   "MaterialType": "PVA",
+   "Density": 1.23
+  },
+  {
+   "Id": 9691,
+   "Label": "EVA",
+   "MaterialType": "EVA",
+   "Density": 0.94
+  },
+  {
+   "Id": 10122,
+   "Label": "PEKK-CF",
+   "MaterialType": "PEKK",
+   "Density": 1.31
+  },
+  {
+   "Id": 10187,
+   "Label": "PHA",
+   "MaterialType": "PHA",
+   "Density": 1.25
+  },
+  {
+   "Id": 10272,
+   "Label": "PSU",
+   "MaterialType": "PSU",
+   "Density": 1.24
+  },
+  {
+   "Id": 10478,
+   "Label": "Castable Filament",
+   "MaterialType": "",
+   "Density": 1.1
+  },
+  {
+   "Id": 10602,
+   "Label": "PLA Silk",
+   "MaterialType": "PLA",
+   "Density": 1.24
+  },
+  {
+   "Id": 10738,
+   "Label": "PC-PTFE",
+   "MaterialType": "PC",
+   "Density": 1.3
+  },
+  {
+   "Id": 11053,
+   "Label": "PET-CF",
+   "MaterialType": "PET",
+   "Density": 1.3
+  },
+  {
+   "Id": 11506,
+   "Label": "PLA-AERO",
+   "MaterialType": "PLA",
+   "Density": 1.24
+  },
+  {
+   "Id": 12216,
+   "Label": "PEEK-GF",
+   "MaterialType": "PEEK",
+   "Density": 1.49
+  },
+  {
+   "Id": 12264,
+   "Label": "PA6-CF",
+   "MaterialType": "PA6",
+   "Density": 1.09
+  },
+  {
+   "Id": 12844,
+   "Label": "ASA",
+   "MaterialType": "ASA",
+   "Density": 1.05
+  },
+  {
+   "Id": 12878,
+   "Label": "CoPE",
+   "MaterialType": "",
+   "Density": 1.2
+  },
+  {
+   "Id": 13850,
+   "Label": "PPA",
+   "MaterialType": "PPA",
+   "Density": 1.15
+  },
+  {
+   "Id": 14508,
+   "Label": "PEI-9085",
+   "MaterialType": "PEI",
+   "Density": 1.34
+  },
+  {
+   "Id": 15041,
+   "Label": "PCTG",
+   "MaterialType": "PCTG",
+   "Density": 1.21
+  },
+  {
+   "Id": 18130,
+   "Label": "PS",
+   "MaterialType": "PS",
+   "Density": 1.05
+  },
+  {
+   "Id": 18451,
+   "Label": "PA11-CF",
+   "MaterialType": "PA11",
+   "Density": 1.09
+  },
+  {
+   "Id": 18703,
+   "Label": "PETP",
+   "MaterialType": "PET",
+   "Density": 1.38
+  },
+  {
+   "Id": 18775,
+   "Label": "PE-CF",
+   "MaterialType": "PE",
+   "Density": 1.1
+  },
+  {
+   "Id": 18922,
+   "Label": "PLA-ESD",
+   "MaterialType": "PLA",
+   "Density": 1.24
+  },
+  {
+   "Id": 20073,
+   "Label": "PVC",
+   "MaterialType": "PVC",
+   "Density": 1.38
+  },
+  {
+   "Id": 20562,
+   "Label": "ABS",
+   "MaterialType": "ABS",
+   "Density": 1.04
+  },
+  {
+   "Id": 20588,
+   "Label": "PC-CF",
+   "MaterialType": "PC",
+   "Density": 1.22
+  },
+  {
+   "Id": 21307,
+   "Label": "SBS",
+   "MaterialType": "SBS",
+   "Density": 1.05
+  },
+  {
+   "Id": 22652,
+   "Label": "PAHT-GF",
+   "MaterialType": "PAHT",
+   "Density": 1.25
+  },
+  {
+   "Id": 22678,
+   "Label": "PET-GF",
+   "MaterialType": "PET",
+   "Density": 1.4
+  },
+  {
+   "Id": 23080,
+   "Label": "PAHT",
+   "MaterialType": "PAHT",
+   "Density": 1.05
+  },
+  {
+   "Id": 24115,
+   "Label": "SEBS",
+   "MaterialType": "SEBS",
+   "Density": 0.9
+  },
+  {
+   "Id": 24116,
+   "Label": "TPC",
+   "MaterialType": "TPC",
+   "Density": 1.15
+  },
+  {
+   "Id": 24270,
+   "Label": "PPS-CF",
+   "MaterialType": "PPS",
+   "Density": 1.38
+  },
+  {
+   "Id": 24629,
+   "Label": "PLA High Speed",
+   "MaterialType": "PLA",
+   "Density": 1.24
+  },
+  {
+   "Id": 26029,
+   "Label": "HIPS",
+   "MaterialType": "HIPS",
+   "Density": 1.03
+  },
+  {
+   "Id": 27268,
+   "Label": "PCTPE",
+   "MaterialType": "PCPTFE",
+   "Density": 1.01
+  },
+  {
+   "Id": 27635,
+   "Label": "PE",
+   "MaterialType": "PE",
+   "Density": 0.94
+  },
+  {
+   "Id": 27676,
+   "Label": "ASA-CF",
+   "MaterialType": "ASA",
+   "Density": 1.05
+  },
+  {
+   "Id": 28110,
+   "Label": "SBC",
+   "MaterialType": "SBC",
+   "Density": 1.01
+  },
+  {
+   "Id": 29272,
+   "Label": "PA11",
+   "MaterialType": "PA11",
+   "Density": 1.03
+  },
+  {
+   "Id": 29815,
+   "Label": "PEEK",
+   "MaterialType": "PEEK",
+   "Density": 1.32
+  },
+  {
+   "Id": 30458,
+   "Label": "PC",
+   "MaterialType": "PC",
+   "Density": 1.3
+  },
+  {
+   "Id": 30594,
+   "Label": "PA-GF",
+   "MaterialType": "PA",
+   "Density": 1.14
+  },
+  {
+   "Id": 30884,
+   "Label": "PP",
+   "MaterialType": "PP",
+   "Density": 0.9
+  },
+  {
+   "Id": 31011,
+   "Label": "ASA-AERO",
+   "MaterialType": "ASA",
+   "Density": 1.05
+  },
+  {
+   "Id": 33958,
+   "Label": "TPE",
+   "MaterialType": "TPE",
+   "Density": 1
+  },
+  {
+   "Id": 34049,
+   "Label": "BVOH",
+   "MaterialType": "BVOH",
+   "Density": 1.14
+  },
+  {
+   "Id": 34409,
+   "Label": "TPS",
+   "MaterialType": "TPS",
+   "Density": 1
+  },
+  {
+   "Id": 34944,
+   "Label": "PETG-GF",
+   "MaterialType": "PETG",
+   "Density": 1.27
+  },
+  {
+   "Id": 35100,
+   "Label": "ASA-GF",
+   "MaterialType": "ASA",
+   "Density": 1.05
+  },
+  {
+   "Id": 35377,
+   "Label": "PEI-9085-GF",
+   "MaterialType": "PEI",
+   "Density": 1.45
+  },
+  {
+   "Id": 38219,
+   "Label": "PLA",
+   "MaterialType": "PLA",
+   "Density": 1.24
+  },
+  {
+   "Id": 38250,
+   "Label": "PEI-1010-GF",
+   "MaterialType": "PEI-1010",
+   "Density": 1.42
+  },
+  {
+   "Id": 38256,
+   "Label": "PETG",
+   "MaterialType": "PETG",
+   "Density": 1.27
+  },
+  {
+   "Id": 39667,
+   "Label": "PA12-CF",
+   "MaterialType": "PA12",
+   "Density": 1.06
+  },
+  {
+   "Id": 39944,
+   "Label": "PA-CF",
+   "MaterialType": "PA",
+   "Density": 1.09
+  },
+  {
+   "Id": 41134,
+   "Label": "PEI-9085-CF",
+   "MaterialType": "PEI",
+   "Density": 1.36
+  },
+  {
+   "Id": 42623,
+   "Label": "PMMA",
+   "MaterialType": "PMMA",
+   "Density": 1.18
+  },
+  {
+   "Id": 42962,
+   "Label": "PP-GF",
+   "MaterialType": "PP",
+   "Density": 0.9
+  },
+  {
+   "Id": 43518,
+   "Label": "TPU",
+   "MaterialType": "TPU",
+   "Density": 1.21
+  },
+  {
+   "Id": 45962,
+   "Label": "PVB",
+   "MaterialType": "PVB",
+   "Density": 1.07
+  },
+  {
+   "Id": 46154,
+   "Label": "PPS",
+   "MaterialType": "PPS",
+   "Density": 1.35
+  },
+  {
+   "Id": 46276,
+   "Label": "PPA-GF",
+   "MaterialType": "PPA",
+   "Density": 1.45
+  },
+  {
+   "Id": 46591,
+   "Label": "PLA+",
+   "MaterialType": "PLA",
+   "Density": 1.24
+  },
+  {
+   "Id": 47651,
+   "Label": "PC-PBT-CF",
+   "MaterialType": "PC",
+   "Density": 1.22
+  },
+  {
+   "Id": 48001,
+   "Label": "PLA Wood",
+   "MaterialType": "PLA",
+   "Density": 1.28
+  },
+  {
+   "Id": 48047,
+   "Label": "TPU High Speed",
+   "MaterialType": "TPU",
+   "Density": 1.21
+  },
+  {
+   "Id": 48310,
+   "Label": "PLA-CF",
+   "MaterialType": "PLA",
+   "Density": 1.24
+  },
+  {
+   "Id": 48469,
+   "Label": "PEEK-CF",
+   "MaterialType": "PEEK",
+   "Density": 1.4
+  },
+  {
+   "Id": 48815,
+   "Label": "PAHT-CF",
+   "MaterialType": "PAHT",
+   "Density": 1.06
+  },
+  {
+   "Id": 49074,
+   "Label": "ABS-GF",
+   "MaterialType": "ABS",
+   "Density": 1.04
+  },
+  {
+   "Id": 49152,
+   "Label": "PPSU",
+   "MaterialType": "PPSU",
+   "Density": 1.37
+  },
+  {
+   "Id": 49804,
+   "Label": "ASA-AF",
+   "MaterialType": "ASA",
+   "Density": 1.05
+  },
+  {
+   "Id": 50206,
+   "Label": "POM",
+   "MaterialType": "POM",
+   "Density": 1.4
+  },
+  {
+   "Id": 50497,
+   "Label": "PP-CF",
+   "MaterialType": "PP",
+   "Density": 0.9
+  },
+  {
+   "Id": 51007,
+   "Label": "Biopolymer",
+   "MaterialType": "",
+   "Density": 0
+  },
+  {
+   "Id": 51636,
+   "Label": "PES",
+   "MaterialType": "PES",
+   "Density": 1.37
+  },
+  {
+   "Id": 51861,
+   "Label": "PETG-ESD",
+   "MaterialType": "PETG",
+   "Density": 1.27
+  },
+  {
+   "Id": 52077,
+   "Label": "PET",
+   "MaterialType": "PET",
+   "Density": 1.27
+  },
+  {
+   "Id": 53890,
+   "Label": "PCTG-CF",
+   "MaterialType": "PCTG",
+   "Density": 1.25
+  },
+  {
+   "Id": 53970,
+   "Label": "PEKK",
+   "MaterialType": "PEKK",
+   "Density": 1.28
+  },
+  {
+   "Id": 54568,
+   "Label": "ASA+",
+   "MaterialType": "ASA",
+   "Density": 1.05
+  },
+  {
+   "Id": 55279,
+   "Label": "PBT",
+   "MaterialType": "PBT",
+   "Density": 1.2
+  },
+  {
+   "Id": 55418,
+   "Label": "PETG-CF",
+   "MaterialType": "PETG",
+   "Density": 1.27
+  },
+  {
+   "Id": 55796,
+   "Label": "PA12",
+   "MaterialType": "PA12",
+   "Density": 1.01
+  },
+  {
+   "Id": 56527,
+   "Label": "PEI-1010",
+   "MaterialType": "PEI-1010",
+   "Density": 1.27
+  },
+  {
+   "Id": 56666,
+   "Label": "PA6",
+   "MaterialType": "PA6",
+   "Density": 1.14
+  },
+  {
+   "Id": 57469,
+   "Label": "PETG HF",
+   "MaterialType": "PETG",
+   "Density": 1.27
+  },
+  {
+   "Id": 58142,
+   "Label": "TPU-GF",
+   "MaterialType": "TPU",
+   "Density": 1.3
+  },
+  {
+   "Id": 58498,
+   "Label": "PEBA",
+   "MaterialType": "PEBA",
+   "Density": 1.01
+  },
+  {
+   "Id": 59328,
+   "Label": "PA",
+   "MaterialType": "PA",
+   "Density": 1.14
+  },
+  {
+   "Id": 59849,
+   "Label": "PCL",
+   "MaterialType": "PCL",
+   "Density": 1.15
+  },
+  {
+   "Id": 61048,
+   "Label": "PVDF",
+   "MaterialType": "PVDF",
+   "Density": 1.78
+  },
+  {
+   "Id": 61563,
+   "Label": "PC-PBT-GF",
+   "MaterialType": "PC",
+   "Density": 1.35
+  },
+  {
+   "Id": 62335,
+   "Label": "PEI-1010-CF",
+   "MaterialType": "PEI-1010",
+   "Density": 1.27
+  },
+  {
+   "Id": 63946,
+   "Label": "TPI",
+   "MaterialType": "TPI",
+   "Density": 1.38
+  },
+  {
+   "Id": 65535,
+   "Label": "None",
+   "MaterialType": "None",
+   "Density": null
+  }
+ ],
+ "Brands": [
+  {
+   "Id": 1,
+   "Name": "Atome3D"
+  },
+  {
+   "Id": 500,
+   "Name": "Hobby Lobby"
+  },
+  {
+   "Id": 628,
+   "Name": "Buddy3D"
+  },
+  {
+   "Id": 1068,
+   "Name": "SainSmart"
+  },
+  {
+   "Id": 1120,
+   "Name": "Proto-Pasta"
+  },
+  {
+   "Id": 1421,
+   "Name": "3DJake"
+  },
+  {
+   "Id": 2049,
+   "Name": "Inslogic"
+  },
+  {
+   "Id": 2517,
+   "Name": "Smart Materials 3D"
+  },
+  {
+   "Id": 2833,
+   "Name": "Xstrand"
+  },
+  {
+   "Id": 3132,
+   "Name": "Hatchbox"
+  },
+  {
+   "Id": 3308,
+   "Name": "American Filament"
+  },
+  {
+   "Id": 3575,
+   "Name": "Conjure"
+  },
+  {
+   "Id": 3924,
+   "Name": "FiloAlfa"
+  },
+  {
+   "Id": 4011,
+   "Name": "QIDI Tech"
+  },
+  {
+   "Id": 4048,
+   "Name": "Owa"
+  },
+  {
+   "Id": 4344,
+   "Name": "MatterHackers"
+  },
+  {
+   "Id": 4356,
+   "Name": "Landu"
+  },
+  {
+   "Id": 4565,
+   "Name": "Valment"
+  },
+  {
+   "Id": 4700,
+   "Name": "Filforme"
+  },
+  {
+   "Id": 5048,
+   "Name": "Marswork"
+  },
+  {
+   "Id": 6305,
+   "Name": "Markforged"
+  },
+  {
+   "Id": 7432,
+   "Name": "Aliz"
+  },
+  {
+   "Id": 7674,
+   "Name": "Extrudr"
+  },
+  {
+   "Id": 7812,
+   "Name": "Jayo"
+  },
+  {
+   "Id": 7980,
+   "Name": "Fillamentum"
+  },
+  {
+   "Id": 8182,
+   "Name": "Fiberlogy"
+  },
+  {
+   "Id": 8303,
+   "Name": "GST3D"
+  },
+  {
+   "Id": 8384,
+   "Name": "Taulman3D"
+  },
+  {
+   "Id": 8496,
+   "Name": "CaiLab"
+  },
+  {
+   "Id": 8503,
+   "Name": "E3D"
+  },
+  {
+   "Id": 8586,
+   "Name": "NinjaTek"
+  },
+  {
+   "Id": 8675,
+   "Name": "SOVB 3D"
+  },
+  {
+   "Id": 8756,
+   "Name": "BlueCast"
+  },
+  {
+   "Id": 8921,
+   "Name": "Duramic 3D"
+  },
+  {
+   "Id": 8990,
+   "Name": "Ice Filaments"
+  },
+  {
+   "Id": 9192,
+   "Name": "3D Solutech"
+  },
+  {
+   "Id": 9299,
+   "Name": "FDPlast"
+  },
+  {
+   "Id": 9394,
+   "Name": "Gizmo Dorks"
+  },
+  {
+   "Id": 9596,
+   "Name": "Ziro"
+  },
+  {
+   "Id": 9798,
+   "Name": "AMOLEN"
+  },
+  {
+   "Id": 11379,
+   "Name": "Filaments.ca"
+  },
+  {
+   "Id": 11429,
+   "Name": "3D4Makers"
+  },
+  {
+   "Id": 11501,
+   "Name": "InnovateFil"
+  },
+  {
+   "Id": 11750,
+   "Name": "VOXELPLA"
+  },
+  {
+   "Id": 12345,
+   "Name": "MakerBot"
+  },
+  {
+   "Id": 12498,
+   "Name": "Forshape"
+  },
+  {
+   "Id": 12635,
+   "Name": "Snapmaker"
+  },
+  {
+   "Id": 13667,
+   "Name": "RS Pro"
+  },
+  {
+   "Id": 14250,
+   "Name": "Jessie (Printed Solid)"
+  },
+  {
+   "Id": 14896,
+   "Name": "Figutech"
+  },
+  {
+   "Id": 14982,
+   "Name": "3D-Fuel"
+  },
+  {
+   "Id": 15899,
+   "Name": "Kimya"
+  },
+  {
+   "Id": 15962,
+   "Name": "Anycubic"
+  },
+  {
+   "Id": 16433,
+   "Name": "3DKordo (Everfil)"
+  },
+  {
+   "Id": 17095,
+   "Name": "Sting3D"
+  },
+  {
+   "Id": 17689,
+   "Name": "Professional Lab"
+  },
+  {
+   "Id": 18629,
+   "Name": "PrintoMax 3D"
+  },
+  {
+   "Id": 19265,
+   "Name": "CC3D"
+  },
+  {
+   "Id": 19868,
+   "Name": "3DPower"
+  },
+  {
+   "Id": 19961,
+   "Name": "Rosa3D"
+  },
+  {
+   "Id": 20523,
+   "Name": "Raise3D"
+  },
+  {
+   "Id": 20851,
+   "Name": "Tronxy"
+  },
+  {
+   "Id": 20922,
+   "Name": "Unveil Form"
+  },
+  {
+   "Id": 22652,
+   "Name": "Spectrum"
+  },
+  {
+   "Id": 23181,
+   "Name": "ArianePlast"
+  },
+  {
+   "Id": 23456,
+   "Name": "Monoprice"
+  },
+  {
+   "Id": 24363,
+   "Name": "Tecbears"
+  },
+  {
+   "Id": 26145,
+   "Name": "3DMA"
+  },
+  {
+   "Id": 26379,
+   "Name": "Formlabs"
+  },
+  {
+   "Id": 26380,
+   "Name": "Unger"
+  },
+  {
+   "Id": 26595,
+   "Name": "Sovol"
+  },
+  {
+   "Id": 26956,
+   "Name": "Creality"
+  },
+  {
+   "Id": 28055,
+   "Name": "TAGin3D"
+  },
+  {
+   "Id": 28136,
+   "Name": "Polar Filament"
+  },
+  {
+   "Id": 28940,
+   "Name": "Eryone"
+  },
+  {
+   "Id": 28988,
+   "Name": "KINGROON"
+  },
+  {
+   "Id": 29045,
+   "Name": "Yousu"
+  },
+  {
+   "Id": 29302,
+   "Name": "IIIDMAX"
+  },
+  {
+   "Id": 31367,
+   "Name": "3D Printing Canada"
+  },
+  {
+   "Id": 31438,
+   "Name": "Wondermaker"
+  },
+  {
+   "Id": 31781,
+   "Name": "Filament 3D"
+  },
+  {
+   "Id": 32348,
+   "Name": "Addnorth"
+  },
+  {
+   "Id": 32587,
+   "Name": "Amazon"
+  },
+  {
+   "Id": 33566,
+   "Name": "Siraya Tech"
+  },
+  {
+   "Id": 33594,
+   "Name": "DEEPLEE"
+  },
+  {
+   "Id": 33788,
+   "Name": "Verbatim"
+  },
+  {
+   "Id": 34567,
+   "Name": "Push Plastic"
+  },
+  {
+   "Id": 34597,
+   "Name": "EconoFil"
+  },
+  {
+   "Id": 35123,
+   "Name": "Bambu Lab"
+  },
+  {
+   "Id": 35501,
+   "Name": "Zortrax"
+  },
+  {
+   "Id": 35857,
+   "Name": "Nobufil"
+  },
+  {
+   "Id": 35882,
+   "Name": "Phrozen"
+  },
+  {
+   "Id": 36366,
+   "Name": "LDO"
+  },
+  {
+   "Id": 36702,
+   "Name": "Tianse"
+  },
+  {
+   "Id": 37434,
+   "Name": "Winkle"
+  },
+  {
+   "Id": 38533,
+   "Name": "Lotactree"
+  },
+  {
+   "Id": 38953,
+   "Name": "Tucab"
+  },
+  {
+   "Id": 39002,
+   "Name": "GreenGate3D"
+  },
+  {
+   "Id": 39382,
+   "Name": "Longer"
+  },
+  {
+   "Id": 39652,
+   "Name": "3DXTech"
+  },
+  {
+   "Id": 40853,
+   "Name": "Subink"
+  },
+  {
+   "Id": 41847,
+   "Name": "OneFil"
+  },
+  {
+   "Id": 41932,
+   "Name": "Jamg He"
+  },
+  {
+   "Id": 42911,
+   "Name": "UltiMaker"
+  },
+  {
+   "Id": 44630,
+   "Name": "NIT"
+  },
+  {
+   "Id": 45589,
+   "Name": "iBOSS"
+  },
+  {
+   "Id": 45670,
+   "Name": "Panchroma"
+  },
+  {
+   "Id": 45678,
+   "Name": "Atomic Filament"
+  },
+  {
+   "Id": 46010,
+   "Name": "AceAddity"
+  },
+  {
+   "Id": 46203,
+   "Name": "Overture"
+  },
+  {
+   "Id": 46392,
+   "Name": "Prusament"
+  },
+  {
+   "Id": 47122,
+   "Name": "Zimple3D"
+  },
+  {
+   "Id": 47560,
+   "Name": "Wanhao"
+  },
+  {
+   "Id": 47930,
+   "Name": "eSun"
+  },
+  {
+   "Id": 48261,
+   "Name": "Gsun3D"
+  },
+  {
+   "Id": 48804,
+   "Name": "R3D"
+  },
+  {
+   "Id": 49784,
+   "Name": "GIANTARM"
+  },
+  {
+   "Id": 50187,
+   "Name": "3DHoJor"
+  },
+  {
+   "Id": 50266,
+   "Name": "IEMAI"
+  },
+  {
+   "Id": 50311,
+   "Name": "G3D Pro"
+  },
+  {
+   "Id": 50604,
+   "Name": "Polymaker"
+  },
+  {
+   "Id": 51139,
+   "Name": "FusRock"
+  },
+  {
+   "Id": 51443,
+   "Name": "BASF"
+  },
+  {
+   "Id": 51857,
+   "Name": "Sunlu"
+  },
+  {
+   "Id": 51978,
+   "Name": "Inland"
+  },
+  {
+   "Id": 52222,
+   "Name": "ColorFabb"
+  },
+  {
+   "Id": 52467,
+   "Name": "Geeetech"
+  },
+  {
+   "Id": 52757,
+   "Name": "Yumi"
+  },
+  {
+   "Id": 53043,
+   "Name": "FormFutura"
+  },
+  {
+   "Id": 53146,
+   "Name": "EPAX"
+  },
+  {
+   "Id": 53640,
+   "Name": "Magigoo"
+  },
+  {
+   "Id": 53856,
+   "Name": "Lattice Medical"
+  },
+  {
+   "Id": 54112,
+   "Name": "Kexcelled"
+  },
+  {
+   "Id": 55229,
+   "Name": "Filament PM"
+  },
+  {
+   "Id": 55763,
+   "Name": "Nanovia"
+  },
+  {
+   "Id": 55869,
+   "Name": "Biqu"
+  },
+  {
+   "Id": 56780,
+   "Name": "Fiberon"
+  },
+  {
+   "Id": 56789,
+   "Name": "Coex 3D"
+  },
+  {
+   "Id": 57209,
+   "Name": "FrancoFil"
+  },
+  {
+   "Id": 57632,
+   "Name": "ELEGOO"
+  },
+  {
+   "Id": 57839,
+   "Name": "ALL3DP"
+  },
+  {
+   "Id": 58231,
+   "Name": "IC3D"
+  },
+  {
+   "Id": 58410,
+   "Name": "AzureFilm"
+  },
+  {
+   "Id": 58863,
+   "Name": "iSANMATE"
+  },
+  {
+   "Id": 58972,
+   "Name": "Tinmorry"
+  },
+  {
+   "Id": 59597,
+   "Name": "Filamentive"
+  },
+  {
+   "Id": 60073,
+   "Name": "3D Lac"
+  },
+  {
+   "Id": 60882,
+   "Name": "Recreus"
+  },
+  {
+   "Id": 62276,
+   "Name": "SmartPrint"
+  },
+  {
+   "Id": 62436,
+   "Name": "Ambrosia"
+  },
+  {
+   "Id": 62674,
+   "Name": "OVV3D"
+  },
+  {
+   "Id": 63024,
+   "Name": "Multicomp Pro"
+  },
+  {
+   "Id": 63340,
+   "Name": "Flashforge"
+  },
+  {
+   "Id": 63757,
+   "Name": "Copper3D"
+  },
+  {
+   "Id": 64457,
+   "Name": "YXPOLYER"
+  },
+  {
+   "Id": 65178,
+   "Name": "Smart3DPT"
+  },
+  {
+   "Id": 65535,
+   "Name": "Generic"
+  }
+ ],
+ "Aspects": [
+  {
+   "Id": 0,
+   "Label": "-",
+   "ColorCount": 0
+  },
+  {
+   "Id": 21,
+   "Label": "Clear",
+   "ColorCount": 1
+  },
+  {
+   "Id": 24,
+   "Label": "Tricolor",
+   "ColorCount": 3
+  },
+  {
+   "Id": 64,
+   "Label": "Glitter",
+   "ColorCount": 1
+  },
+  {
+   "Id": 67,
+   "Label": "Translucent",
+   "ColorCount": 1
+  },
+  {
+   "Id": 91,
+   "Label": "Glow in the Dark",
+   "ColorCount": 1
+  },
+  {
+   "Id": 92,
+   "Label": "Silk",
+   "ColorCount": 1
+  },
+  {
+   "Id": 97,
+   "Label": "Lithophane",
+   "ColorCount": 1
+  },
+  {
+   "Id": 104,
+   "Label": "Basic",
+   "ColorCount": 1
+  },
+  {
+   "Id": 123,
+   "Label": "Wood",
+   "ColorCount": 1
+  },
+  {
+   "Id": 126,
+   "Label": "Pearl",
+   "ColorCount": 1
+  },
+  {
+   "Id": 129,
+   "Label": "Gloss",
+   "ColorCount": 1
+  },
+  {
+   "Id": 132,
+   "Label": "Fiber",
+   "ColorCount": 1
+  },
+  {
+   "Id": 134,
+   "Label": "Satin",
+   "ColorCount": 1
+  },
+  {
+   "Id": 145,
+   "Label": "Rainbow",
+   "ColorCount": 3
+  },
+  {
+   "Id": 168,
+   "Label": "Thermoreactif",
+   "ColorCount": 1
+  },
+  {
+   "Id": 173,
+   "Label": "Stone",
+   "ColorCount": 1
+  },
+  {
+   "Id": 216,
+   "Label": "Neon",
+   "ColorCount": 1
+  },
+  {
+   "Id": 220,
+   "Label": "Pastel",
+   "ColorCount": 1
+  },
+  {
+   "Id": 226,
+   "Label": "Metal",
+   "ColorCount": 1
+  },
+  {
+   "Id": 232,
+   "Label": "Marble",
+   "ColorCount": 1
+  },
+  {
+   "Id": 238,
+   "Label": "Carbon",
+   "ColorCount": 1
+  },
+  {
+   "Id": 247,
+   "Label": "Matt",
+   "ColorCount": 1
+  },
+  {
+   "Id": 252,
+   "Label": "Bicolor",
+   "ColorCount": 2
+  },
+  {
+   "Id": 255,
+   "Label": "None",
+   "ColorCount": 0
+  }
+ ],
+ "Diameters": [
+  {
+   "Id": 56,
+   "Label": "1.75"
+  },
+  {
+   "Id": 221,
+   "Label": "2.85"
+  }
+ ],
+ "Units": [
+  {
+   "Id": 10,
+   "Label": "mg",
+   "Type": "weight"
+  },
+  {
+   "Id": 21,
+   "Label": "g",
+   "Type": "weight"
+  },
+  {
+   "Id": 35,
+   "Label": "kg",
+   "Type": "weight"
+  },
+  {
+   "Id": 48,
+   "Label": "ml",
+   "Type": "volume"
+  },
+  {
+   "Id": 62,
+   "Label": "cl",
+   "Type": "volume"
+  },
+  {
+   "Id": 79,
+   "Label": "L",
+   "Type": "volume"
+  },
+  {
+   "Id": 95,
+   "Label": "m³",
+   "Type": "volume"
+  },
+  {
+   "Id": 112,
+   "Label": "mm",
+   "Type": "size"
+  },
+  {
+   "Id": 130,
+   "Label": "cm",
+   "Type": "size"
+  },
+  {
+   "Id": 149,
+   "Label": "m",
+   "Type": "size"
+  },
+  {
+   "Id": 170,
+   "Label": "m²",
+   "Type": "area"
+  }
+ ],
+ "Types": [
+  {
+   "Id": 142,
+   "Label": "Filament"
+  },
+  {
+   "Id": 116,
+   "Label": "Accessories"
+  },
+  {
+   "Id": 41,
+   "Label": "Spare Part"
+  },
+  {
+   "Id": 173,
+   "Label": "Resin"
+  }
+ ]
+}

@@ -45,7 +45,7 @@ namespace BambuMan.UI.Main
 
         // The spool behind the edit card, kept whole so the card can show tag fields (colour, material) directly.
         [ObservableProperty] private SpoolFound? spool;
-        [ObservableProperty] private BambuFilamentInfo? spoolTag;
+        [ObservableProperty] private ISpoolTag? spoolTag;
 
         [ObservableProperty] private SpoolEditModel spoolEdit = new();
 
@@ -119,10 +119,10 @@ namespace BambuMan.UI.Main
             return logService.AddLog(level, text);
         }
 
-        public void ShowSpool(SpoolFound found, BambuFilamentInfo info)
+        public void ShowSpool(SpoolFound found, ISpoolTag tag)
         {
             Spool = found;
-            SpoolTag = info;
+            SpoolTag = tag;
             SpoolEdit = SpoolEditModel.From(found);
             ShowSpoolEdit = true;
         }
@@ -170,9 +170,9 @@ namespace BambuMan.UI.Main
                 await ShowErrorMessage("NFC is not enabled. Check if you're phone supports nfc.");
         }
 
-        public void InventorySpool(SpoolFound found, BambuFilamentInfo info)
+        public void InventorySpool(SpoolFound found, ISpoolTag tag)
         {
-            inventoryService.InventorySpool(found, info);
+            inventoryService.InventorySpool(found, tag);
             HasInventoryItems = inventoryService.HasItems;
         }
 

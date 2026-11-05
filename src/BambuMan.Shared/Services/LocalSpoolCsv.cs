@@ -1,3 +1,4 @@
+using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
 using CsvHelper;
@@ -95,7 +96,8 @@ namespace BambuMan.Shared.Services
         private static Dictionary<string, string?> ToRow(LocalSpool spool)
         {
             var info = spool.Info;
-            var (material, subtype, slicerFilament, slicerFilamentName) = BambuddyManager.DeriveFilament(info);
+            var tag = spool.Tag;
+            var (material, subtype, slicerFilament, slicerFilamentName) = BambuddyManager.DeriveFilament(tag);
             var labelWeight = BambuddyManager.LabelWeight(info);
             var rgba = NormalizeHex(info.Color);
 
@@ -107,7 +109,7 @@ namespace BambuMan.Shared.Services
             {
                 // Same values a direct scan into Bambuddy produces — see BambuddyManager.BuildSpoolCreate.
                 ["material"] = material,
-                ["brand"] = "Bambu",
+                ["brand"] = BambuddyManager.BrandOf(tag),
                 ["subtype"] = subtype,
                 ["color_name"] = spool.Name ?? info.Color,
                 ["rgba"] = rgba,
@@ -127,7 +129,7 @@ namespace BambuMan.Shared.Services
                 ["slicer_filament_name"] = slicerFilamentName,
                 ["core_weight"] = Format(coreWeight),
                 ["data_origin"] = "nfc_scan",
-                ["tag_type"] = "bambu_rfid",
+                ["tag_type"] = spool.Format.TagType(),
 
                 ["manufacturer"] = spool.Manufacturer,
                 ["filament_name"] = spool.Name,
@@ -284,6 +286,9 @@ namespace BambuMan.Shared.Services
             if (info.MaterialVariantIdentifier != null)
                 info.SkuStart = $"{info.MaterialVariantIdentifier}-{$"{info.FilamentDiameter:0.00}".Replace(",", ".")}-{info.SpoolWeight:####}";
 
+            // A row without a tag type is a Bambu Lab one: that is all BambuMan exported before third-party tags.
+            var format = SpoolTagFormatExtensions.FromTagType(cell("tag_type")) ?? SpoolTagFormat.BambuLab;
+
             var price = ParseDecimal(cell, "price");
             var costPerKg = ParseDecimal(cell, "cost_per_kg");
             var coreWeight = ParseDecimal(cell, "core_weight");
@@ -294,6 +299,8 @@ namespace BambuMan.Shared.Services
             return new LocalSpool
             {
                 Info = info,
+                Format = format,
+                Brand = format == SpoolTagFormat.BambuLab ? null : cell("brand"),
                 Manufacturer = cell("manufacturer"),
                 Name = cell("filament_name"),
                 FilamentCode = cell("filament_code"),

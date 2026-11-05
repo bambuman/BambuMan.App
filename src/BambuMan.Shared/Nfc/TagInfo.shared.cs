@@ -28,6 +28,12 @@
         public NfcNdefRecord?[]? Records { get; set; }
 
         /// <summary>
+        /// Raw user memory of an NTAG21x, read from page 0x04 on, when the platform could read it. Carries formats
+        /// that aren't NDEF (TigerTag); null otherwise.
+        /// </summary>
+        public byte[]? UserMemory { get; set; }
+
+        /// <summary>
         /// Empty tag
         /// </summary>
         public bool IsEmpty => Records == null || Records.Length == 0 || Records[0] == null || (Records != null && Records[0]?.TypeFormat == NfcNdefTypeFormat.Empty);

@@ -6,8 +6,10 @@ using SpoolMan.Api.Model;
 namespace BambuMan.Shared.Matcher
 {
     /// <summary>
-    /// Backend-neutral matching of a scanned Bambu Lab tag (<see cref="BambuFilamentInfo"/>) against the
-    /// external filament catalog. Shared by SpoolMan and Bambuddy managers. Pure — no API / instance state.
+    /// Backend-neutral matching of a scanned spool tag against the external filament catalog. Bambu Lab tags
+    /// (<see cref="BambuFilamentInfo"/>) go through the per-SKU rules; other formats (<see cref="SpoolTag"/>) only
+    /// carry brand, material, colour and maybe a finish, and are matched on those. Shared by every manager.
+    /// Pure — no API / instance state.
     /// </summary>
     public static class ExternalFilamentMatcher
     {
@@ -121,6 +123,75 @@ namespace BambuMan.Shared.Matcher
 
             return true;
         }
+
+        /// <summary>
+        /// Match a scanned tag of any format against the supplied catalog. Returns all candidates — callers decide what
+        /// 0 / 1 / &gt;1 means.
+        /// </summary>
+        public static Task<List<ExternalFilament>> FindExternalFilament(List<ExternalFilament> externalFilaments, ISpoolTag tag, FilamentOverrideSet? overrides = null) =>
+            tag is BambuFilamentInfo info ? FindExternalFilament(externalFilaments, info, overrides) : Task.FromResult(FindThirdPartyFilament(externalFilaments, tag));
+
+        /// <summary>
+        /// The catalog's manufacturer name for a brand written on a tag. OpenSpool writers spell Bambu Lab several ways;
+        /// any other brand is taken as written. Null when the tag has none.
+        /// </summary>
+        public static string? NormalizeBrand(string? brand)
+        {
+            if (string.IsNullOrWhiteSpace(brand)) return null;
+
+            var compact = brand.Replace(" ", "").Replace("-", "").Replace("_", "");
+
+            return compact.EqualsCI("Bambu") || compact.EqualsCI("BambuLab") || compact.EqualsCI("BBL") ? DefaultBambuLabVendor : brand.Trim();
+        }
+
+        /// <summary>
+        /// Match a tag that isn't a Bambu Lab one: same manufacturer, material and colour; then the tag's finish, if it
+        /// names one, narrows the candidates by name (the catalogs put the finish there: "Matte Charcoal"), else the plain
+        /// variant is preferred; last the spool weight. A tag without brand, material or colour matches nothing.
+        /// </summary>
+        public static List<ExternalFilament> FindThirdPartyFilament(List<ExternalFilament> externalFilaments, ISpoolTag tag)
+        {
+            var brand = NormalizeBrand(tag.Brand);
+            var material = tag.FilamentType;
+            var color = tag.Color is { Length: >= 6 } hex ? hex[..6] : null;
+
+            if (brand == null || string.IsNullOrWhiteSpace(material) || color == null) return [];
+
+            // A plain tag matches a plain catalog colour — not a gradient that merely has the colour as one of its stops;
+            // a multi-colour tag matches an entry that has all of its colours.
+            var colors = new[] { color }.Concat((tag as SpoolTag)?.AdditionalColors.Where(x => x.Length >= 6).Select(x => x[..6]) ?? []).ToArray();
+
+            var result = externalFilaments
+                .Where(x => x.Manufacturer.EqualsCI(brand) && x.Material.EqualsCI(material))
+                .Where(x => colors.Length == 1
+                    ? x.ColorHex.EqualsCI(color) && (x.ColorHexes == null || x.ColorHexes.Count <= 1)
+                    : x.ColorHexes != null && colors.All(c => x.ColorHexes.Contains(c, StringComparer.OrdinalIgnoreCase)))
+                .ToList();
+
+            if (result.Count <= 1) return result;
+
+            var detailed = tag.DetailedFilamentType;
+            var subtype = detailed != null && detailed.StartsWithCI(material + " ") ? detailed[(material.Length + 1)..].Trim() : null;
+
+            var narrowed = string.IsNullOrEmpty(subtype) || subtype.EqualsCI("Basic")
+                ? result.Where(x => x.Finish == null && x.Pattern == null && x.Glow != true && !PlainVariantExclusions.Any(w => x.Name.ContainsCI(w))).ToList()
+                : result.Where(x => subtype.Split(' ', StringSplitOptions.RemoveEmptyEntries).All(w => x.Name.ContainsCI(w))).ToList();
+
+            if (narrowed.Count > 0) result = narrowed;
+
+            if (result.Count > 1)
+            {
+                var weight = (decimal?)tag.SpoolWeight ?? 1000;
+                var byWeight = result.Where(x => x.Weight == weight).ToList();
+
+                if (byWeight.Count > 0) result = byWeight;
+            }
+
+            return result;
+        }
+
+        /// <summary>Name words of variants a tag without a finish is not (same words the Bambu "Basic" rule excludes).</summary>
+        private static readonly string[] PlainVariantExclusions = ["Aero", "Tough", "Lite", "Pure", "Support"];
 
         /// <summary>
         /// Match a scanned tag against the supplied catalog. Returns all candidates — callers decide what 0 / 1 / &gt;1 means.
