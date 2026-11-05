@@ -41,6 +41,9 @@
 		<Authors>Noismaster</Authors>
 		<Product>BambuMan</Product>
 		<PackageId>BambuMan</PackageId>
+
+		<!-- The ui strings in Resources\Strings\AppResources.resx are English; the other languages are satellite assemblies -->
+		<NeutralLanguage>en</NeutralLanguage>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
@@ -109,6 +112,12 @@
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- UI strings. The AppResources class is generated at build time from the English resx (no checked-in Designer.cs);
+		     AppResources.<culture>.resx files beside it become satellite assemblies. See README "Translations". -->
+		<EmbeddedResource Update="Resources\Strings\AppResources.resx" StronglyTypedLanguage="CSharp" StronglyTypedNamespace="BambuMan.Resources.Strings" StronglyTypedClassName="AppResources" StronglyTypedFileName="$(IntermediateOutputPath)AppResources.Designer.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

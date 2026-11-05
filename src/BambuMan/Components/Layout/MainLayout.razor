@@ -4,11 +4,12 @@
 @inject AppNavigation AppNavigation
 @using BambuMan.UI.Settings
 
-@* The text size is a css variable on the shell, so every page, dialog and toast scales with it from the first render. *@
-<div class="app-shell @(menuOpen ? "menu-open" : null)" data-text-scale="@textScale" style="--text-scale: @textScale.Factor().ToString(CultureInfo.InvariantCulture)">
+@* The text size is a css variable on the shell, so every page, dialog and toast scales with it from the first render.
+   The shell is keyed by the language, so choosing another one rebuilds every component with the new strings. *@
+<div class="app-shell @(menuOpen ? "menu-open" : null)" @key="language" data-text-scale="@textScale" style="--text-scale: @textScale.Factor().ToString(CultureInfo.InvariantCulture)">
 
     <header class="topbar">
-        <button class="btn-icon" aria-label="Menu" @onclick="ToggleMenu"><Blazicon Svg="Lucide.Menu" /></button>
+        <button class="btn-icon" aria-label="@AppResources.Nav_Menu" @onclick="ToggleMenu"><Blazicon Svg="Lucide.Menu" /></button>
         <a class="brand" href="">
             <img src="img/logo.svg" alt="" />
             <span class="brand-name">BambuMan</span>
@@ -31,10 +32,12 @@
 @code {
     private bool menuOpen;
     private TextScale textScale;
+    private AppLanguage language;
 
     protected override void OnInitialized()
     {
         textScale = SettingsPage.GetTextScale();
+        language = SettingsPage.GetLanguage();
 
         AppNavigation.Attach(Navigation);
         Navigation.LocationChanged += OnLocationChanged;
@@ -54,10 +57,12 @@
     private void OnSettingsChanged()
     {
         var scale = SettingsPage.GetTextScale();
+        var newLanguage = SettingsPage.GetLanguage();
 
-        if (scale == textScale) return;
+        if (scale == textScale && newLanguage == language) return;
 
         textScale = scale;
+        language = newLanguage;
         _ = InvokeAsync(StateHasChanged);
     }
 

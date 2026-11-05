@@ -1,4 +1,5 @@
 using BambuMan.Interfaces;
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Managers;
@@ -204,7 +205,7 @@ namespace BambuMan
             {
                 var manager = ActiveManager;
 
-                if (viewModel.SpoolmanConnecting && manager.Status == ManagerStatusType.Ready) await viewModel.ShowInfoMessage("Ready to read spools.");
+                if (viewModel.SpoolmanConnecting && manager.Status == ManagerStatusType.Ready) await viewModel.ShowInfoMessage(AppResources.Main_InfoReady);
 
                 if (manager.Status >= ManagerStatusType.Ready) viewModel.SpoolmanConnecting = false;
 
@@ -381,7 +382,7 @@ namespace BambuMan
                 if (CrossNfc.IsSupported)
                 {
                     viewModel.NfcIsEnabled = CrossNfc.Current.IsEnabled;
-                    viewModel.NfcText = CrossNfc.Current.IsEnabled ? "Enabled" : "Disabled";
+                    viewModel.NfcText = CrossNfc.Current.IsEnabled ? AppResources.Main_NfcEnabled : AppResources.Main_NfcDisabled;
 
                     await viewModel.Validate(ActiveManager);
 
@@ -403,7 +404,7 @@ namespace BambuMan
         /// <param name="title">Alert title</param>
         /// <returns>The task to be performed</returns>
         private static Task ShowAlert(string message, string? title = null) =>
-            MainThread.InvokeOnMainThreadAsync(() => Application.Current?.Windows.FirstOrDefault()?.Page?.DisplayAlertAsync(string.IsNullOrWhiteSpace(title) ? "NFC" : title, message, "OK") ?? Task.CompletedTask);
+            MainThread.InvokeOnMainThreadAsync(() => Application.Current?.Windows.FirstOrDefault()?.Page?.DisplayAlertAsync(string.IsNullOrWhiteSpace(title) ? "NFC" : title, message, AppResources.Common_Ok) ?? Task.CompletedTask);
 
         /// <summary>
         /// Task to start listening for NFC tags if the user's device platform is not iOS
@@ -501,7 +502,7 @@ namespace BambuMan
             try
             {
                 viewModel.NfcIsEnabled = isEnabled;
-                viewModel.NfcText = isEnabled ? "Enabled" : "Disabled";
+                viewModel.NfcText = isEnabled ? AppResources.Main_NfcEnabled : AppResources.Main_NfcDisabled;
 
                 await viewModel.Validate(ActiveManager);
             }
@@ -524,14 +525,14 @@ namespace BambuMan
                 if (tagInfo == null)
                 {
                     SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
-                    await ShowAlert("No tag found");
+                    await ShowAlert(AppResources.Main_NoTagFound);
                     return;
                 }
 
                 // Customized serial number
                 var identifier = tagInfo.Identifier;
                 var serialNumber = NfcUtils.ByteArrayToHexString(identifier, ":");
-                var title = !string.IsNullOrWhiteSpace(serialNumber) ? $"Tag [{serialNumber}]" : "Tag Info";
+                var title = !string.IsNullOrWhiteSpace(serialNumber) ? string.Format(AppResources.Main_TagTitle, serialNumber) : AppResources.Main_TagInfo;
 
                 if (tagInfo is BambuFilamentInfo bambuFilamentInfo)
                 {
@@ -557,21 +558,21 @@ namespace BambuMan
                     await viewModel.AddLog(LogLevel.Warning, failure.ToString());
 
                     await viewModel.ShowErrorMessage(failure.IsAuthenticationUnsupported
-                        ? "This phone couldn't unlock the tag. Some phones' NFC chips (e.g. Google Pixel) can't read Bambu Lab (MIFARE Classic) tags."
-                        : "Tag read was interrupted, hold the phone still on the tag and try again.");
+                        ? AppResources.Main_ErrorTagAuthenticationUnsupported
+                        : AppResources.Main_ErrorTagReadInterrupted);
 
                     if (toneGenerator != null) await toneGenerator.PlayAlarmTone();
                 }
                 else if (!tagInfo.IsSupported)
                 {
                     SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
-                    await viewModel.ShowErrorMessage("Error reading tag, please try again!");
+                    await viewModel.ShowErrorMessage(AppResources.Main_ErrorTagRead);
                     if (toneGenerator != null) await toneGenerator.PlayAlarmTone();
                 }
                 else if (tagInfo.IsEmpty)
                 {
                     SentrySdk.Metrics.EmitCounter("nfc.tag.read.failure", 1);
-                    await viewModel.ShowErrorMessage("Empty tag");
+                    await viewModel.ShowErrorMessage(AppResources.Main_ErrorTagEmpty);
                 }
                 else if (tagInfo.Records is { Length: > 0 })
                 {
@@ -616,7 +617,7 @@ namespace BambuMan
                 var (_, rateLimited) = await tagApiService.UploadNfcTagAsync(info);
                 if (rateLimited)
                 {
-                    await viewModel.ShowErrorMessage("Daily upload limit reached (1000 tags/day). Try again tomorrow.");
+                    await viewModel.ShowErrorMessage(AppResources.Main_ErrorUploadLimit);
                 }
             }
         }
@@ -690,7 +691,7 @@ namespace BambuMan
                 string tagName = data["tag_name"]?.ToString() ?? currentTagName;
 
                 viewModel.NewVersionAvailable = !tagName.Equals(currentTagName, StringComparison.CurrentCultureIgnoreCase);
-                viewModel.NewVersionText = $"New version available: {tagName}";
+                viewModel.NewVersionText = string.Format(AppResources.Main_NewVersionAvailableTag, tagName);
 
                 //In debug we should not show it hoggs screen
 #if DEBUG
@@ -803,7 +804,7 @@ namespace BambuMan
             {
                 viewModel.LocalSpoolsStored = stored;
                 viewModel.LocalSpoolsCount = count;
-                viewModel.LocalSpoolsText = stored ? "Stored spools" : "Scanned spools";
+                viewModel.LocalSpoolsText = stored ? AppResources.Main_StoredSpools : AppResources.Main_ScannedSpools;
             });
         }
 
@@ -815,7 +816,7 @@ namespace BambuMan
 
                 if (spools.Count == 0)
                 {
-                    await viewModel.ShowInfoMessage("There are no spools to export yet.");
+                    await viewModel.ShowInfoMessage(AppResources.Main_ExportNothing);
                     return;
                 }
 
@@ -825,13 +826,13 @@ namespace BambuMan
 
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
-                    Title = "Export spools",
+                    Title = AppResources.Main_ExportShareTitle,
                     File = new ShareFile(path, "text/csv")
                 });
             }
             catch (Exception ex)
             {
-                await viewModel.ShowErrorMessage("Export failed. See logs.");
+                await viewModel.ShowErrorMessage(AppResources.Main_ExportFailed);
                 logger.LogError(ex, "Error in ExportCsvAsync");
             }
         }
@@ -847,7 +848,7 @@ namespace BambuMan
         {
             try
             {
-                var file = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Import spools CSV", FileTypes = CsvFileType });
+                var file = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = AppResources.Main_ImportPickerTitle, FileTypes = CsvFileType });
 
                 if (file == null) return;
 
@@ -859,14 +860,14 @@ namespace BambuMan
 
                 if (result.Spools.Count == 0)
                 {
-                    await viewModel.ShowErrorMessage($"No spools imported from {file.FileName}. {result.Errors.FirstOrDefault()}");
+                    await viewModel.ShowErrorMessage(string.Format(AppResources.Main_ImportNothing, file.FileName, result.Errors.FirstOrDefault()));
                     return;
                 }
 
                 var (added, updated) = await NoBackend.ImportSpoolsAsync(result.Spools);
 
-                var message = $"Imported {added} new and {updated} existing spools.";
-                if (result.Errors.Count > 0) message += $" {result.Errors.Count} rows skipped, see logs.";
+                var message = string.Format(AppResources.Main_Imported, added, updated);
+                if (result.Errors.Count > 0) message += " " + string.Format(AppResources.Main_ImportRowsSkipped, result.Errors.Count);
 
                 await viewModel.ShowSuccessMessage(message);
 
@@ -875,8 +876,8 @@ namespace BambuMan
             }
             catch (Exception ex)
             {
-                await viewModel.ShowErrorMessage("Import failed. See logs.");
-                toasts.Show("Import failed. See logs.", ToastKind.Error, true);
+                await viewModel.ShowErrorMessage(AppResources.Main_ImportFailed);
+                toasts.Show(AppResources.Main_ImportFailed, ToastKind.Error, true);
                 logger.LogError(ex, "Error in ImportCsvAsync");
             }
         }

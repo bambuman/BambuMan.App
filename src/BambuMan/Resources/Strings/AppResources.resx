@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Common_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Common_Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Common_Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Accessible label of the clear (x) button inside a form field.</comment>
+  </data>
+  <data name="Common_ImportCsv" xml:space="preserve">
+    <value>Import CSV</value>
+  </data>
+  <data name="Common_ExportCsv" xml:space="preserve">
+    <value>Export CSV</value>
+  </data>
+  <data name="Common_OverrideLocationTitle" xml:space="preserve">
+    <value>Override location on read</value>
+  </data>
+  <data name="Common_NoLocation" xml:space="preserve">
+    <value>No location</value>
+  </data>
+  <data name="Nav_Menu" xml:space="preserve">
+    <value>Menu</value>
+  </data>
+  <data name="Nav_Scanner" xml:space="preserve">
+    <value>Scanner</value>
+  </data>
+  <data name="Nav_Spools" xml:space="preserve">
+    <value>Spools</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Nav_Logs" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="Main_Title" xml:space="preserve">
+    <value>Scanner</value>
+  </data>
+  <data name="Main_TestTag" xml:space="preserve">
+    <value>Test tag</value>
+    <comment>Debug builds only: reads a built-in sample tag.</comment>
+  </data>
+  <data name="Main_StatSettings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Main_SettingsConfigured" xml:space="preserve">
+    <value>Configured</value>
+  </data>
+  <data name="Main_SettingsIncomplete" xml:space="preserve">
+    <value>Incomplete</value>
+  </data>
+  <data name="Main_SettingsOk" xml:space="preserve">
+    <value>OK</value>
+    <comment>Short status tile value; must stay very short.</comment>
+  </data>
+  <data name="Main_SettingsMissing" xml:space="preserve">
+    <value>Missing</value>
+    <comment>Short status tile value; must stay very short.</comment>
+  </data>
+  <data name="Main_OpenSettings" xml:space="preserve">
+    <value>Open settings</value>
+  </data>
+  <data name="Main_StatInventory" xml:space="preserve">
+    <value>Inventory</value>
+    <comment>Status tile: the inventory server (backend).</comment>
+  </data>
+  <data name="Main_BackendLocal" xml:space="preserve">
+    <value>Local</value>
+    <comment>Short status tile value for the no-backend mode; must stay very short.</comment>
+  </data>
+  <data name="Main_NfcOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Main_NfcListening" xml:space="preserve">
+    <value>Listening</value>
+  </data>
+  <data name="Main_NfcIdle" xml:space="preserve">
+    <value>Idle</value>
+  </data>
+  <data name="Main_StatSession" xml:space="preserve">
+    <value>This session</value>
+  </data>
+  <data name="Main_SpoolOne" xml:space="preserve">
+    <value>spool</value>
+    <comment>Shown after the number 1.</comment>
+  </data>
+  <data name="Main_SpoolMany" xml:space="preserve">
+    <value>spools</value>
+    <comment>Shown after a number other than 1.</comment>
+  </data>
+  <data name="Main_MaterialCountOne" xml:space="preserve">
+    <value>{0} material</value>
+    <comment>{0} is 1.</comment>
+  </data>
+  <data name="Main_MaterialCountMany" xml:space="preserve">
+    <value>{0} materials</value>
+    <comment>{0} is a number other than 1.</comment>
+  </data>
+  <data name="Main_Connecting" xml:space="preserve">
+    <value>Connecting, please wait ...</value>
+  </data>
+  <data name="Main_SessionInventory" xml:space="preserve">
+    <value>Inventory</value>
+    <comment>Card title: the spools read this session, grouped by material.</comment>
+  </data>
+  <data name="Main_ClearInventory" xml:space="preserve">
+    <value>Clear inventory</value>
+  </data>
+  <data name="Main_BannerError" xml:space="preserve">
+    <value>Error:</value>
+  </data>
+  <data name="Main_BannerSuccess" xml:space="preserve">
+    <value>Success:</value>
+  </data>
+  <data name="Main_BannerInfo" xml:space="preserve">
+    <value>Info:</value>
+  </data>
+  <data name="Main_SpoolSection" xml:space="preserve">
+    <value>Spool</value>
+  </data>
+  <data name="Main_SpoolInfo" xml:space="preserve">
+    <value>Spool info</value>
+  </data>
+  <data name="Main_ReadyTitle" xml:space="preserve">
+    <value>Hold a spool tag to your phone</value>
+  </data>
+  <data name="Main_NfcOffTitle" xml:space="preserve">
+    <value>NFC is off</value>
+  </data>
+  <data name="Main_ReadyDescription" xml:space="preserve">
+    <value>Bambu Lab spools carry a tag on each side of the reel. The read spool shows up here.</value>
+  </data>
+  <data name="Main_NfcOffDescription" xml:space="preserve">
+    <value>Turn on NFC in your phone settings to read spool tags.</value>
+  </data>
+  <data name="Main_List" xml:space="preserve">
+    <value>List</value>
+  </data>
+  <data name="Main_LocalSpoolsStoredHint" xml:space="preserve">
+    <value>Kept on this device between app starts.</value>
+  </data>
+  <data name="Main_LocalSpoolsSessionHint" xml:space="preserve">
+    <value>Only this session's scans are exported.</value>
+  </data>
+  <data name="Main_OverrideLocationDescription" xml:space="preserve">
+    <value>Moves an already known spool to the default location from settings when it is read.</value>
+  </data>
+  <data name="Main_StatusConnecting" xml:space="preserve">
+    <value>Connecting to {0} …</value>
+    <comment>{0} is the backend name, e.g. Spoolman.</comment>
+  </data>
+  <data name="Main_StatusNeedsAttention" xml:space="preserve">
+    <value>Needs attention</value>
+  </data>
+  <data name="Main_StatusNfcDisabled" xml:space="preserve">
+    <value>NFC is disabled</value>
+  </data>
+  <data name="Main_StatusReady" xml:space="preserve">
+    <value>Ready to read spools</value>
+  </data>
+  <data name="Main_BackendOnDevice" xml:space="preserve">
+    <value>On this device</value>
+  </data>
+  <data name="Main_BackendConnecting" xml:space="preserve">
+    <value>Connecting</value>
+  </data>
+  <data name="Main_BackendConnected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="Main_BackendUrlMissing" xml:space="preserve">
+    <value>Url missing</value>
+  </data>
+  <data name="Main_BackendUnreachable" xml:space="preserve">
+    <value>Unreachable</value>
+  </data>
+  <data name="Main_BackendOffline" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="Main_ScannedSpools" xml:space="preserve">
+    <value>Scanned spools</value>
+  </data>
+  <data name="Main_StoredSpools" xml:space="preserve">
+    <value>Stored spools</value>
+  </data>
+  <data name="Main_NfcEnabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Main_NfcDisabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Main_NewVersionAvailable" xml:space="preserve">
+    <value>New version available</value>
+  </data>
+  <data name="Main_NewVersionAvailableTag" xml:space="preserve">
+    <value>New version available: {0}</value>
+    <comment>{0} is the release tag, e.g. v1.3.</comment>
+  </data>
+  <data name="Main_ErrorNfcNotEnabled" xml:space="preserve">
+    <value>NFC is not enabled. Check if your phone supports NFC.</value>
+  </data>
+  <data name="Main_ErrorServerUrlMissing" xml:space="preserve">
+    <value>Inventory server url is missing, please fill in settings page!</value>
+  </data>
+  <data name="Main_ErrorApiNotHealthy" xml:space="preserve">
+    <value>Inventory api is not healthy</value>
+  </data>
+  <data name="Main_InfoReady" xml:space="preserve">
+    <value>Ready to read spools.</value>
+  </data>
+  <data name="Main_NoTagFound" xml:space="preserve">
+    <value>No tag found</value>
+  </data>
+  <data name="Main_TagTitle" xml:space="preserve">
+    <value>Tag [{0}]</value>
+    <comment>{0} is the tag serial number.</comment>
+  </data>
+  <data name="Main_TagInfo" xml:space="preserve">
+    <value>Tag Info</value>
+  </data>
+  <data name="Main_ErrorTagAuthenticationUnsupported" xml:space="preserve">
+    <value>This phone couldn't unlock the tag. Some phones' NFC chips (e.g. Google Pixel) can't read Bambu Lab (MIFARE Classic) tags.</value>
+  </data>
+  <data name="Main_ErrorTagReadInterrupted" xml:space="preserve">
+    <value>Tag read was interrupted, hold the phone still on the tag and try again.</value>
+  </data>
+  <data name="Main_ErrorTagRead" xml:space="preserve">
+    <value>Error reading tag, please try again!</value>
+  </data>
+  <data name="Main_ErrorTagEmpty" xml:space="preserve">
+    <value>Empty tag</value>
+  </data>
+  <data name="Main_ErrorUploadLimit" xml:space="preserve">
+    <value>Daily upload limit reached (1000 tags/day). Try again tomorrow.</value>
+  </data>
+  <data name="Main_ExportNothing" xml:space="preserve">
+    <value>There are no spools to export yet.</value>
+  </data>
+  <data name="Main_ExportShareTitle" xml:space="preserve">
+    <value>Export spools</value>
+  </data>
+  <data name="Main_ExportFailed" xml:space="preserve">
+    <value>Export failed. See logs.</value>
+  </data>
+  <data name="Main_ImportPickerTitle" xml:space="preserve">
+    <value>Import spools CSV</value>
+  </data>
+  <data name="Main_ImportNothing" xml:space="preserve">
+    <value>No spools imported from {0}. {1}</value>
+    <comment>{0} is the file name, {1} the first problem found in it.</comment>
+  </data>
+  <data name="Main_Imported" xml:space="preserve">
+    <value>Imported {0} new and {1} existing spools.</value>
+    <comment>{0} is the number of new spools, {1} of updated ones.</comment>
+  </data>
+  <data name="Main_ImportRowsSkipped" xml:space="preserve">
+    <value>{0} rows skipped, see logs.</value>
+  </data>
+  <data name="Main_ImportFailed" xml:space="preserve">
+    <value>Import failed. See logs.</value>
+  </data>
+</root>

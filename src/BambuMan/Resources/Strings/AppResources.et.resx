@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Machine translation, needs review by a native speaker. -->
+  <data name="Common_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Loobu</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Kustuta</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Sulge</value>
+  </data>
+  <data name="Common_Back" xml:space="preserve">
+    <value>Tagasi</value>
+  </data>
+  <data name="Common_Clear" xml:space="preserve">
+    <value>Tühjenda</value>
+  </data>
+  <data name="Common_ImportCsv" xml:space="preserve">
+    <value>Impordi CSV</value>
+  </data>
+  <data name="Common_ExportCsv" xml:space="preserve">
+    <value>Ekspordi CSV</value>
+  </data>
+  <data name="Common_OverrideLocationTitle" xml:space="preserve">
+    <value>Kirjuta asukoht lugemisel üle</value>
+  </data>
+  <data name="Common_NoLocation" xml:space="preserve">
+    <value>Asukoht puudub</value>
+  </data>
+  <data name="Nav_Menu" xml:space="preserve">
+    <value>Menüü</value>
+  </data>
+  <data name="Nav_Scanner" xml:space="preserve">
+    <value>Skanner</value>
+  </data>
+  <data name="Nav_Spools" xml:space="preserve">
+    <value>Rullid</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>Seaded</value>
+  </data>
+  <data name="Nav_Logs" xml:space="preserve">
+    <value>Logid</value>
+  </data>
+  <data name="Main_Title" xml:space="preserve">
+    <value>Skanner</value>
+  </data>
+  <data name="Main_TestTag" xml:space="preserve">
+    <value>Testsilt</value>
+  </data>
+  <data name="Main_StatSettings" xml:space="preserve">
+    <value>Seaded</value>
+  </data>
+  <data name="Main_SettingsConfigured" xml:space="preserve">
+    <value>Seadistatud</value>
+  </data>
+  <data name="Main_SettingsIncomplete" xml:space="preserve">
+    <value>Puudulikud</value>
+  </data>
+  <data name="Main_SettingsOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Main_SettingsMissing" xml:space="preserve">
+    <value>Puudu</value>
+  </data>
+  <data name="Main_OpenSettings" xml:space="preserve">
+    <value>Ava seaded</value>
+  </data>
+  <data name="Main_StatInventory" xml:space="preserve">
+    <value>Inventar</value>
+  </data>
+  <data name="Main_BackendLocal" xml:space="preserve">
+    <value>Kohalik</value>
+  </data>
+  <data name="Main_NfcOff" xml:space="preserve">
+    <value>Väljas</value>
+  </data>
+  <data name="Main_NfcListening" xml:space="preserve">
+    <value>Kuulab</value>
+  </data>
+  <data name="Main_NfcIdle" xml:space="preserve">
+    <value>Ootel</value>
+  </data>
+  <data name="Main_StatSession" xml:space="preserve">
+    <value>See seanss</value>
+  </data>
+  <data name="Main_SpoolOne" xml:space="preserve">
+    <value>rull</value>
+  </data>
+  <data name="Main_SpoolMany" xml:space="preserve">
+    <value>rulli</value>
+  </data>
+  <data name="Main_MaterialCountOne" xml:space="preserve">
+    <value>{0} materjal</value>
+  </data>
+  <data name="Main_MaterialCountMany" xml:space="preserve">
+    <value>{0} materjali</value>
+  </data>
+  <data name="Main_Connecting" xml:space="preserve">
+    <value>Ühendan, palun oota ...</value>
+  </data>
+  <data name="Main_SessionInventory" xml:space="preserve">
+    <value>Inventar</value>
+  </data>
+  <data name="Main_ClearInventory" xml:space="preserve">
+    <value>Tühjenda inventar</value>
+  </data>
+  <data name="Main_BannerError" xml:space="preserve">
+    <value>Viga:</value>
+  </data>
+  <data name="Main_BannerSuccess" xml:space="preserve">
+    <value>Õnnestus:</value>
+  </data>
+  <data name="Main_BannerInfo" xml:space="preserve">
+    <value>Info:</value>
+  </data>
+  <data name="Main_SpoolSection" xml:space="preserve">
+    <value>Rull</value>
+  </data>
+  <data name="Main_SpoolInfo" xml:space="preserve">
+    <value>Rulli info</value>
+  </data>
+  <data name="Main_ReadyTitle" xml:space="preserve">
+    <value>Hoia rulli silti telefoni vastas</value>
+  </data>
+  <data name="Main_NfcOffTitle" xml:space="preserve">
+    <value>NFC on väljas</value>
+  </data>
+  <data name="Main_ReadyDescription" xml:space="preserve">
+    <value>Bambu Labi rullidel on silt rulli mõlemal küljel. Loetud rull kuvatakse siin.</value>
+  </data>
+  <data name="Main_NfcOffDescription" xml:space="preserve">
+    <value>Rullide siltide lugemiseks lülita telefoni seadetes NFC sisse.</value>
+  </data>
+  <data name="Main_List" xml:space="preserve">
+    <value>Nimekiri</value>
+  </data>
+  <data name="Main_LocalSpoolsStoredHint" xml:space="preserve">
+    <value>Säilivad selles seadmes ka rakenduse taaskäivitamisel.</value>
+  </data>
+  <data name="Main_LocalSpoolsSessionHint" xml:space="preserve">
+    <value>Eksporditakse ainult selle seansi skaneeringud.</value>
+  </data>
+  <data name="Main_OverrideLocationDescription" xml:space="preserve">
+    <value>Juba tuntud rull viiakse lugemisel seadetes määratud vaikimisi asukohta.</value>
+  </data>
+  <data name="Main_StatusConnecting" xml:space="preserve">
+    <value>Ühendan: {0} …</value>
+  </data>
+  <data name="Main_StatusNeedsAttention" xml:space="preserve">
+    <value>Vajab tähelepanu</value>
+  </data>
+  <data name="Main_StatusNfcDisabled" xml:space="preserve">
+    <value>NFC on välja lülitatud</value>
+  </data>
+  <data name="Main_StatusReady" xml:space="preserve">
+    <value>Valmis rulle lugema</value>
+  </data>
+  <data name="Main_BackendOnDevice" xml:space="preserve">
+    <value>Selles seadmes</value>
+  </data>
+  <data name="Main_BackendConnecting" xml:space="preserve">
+    <value>Ühendan</value>
+  </data>
+  <data name="Main_BackendConnected" xml:space="preserve">
+    <value>Ühendatud</value>
+  </data>
+  <data name="Main_BackendUrlMissing" xml:space="preserve">
+    <value>URL puudub</value>
+  </data>
+  <data name="Main_BackendUnreachable" xml:space="preserve">
+    <value>Pole kättesaadav</value>
+  </data>
+  <data name="Main_BackendOffline" xml:space="preserve">
+    <value>Ühenduseta</value>
+  </data>
+  <data name="Main_ScannedSpools" xml:space="preserve">
+    <value>Skannitud rullid</value>
+  </data>
+  <data name="Main_StoredSpools" xml:space="preserve">
+    <value>Salvestatud rullid</value>
+  </data>
+  <data name="Main_NfcEnabled" xml:space="preserve">
+    <value>Sees</value>
+  </data>
+  <data name="Main_NfcDisabled" xml:space="preserve">
+    <value>Väljas</value>
+  </data>
+  <data name="Main_NewVersionAvailable" xml:space="preserve">
+    <value>Uus versioon on saadaval</value>
+  </data>
+  <data name="Main_NewVersionAvailableTag" xml:space="preserve">
+    <value>Uus versioon on saadaval: {0}</value>
+  </data>
+  <data name="Main_ErrorNfcNotEnabled" xml:space="preserve">
+    <value>NFC pole sisse lülitatud. Kontrolli, kas su telefon toetab NFC-d.</value>
+  </data>
+  <data name="Main_ErrorServerUrlMissing" xml:space="preserve">
+    <value>Inventariserveri URL puudub, palun sisesta see seadetes!</value>
+  </data>
+  <data name="Main_ErrorApiNotHealthy" xml:space="preserve">
+    <value>Inventari API ei tööta korralikult</value>
+  </data>
+  <data name="Main_InfoReady" xml:space="preserve">
+    <value>Valmis rulle lugema.</value>
+  </data>
+  <data name="Main_NoTagFound" xml:space="preserve">
+    <value>Silti ei leitud</value>
+  </data>
+  <data name="Main_TagTitle" xml:space="preserve">
+    <value>Silt [{0}]</value>
+  </data>
+  <data name="Main_TagInfo" xml:space="preserve">
+    <value>Sildi info</value>
+  </data>
+  <data name="Main_ErrorTagAuthenticationUnsupported" xml:space="preserve">
+    <value>See telefon ei suutnud silti avada. Mõne telefoni NFC-kiip (nt Google Pixel) ei suuda Bambu Labi (MIFARE Classic) silte lugeda.</value>
+  </data>
+  <data name="Main_ErrorTagReadInterrupted" xml:space="preserve">
+    <value>Sildi lugemine katkes. Hoia telefoni sildi vastas paigal ja proovi uuesti.</value>
+  </data>
+  <data name="Main_ErrorTagRead" xml:space="preserve">
+    <value>Sildi lugemine ebaõnnestus, palun proovi uuesti!</value>
+  </data>
+  <data name="Main_ErrorTagEmpty" xml:space="preserve">
+    <value>Tühi silt</value>
+  </data>
+  <data name="Main_ErrorUploadLimit" xml:space="preserve">
+    <value>Päevane üleslaadimise piirang on täis (1000 silti päevas). Proovi homme uuesti.</value>
+  </data>
+  <data name="Main_ExportNothing" xml:space="preserve">
+    <value>Eksportimiseks pole veel ühtegi rulli.</value>
+  </data>
+  <data name="Main_ExportShareTitle" xml:space="preserve">
+    <value>Ekspordi rullid</value>
+  </data>
+  <data name="Main_ExportFailed" xml:space="preserve">
+    <value>Eksport ebaõnnestus. Vaata logisid.</value>
+  </data>
+  <data name="Main_ImportPickerTitle" xml:space="preserve">
+    <value>Impordi rullide CSV</value>
+  </data>
+  <data name="Main_ImportNothing" xml:space="preserve">
+    <value>Failist {0} ei imporditud ühtegi rulli. {1}</value>
+  </data>
+  <data name="Main_Imported" xml:space="preserve">
+    <value>Imporditi {0} uut ja {1} olemasolevat rulli.</value>
+  </data>
+  <data name="Main_ImportRowsSkipped" xml:space="preserve">
+    <value>{0} rida jäeti vahele, vaata logisid.</value>
+  </data>
+  <data name="Main_ImportFailed" xml:space="preserve">
+    <value>Import ebaõnnestus. Vaata logisid.</value>
+  </data>
+</root>

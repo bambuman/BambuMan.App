@@ -1,14 +1,14 @@
 @page "/"
 @inherits ObservingComponentBase
 
-<PageHeader Title="Scanner" Icon="Lucide.Nfc">
+<PageHeader Title="@AppResources.Main_Title" Icon="Lucide.Nfc">
     <Subtitle>
         <span class="dot @StatusDot"></span> @StatusText
     </Subtitle>
     <Actions>
         @if (Vm.IsTest)
         {
-            <button class="btn btn-outline" @onclick="Scanner.TestTagAsync"><Blazicon Svg="Lucide.FlaskConical" /> Test tag</button>
+            <button class="btn btn-outline" @onclick="Scanner.TestTagAsync"><Blazicon Svg="Lucide.FlaskConical" /> @AppResources.Main_TestTag</button>
         }
     </Actions>
 </PageHeader>
@@ -19,21 +19,21 @@
 
     <div class="stats">
         <div class="card stat stat-@(Vm.SettingsOk ? "success" : "error")">
-            <div class="stat-label"><Blazicon Svg="Lucide.Settings2" /> Settings</div>
-            <div class="stat-value"><span class="stat-long">@(Vm.SettingsOk ? "Configured" : "Incomplete")</span><span class="stat-short">@(Vm.SettingsOk ? "OK" : "Missing")</span></div>
+            <div class="stat-label"><Blazicon Svg="Lucide.Settings2" /> @AppResources.Main_StatSettings</div>
+            <div class="stat-value"><span class="stat-long">@(Vm.SettingsOk ? AppResources.Main_SettingsConfigured : AppResources.Main_SettingsIncomplete)</span><span class="stat-short">@(Vm.SettingsOk ? AppResources.Main_SettingsOk : AppResources.Main_SettingsMissing)</span></div>
             @if (Vm.SettingsOk)
             {
-                <span class="pill success"><Blazicon Svg="Lucide.CircleCheck" /> OK</span>
+                <span class="pill success"><Blazicon Svg="Lucide.CircleCheck" /> @AppResources.Main_SettingsOk</span>
             }
             else
             {
-                <a class="pill error" href="settings"><Blazicon Svg="Lucide.CircleAlert" /> Open settings</a>
+                <a class="pill error" href="settings"><Blazicon Svg="Lucide.CircleAlert" /> @AppResources.Main_OpenSettings</a>
             }
         </div>
 
         <div class="card stat stat-@BackendPill.Kind">
-            <div class="stat-label"><Blazicon Svg="Lucide.Server" /> Inventory</div>
-            <div class="stat-value"><span class="stat-long">@Vm.BackendLabel</span><span class="stat-short">@(Vm.Backend == InventoryBackend.NoBackend ? "Local" : Vm.BackendLabel)</span></div>
+            <div class="stat-label"><Blazicon Svg="Lucide.Server" /> @AppResources.Main_StatInventory</div>
+            <div class="stat-value"><span class="stat-long">@Vm.BackendLabel</span><span class="stat-short">@(Vm.Backend == InventoryBackend.NoBackend ? AppResources.Main_BackendLocal : Vm.BackendLabel)</span></div>
             <span class="pill @BackendPill.Kind">@BackendPill.Text</span>
         </div>
 
@@ -42,22 +42,22 @@
             <div class="stat-value">@Vm.NfcText</div>
             @if (!Vm.NfcIsEnabled)
             {
-                <span class="pill error"><Blazicon Svg="Lucide.CircleX" /> Off</span>
+                <span class="pill error"><Blazicon Svg="Lucide.CircleX" /> @AppResources.Main_NfcOff</span>
             }
             else if (Vm.DeviceIsListening)
             {
-                <span class="pill success"><Blazicon Svg="Lucide.Radio" /> Listening</span>
+                <span class="pill success"><Blazicon Svg="Lucide.Radio" /> @AppResources.Main_NfcListening</span>
             }
             else
             {
-                <span class="pill">Idle</span>
+                <span class="pill">@AppResources.Main_NfcIdle</span>
             }
         </div>
 
         <div class="card stat stat-primary">
-            <div class="stat-label"><Blazicon Svg="Lucide.Package" /> This session</div>
-            <div class="stat-value">@SessionSpoolCount<span class="stat-long">&nbsp;@(SessionSpoolCount == 1 ? "spool" : "spools")</span></div>
-            <span class="pill primary">@InventoryService.Inventory.Count @(InventoryService.Inventory.Count == 1 ? "material" : "materials")</span>
+            <div class="stat-label"><Blazicon Svg="Lucide.Package" /> @AppResources.Main_StatSession</div>
+            <div class="stat-value">@SessionSpoolCount<span class="stat-long">&nbsp;@(SessionSpoolCount == 1 ? AppResources.Main_SpoolOne : AppResources.Main_SpoolMany)</span></div>
+            <span class="pill primary">@(string.Format(InventoryService.Inventory.Count == 1 ? AppResources.Main_MaterialCountOne : AppResources.Main_MaterialCountMany, InventoryService.Inventory.Count))</span>
         </div>
     </div>
 
@@ -65,7 +65,7 @@
     {
         <div class="card connecting">
             <div class="spinner"></div>
-            Connecting, please wait ...
+            @AppResources.Main_Connecting
         </div>
     }
 
@@ -73,8 +73,8 @@
     {
         <div class="card">
             <div class="card-header">
-                <div class="card-title"><Blazicon Svg="Lucide.Package" /> Inventory</div>
-                <button class="btn btn-secondary btn-sm" @onclick="Scanner.ClearInventoryAsync"><Blazicon Svg="Lucide.Eraser" /> Clear inventory</button>
+                <div class="card-title"><Blazicon Svg="Lucide.Package" /> @AppResources.Main_SessionInventory</div>
+                <button class="btn btn-secondary btn-sm" @onclick="Scanner.ClearInventoryAsync"><Blazicon Svg="Lucide.Eraser" /> @AppResources.Main_ClearInventory</button>
             </div>
             <div class="chips">
                 @foreach (var item in InventoryService.Inventory)
@@ -85,19 +85,19 @@
         </div>
     }
 
-    <Banner Kind="error" Label="Error:" Icon="Lucide.CircleAlert" Message="@Vm.ErrorMessage" />
-    <Banner Kind="success" Label="Success:" Icon="Lucide.CircleCheck" Message="@Vm.SuccessMessage" />
-    <Banner Kind="info" Label="Info:" Icon="Lucide.Info" Message="@Vm.InfoMessage" />
+    <Banner Kind="error" Label="@AppResources.Main_BannerError" Icon="Lucide.CircleAlert" Message="@Vm.ErrorMessage" />
+    <Banner Kind="success" Label="@AppResources.Main_BannerSuccess" Icon="Lucide.CircleCheck" Message="@Vm.SuccessMessage" />
+    <Banner Kind="info" Label="@AppResources.Main_BannerInfo" Icon="Lucide.Info" Message="@Vm.InfoMessage" />
 
     @if (Vm.ShowSpoolEdit)
     {
         <div class="card spool-card">
-            <div class="section-title">Spool</div>
+            <div class="section-title">@AppResources.Main_SpoolSection</div>
 
             <div class="spool-head">
                 <SpoolSwatch Info="SpoolColors" />
                 <div class="spool-head-text">
-                    <div class="spool-title">@(Vm.Spool?.Material ?? "Spool info")</div>
+                    <div class="spool-title">@(Vm.Spool?.Material ?? AppResources.Main_SpoolInfo)</div>
                     @if (!string.IsNullOrEmpty(Vm.Spool?.TrayUid))
                     {
                         <div class="small subtle mono">@Vm.Spool.TrayUid</div>
@@ -120,11 +120,11 @@
         <div class="card ready">
             <div class="ready-icon"><Blazicon Svg="Lucide.Nfc" /></div>
             <div>
-                <div class="ready-title">@(Vm.NfcIsEnabled ? "Hold a spool tag to your phone" : "NFC is off")</div>
+                <div class="ready-title">@(Vm.NfcIsEnabled ? AppResources.Main_ReadyTitle : AppResources.Main_NfcOffTitle)</div>
                 <div class="muted small">
                     @(Vm.NfcIsEnabled
-                        ? "Bambu Lab spools carry a tag on each side of the reel. The read spool shows up here."
-                        : "Turn on NFC in your phone settings to read spool tags.")
+                        ? AppResources.Main_ReadyDescription
+                        : AppResources.Main_NfcOffDescription)
                 </div>
             </div>
         </div>
@@ -138,14 +138,14 @@
                 <div class="card-actions">
                     @if (Vm.LocalSpoolsStored)
                     {
-                        <a class="btn btn-secondary btn-sm" href="spools"><Blazicon Svg="Lucide.List" /> List</a>
-                        <button class="btn btn-secondary btn-sm" @onclick="Scanner.ImportCsvAsync"><Blazicon Svg="Lucide.FileUp" /> Import CSV</button>
+                        <a class="btn btn-secondary btn-sm" href="spools"><Blazicon Svg="Lucide.List" /> @AppResources.Main_List</a>
+                        <button class="btn btn-secondary btn-sm" @onclick="Scanner.ImportCsvAsync"><Blazicon Svg="Lucide.FileUp" /> @AppResources.Common_ImportCsv</button>
                     }
-                    <button class="btn btn-secondary btn-sm" @onclick="Scanner.ExportCsvAsync"><Blazicon Svg="Lucide.FileDown" /> Export CSV</button>
+                    <button class="btn btn-secondary btn-sm" @onclick="Scanner.ExportCsvAsync"><Blazicon Svg="Lucide.FileDown" /> @AppResources.Common_ExportCsv</button>
                 </div>
             </div>
             <div class="small subtle">
-                @(Vm.LocalSpoolsStored ? "Kept on this device between app starts." : "Only this session's scans are exported.")
+                @(Vm.LocalSpoolsStored ? AppResources.Main_LocalSpoolsStoredHint : AppResources.Main_LocalSpoolsSessionHint)
             </div>
         </div>
     }
@@ -154,7 +154,7 @@
     {
         <div class="card">
             <div class="toggle-list">
-                <ToggleRow Title="Override location on read" Description="Moves an already known spool to the default location from settings when it is read." @bind-Value="Vm.OverrideLocationOnRead" />
+                <ToggleRow Title="@AppResources.Common_OverrideLocationTitle" Description="@AppResources.Main_OverrideLocationDescription" @bind-Value="Vm.OverrideLocationOnRead" />
             </div>
         </div>
     }

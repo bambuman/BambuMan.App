@@ -30,6 +30,10 @@ public partial class SettingsPage
     public const string KeyBambuddyApiKey = "bambuddy_api_key";
     public const string KeyStoreSpoolsLocally = "store_spools_locally";
     public const string KeyTextScale = "text_scale";
+    public const string KeyLanguage = "language";
+
+    /// <summary>The device's ui language, captured before the saved language replaces it, so "System default" can restore it.</summary>
+    private static readonly CultureInfo SystemUiCulture = CultureInfo.CurrentUICulture;
 
     /// <summary>Raised after a setting is stored, for parts of the ui outside this page that depend on it (the menu).</summary>
     public static event Action? SettingsChanged;
@@ -82,6 +86,23 @@ public partial class SettingsPage
     public static TextScale GetTextScale() =>
         Enum.TryParse<TextScale>(Preferences.Default.Get(KeyTextScale, string.Empty), out var scale) ? scale : TextScale.Normal;
 
+    /// <summary>The saved ui language; the device language until one is chosen.</summary>
+    public static AppLanguage GetLanguage() =>
+        Enum.TryParse<AppLanguage>(Preferences.Default.Get(KeyLanguage, string.Empty), out var language) ? language : AppLanguage.SystemDefault;
+
+    /// <summary>
+    /// Shows the ui in <paramref name="language"/> from the next string read on: sets the ui culture of this thread and
+    /// the default for every other one. Only the ui culture — number and date formats keep following the device.
+    /// </summary>
+    public static void ApplyLanguage(AppLanguage language)
+    {
+        var cultureName = language.CultureName();
+        var culture = cultureName == null ? SystemUiCulture : CultureInfo.GetCultureInfo(cultureName);
+
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+    }
+
     protected override void OnInitialized()
     {
         try
@@ -90,6 +111,7 @@ public partial class SettingsPage
 
             Vm.InventoryBackend = GetInventoryBackend();
             Vm.TextScale = GetTextScale();
+            Vm.Language = GetLanguage();
             Vm.SpoolmanUrl = Preferences.Default.Get(KeySpoolmanUrl, string.Empty);
             Vm.BambuddyUrl = Preferences.Default.Get(KeyBambuddyUrl, string.Empty);
             Vm.BambuddyApiKey = Preferences.Default.Get(KeyBambuddyApiKey, string.Empty);
@@ -192,6 +214,15 @@ public partial class SettingsPage
         Preferences.Default.Set(KeyTextScale, scale.ToString());
 
         // The layout applies the new size to every page, this one included.
+        SettingsChanged?.Invoke();
+    }
+
+    private void SelectLanguage()
+    {
+        Preferences.Default.Set(KeyLanguage, Vm.Language.ToString());
+        ApplyLanguage(Vm.Language);
+
+        // The layout rebuilds every page in the new language, this one included.
         SettingsChanged?.Invoke();
     }
 

@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Machine translation, needs review by a native speaker. -->
+  <data name="Common_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="Common_Back" xml:space="preserve">
+    <value>Zurück</value>
+  </data>
+  <data name="Common_Clear" xml:space="preserve">
+    <value>Leeren</value>
+  </data>
+  <data name="Common_ImportCsv" xml:space="preserve">
+    <value>CSV importieren</value>
+  </data>
+  <data name="Common_ExportCsv" xml:space="preserve">
+    <value>CSV exportieren</value>
+  </data>
+  <data name="Common_OverrideLocationTitle" xml:space="preserve">
+    <value>Lagerort beim Lesen überschreiben</value>
+  </data>
+  <data name="Common_NoLocation" xml:space="preserve">
+    <value>Kein Lagerort</value>
+  </data>
+  <data name="Nav_Menu" xml:space="preserve">
+    <value>Menü</value>
+  </data>
+  <data name="Nav_Scanner" xml:space="preserve">
+    <value>Scanner</value>
+  </data>
+  <data name="Nav_Spools" xml:space="preserve">
+    <value>Spulen</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="Nav_Logs" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="Main_Title" xml:space="preserve">
+    <value>Scanner</value>
+  </data>
+  <data name="Main_TestTag" xml:space="preserve">
+    <value>Test-Tag</value>
+  </data>
+  <data name="Main_StatSettings" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="Main_SettingsConfigured" xml:space="preserve">
+    <value>Konfiguriert</value>
+  </data>
+  <data name="Main_SettingsIncomplete" xml:space="preserve">
+    <value>Unvollständig</value>
+  </data>
+  <data name="Main_SettingsOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Main_SettingsMissing" xml:space="preserve">
+    <value>Fehlt</value>
+  </data>
+  <data name="Main_OpenSettings" xml:space="preserve">
+    <value>Einstellungen öffnen</value>
+  </data>
+  <data name="Main_StatInventory" xml:space="preserve">
+    <value>Inventar</value>
+  </data>
+  <data name="Main_BackendLocal" xml:space="preserve">
+    <value>Lokal</value>
+  </data>
+  <data name="Main_NfcOff" xml:space="preserve">
+    <value>Aus</value>
+  </data>
+  <data name="Main_NfcListening" xml:space="preserve">
+    <value>Empfangsbereit</value>
+  </data>
+  <data name="Main_NfcIdle" xml:space="preserve">
+    <value>Inaktiv</value>
+  </data>
+  <data name="Main_StatSession" xml:space="preserve">
+    <value>Diese Sitzung</value>
+  </data>
+  <data name="Main_SpoolOne" xml:space="preserve">
+    <value>Spule</value>
+  </data>
+  <data name="Main_SpoolMany" xml:space="preserve">
+    <value>Spulen</value>
+  </data>
+  <data name="Main_MaterialCountOne" xml:space="preserve">
+    <value>{0} Material</value>
+  </data>
+  <data name="Main_MaterialCountMany" xml:space="preserve">
+    <value>{0} Materialien</value>
+  </data>
+  <data name="Main_Connecting" xml:space="preserve">
+    <value>Verbinde, bitte warten ...</value>
+  </data>
+  <data name="Main_SessionInventory" xml:space="preserve">
+    <value>Inventar</value>
+  </data>
+  <data name="Main_ClearInventory" xml:space="preserve">
+    <value>Inventar leeren</value>
+  </data>
+  <data name="Main_BannerError" xml:space="preserve">
+    <value>Fehler:</value>
+  </data>
+  <data name="Main_BannerSuccess" xml:space="preserve">
+    <value>Erfolg:</value>
+  </data>
+  <data name="Main_BannerInfo" xml:space="preserve">
+    <value>Info:</value>
+  </data>
+  <data name="Main_SpoolSection" xml:space="preserve">
+    <value>Spule</value>
+  </data>
+  <data name="Main_SpoolInfo" xml:space="preserve">
+    <value>Spuleninfo</value>
+  </data>
+  <data name="Main_ReadyTitle" xml:space="preserve">
+    <value>Halte einen Spulen-Tag an dein Telefon</value>
+  </data>
+  <data name="Main_NfcOffTitle" xml:space="preserve">
+    <value>NFC ist aus</value>
+  </data>
+  <data name="Main_ReadyDescription" xml:space="preserve">
+    <value>Bambu-Lab-Spulen haben auf jeder Seite der Rolle einen Tag. Die gelesene Spule erscheint hier.</value>
+  </data>
+  <data name="Main_NfcOffDescription" xml:space="preserve">
+    <value>Schalte NFC in den Einstellungen deines Telefons ein, um Spulen-Tags zu lesen.</value>
+  </data>
+  <data name="Main_List" xml:space="preserve">
+    <value>Liste</value>
+  </data>
+  <data name="Main_LocalSpoolsStoredHint" xml:space="preserve">
+    <value>Bleiben zwischen App-Starts auf diesem Gerät gespeichert.</value>
+  </data>
+  <data name="Main_LocalSpoolsSessionHint" xml:space="preserve">
+    <value>Nur die Scans dieser Sitzung werden exportiert.</value>
+  </data>
+  <data name="Main_OverrideLocationDescription" xml:space="preserve">
+    <value>Verschiebt eine bereits bekannte Spule beim Lesen an den Standard-Lagerort aus den Einstellungen.</value>
+  </data>
+  <data name="Main_StatusConnecting" xml:space="preserve">
+    <value>Verbinde mit {0} …</value>
+  </data>
+  <data name="Main_StatusNeedsAttention" xml:space="preserve">
+    <value>Erfordert Aufmerksamkeit</value>
+  </data>
+  <data name="Main_StatusNfcDisabled" xml:space="preserve">
+    <value>NFC ist deaktiviert</value>
+  </data>
+  <data name="Main_StatusReady" xml:space="preserve">
+    <value>Bereit zum Lesen von Spulen</value>
+  </data>
+  <data name="Main_BackendOnDevice" xml:space="preserve">
+    <value>Auf diesem Gerät</value>
+  </data>
+  <data name="Main_BackendConnecting" xml:space="preserve">
+    <value>Verbinde</value>
+  </data>
+  <data name="Main_BackendConnected" xml:space="preserve">
+    <value>Verbunden</value>
+  </data>
+  <data name="Main_BackendUrlMissing" xml:space="preserve">
+    <value>URL fehlt</value>
+  </data>
+  <data name="Main_BackendUnreachable" xml:space="preserve">
+    <value>Nicht erreichbar</value>
+  </data>
+  <data name="Main_BackendOffline" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="Main_ScannedSpools" xml:space="preserve">
+    <value>Gescannte Spulen</value>
+  </data>
+  <data name="Main_StoredSpools" xml:space="preserve">
+    <value>Gespeicherte Spulen</value>
+  </data>
+  <data name="Main_NfcEnabled" xml:space="preserve">
+    <value>Aktiviert</value>
+  </data>
+  <data name="Main_NfcDisabled" xml:space="preserve">
+    <value>Deaktiviert</value>
+  </data>
+  <data name="Main_NewVersionAvailable" xml:space="preserve">
+    <value>Neue Version verfügbar</value>
+  </data>
+  <data name="Main_NewVersionAvailableTag" xml:space="preserve">
+    <value>Neue Version verfügbar: {0}</value>
+  </data>
+  <data name="Main_ErrorNfcNotEnabled" xml:space="preserve">
+    <value>NFC ist nicht aktiviert. Prüfe, ob dein Telefon NFC unterstützt.</value>
+  </data>
+  <data name="Main_ErrorServerUrlMissing" xml:space="preserve">
+    <value>Die URL des Inventarservers fehlt, bitte in den Einstellungen eintragen!</value>
+  </data>
+  <data name="Main_ErrorApiNotHealthy" xml:space="preserve">
+    <value>Die Inventar-API ist nicht betriebsbereit</value>
+  </data>
+  <data name="Main_InfoReady" xml:space="preserve">
+    <value>Bereit zum Lesen von Spulen.</value>
+  </data>
+  <data name="Main_NoTagFound" xml:space="preserve">
+    <value>Kein Tag gefunden</value>
+  </data>
+  <data name="Main_TagTitle" xml:space="preserve">
+    <value>Tag [{0}]</value>
+  </data>
+  <data name="Main_TagInfo" xml:space="preserve">
+    <value>Tag-Info</value>
+  </data>
+  <data name="Main_ErrorTagAuthenticationUnsupported" xml:space="preserve">
+    <value>Dieses Telefon konnte den Tag nicht entsperren. Die NFC-Chips mancher Telefone (z. B. Google Pixel) können keine Bambu-Lab-Tags (MIFARE Classic) lesen.</value>
+  </data>
+  <data name="Main_ErrorTagReadInterrupted" xml:space="preserve">
+    <value>Das Lesen des Tags wurde unterbrochen. Halte das Telefon ruhig an den Tag und versuche es erneut.</value>
+  </data>
+  <data name="Main_ErrorTagRead" xml:space="preserve">
+    <value>Fehler beim Lesen des Tags, bitte versuche es erneut!</value>
+  </data>
+  <data name="Main_ErrorTagEmpty" xml:space="preserve">
+    <value>Leerer Tag</value>
+  </data>
+  <data name="Main_ErrorUploadLimit" xml:space="preserve">
+    <value>Tägliches Upload-Limit erreicht (1000 Tags pro Tag). Versuche es morgen erneut.</value>
+  </data>
+  <data name="Main_ExportNothing" xml:space="preserve">
+    <value>Es gibt noch keine Spulen zum Exportieren.</value>
+  </data>
+  <data name="Main_ExportShareTitle" xml:space="preserve">
+    <value>Spulen exportieren</value>
+  </data>
+  <data name="Main_ExportFailed" xml:space="preserve">
+    <value>Export fehlgeschlagen. Siehe Logs.</value>
+  </data>
+  <data name="Main_ImportPickerTitle" xml:space="preserve">
+    <value>Spulen-CSV importieren</value>
+  </data>
+  <data name="Main_ImportNothing" xml:space="preserve">
+    <value>Aus {0} wurden keine Spulen importiert. {1}</value>
+  </data>
+  <data name="Main_Imported" xml:space="preserve">
+    <value>{0} neue und {1} vorhandene Spulen importiert.</value>
+  </data>
+  <data name="Main_ImportRowsSkipped" xml:space="preserve">
+    <value>{0} Zeilen übersprungen, siehe Logs.</value>
+  </data>
+  <data name="Main_ImportFailed" xml:space="preserve">
+    <value>Import fehlgeschlagen. Siehe Logs.</value>
+  </data>
+</root>

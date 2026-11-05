@@ -1,3 +1,4 @@
+using BambuMan.UI.Settings;
 using Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;
 
 namespace BambuMan
@@ -6,6 +7,9 @@ namespace BambuMan
     {
         public App()
         {
+            // Before anything reads a ui string.
+            SettingsPage.ApplyLanguage(SettingsPage.GetLanguage());
+
             InitializeComponent();
 
             // Shrink the web view when the keyboard opens, rather than panning the window, so the scan page can scroll

@@ -1,5 +1,6 @@
 using BambuMan.Components.Common;
 using BambuMan.Interfaces;
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Models;
 using BambuMan.UI.Settings;
@@ -40,10 +41,10 @@ namespace BambuMan.UI.Main
 
         private string StatusText => Vm switch
         {
-            { SpoolmanConnecting: true } => $"Connecting to {Vm.BackendLabel} …",
-            { ErrorMessage: not null } => "Needs attention",
-            { NfcIsEnabled: false } => "NFC is disabled",
-            _ => "Ready to read spools"
+            { SpoolmanConnecting: true } => string.Format(AppResources.Main_StatusConnecting, Vm.BackendLabel),
+            { ErrorMessage: not null } => AppResources.Main_StatusNeedsAttention,
+            { NfcIsEnabled: false } => AppResources.Main_StatusNfcDisabled,
+            _ => AppResources.Main_StatusReady
         };
 
         private string NfcStatus => Vm switch
@@ -55,12 +56,12 @@ namespace BambuMan.UI.Main
 
         private (string Kind, string Text) BackendPill => Vm switch
         {
-            { Backend: InventoryBackend.NoBackend } => ("primary", "On this device"),
-            { SpoolmanConnecting: true } => ("info", "Connecting"),
-            { SpoolmanOk: true } => ("success", "Connected"),
-            { BackendStatus: ManagerStatusType.ApiUrlMissing } => ("error", "Url missing"),
-            { BackendStatus: ManagerStatusType.CantConnectToApi } => ("error", "Unreachable"),
-            _ => ("error", "Offline")
+            { Backend: InventoryBackend.NoBackend } => ("primary", AppResources.Main_BackendOnDevice),
+            { SpoolmanConnecting: true } => ("info", AppResources.Main_BackendConnecting),
+            { SpoolmanOk: true } => ("success", AppResources.Main_BackendConnected),
+            { BackendStatus: ManagerStatusType.ApiUrlMissing } => ("error", AppResources.Main_BackendUrlMissing),
+            { BackendStatus: ManagerStatusType.CantConnectToApi } => ("error", AppResources.Main_BackendUnreachable),
+            _ => ("error", AppResources.Main_BackendOffline)
         };
 
         protected override async Task OnInitializedAsync()
