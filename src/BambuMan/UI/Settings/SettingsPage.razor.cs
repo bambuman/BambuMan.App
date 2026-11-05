@@ -90,9 +90,16 @@ public partial class SettingsPage
     public static TextScale GetTextScale() =>
         Enum.TryParse<TextScale>(Preferences.Default.Get(KeyTextScale, string.Empty), out var scale) ? scale : TextScale.Normal;
 
-    /// <summary>The Bluetooth scale to keep connected: the chosen one while the scale is turned on, else null.</summary>
+    /// <summary>Read spools get an edit card (with a weight field): any backend but "No backend", or that with spools stored locally.</summary>
+    public static bool CanEditSpools() =>
+        GetInventoryBackend() != InventoryBackend.NoBackend || Preferences.Default.Get(KeyStoreSpoolsLocally, false);
+
+    /// <summary>
+    /// The Bluetooth scale to keep connected: the chosen one while the scale is turned on and read spools can be edited
+    /// (the settings card is hidden otherwise, and there is no weight to fill), else null. The setting itself is kept.
+    /// </summary>
     public static Guid? GetScaleDeviceId() =>
-        Preferences.Default.Get(KeyScaleEnabled, false) && Guid.TryParse(Preferences.Default.Get(KeyScaleDeviceId, string.Empty), out var id) ? id : null;
+        Preferences.Default.Get(KeyScaleEnabled, false) && CanEditSpools() && Guid.TryParse(Preferences.Default.Get(KeyScaleDeviceId, string.Empty), out var id) ? id : null;
 
     /// <summary>
     /// Connects the chosen scale, or disconnects it when the scale is turned off or forgotten. Does nothing when that is
@@ -190,6 +197,9 @@ public partial class SettingsPage
         foreach (var manager in Backends.All) manager.OverrideLocationOnRead = Vm.OverrideLocationOnRead;
 
         SettingsChanged?.Invoke();
+
+        // Storing spools locally decides, with no backend, whether the scale is used.
+        _ = ApplyScaleSettingsSafeAsync();
     }
 
     /// <summary>Applies a change made outside a bound input (switch, clear button) and stores it.</summary>
@@ -212,6 +222,7 @@ public partial class SettingsPage
         SettingsChanged?.Invoke();
 
         _ = LoadLocationsAsync();
+        _ = ApplyScaleSettingsSafeAsync();
     }
 
     private void SelectTextScale(TextScale scale)
@@ -303,6 +314,21 @@ public partial class SettingsPage
         }
     }
 
+    /// <summary>Connects or lets go of the scale after a setting it depends on changed.</summary>
+    private async Task ApplyScaleSettingsSafeAsync()
+    {
+        try
+        {
+            if (!CanEditSpools()) StopScaleScan();
+
+            await ApplyScaleSettingsAsync(ScaleService);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error in ApplyScaleSettingsSafeAsync");
+        }
+    }
+
     private async Task FindScalesAsync()
     {
         try
@@ -326,8 +352,9 @@ public partial class SettingsPage
                 StateHasChanged();
             }), scaleScan.Token);
 
-            if (!scanned) Toasts.Show("Turn on Bluetooth to find the scale.", ToastKind.Error, true);
-            else if (foundScales.Count == 0 && scaleScan is { IsCancellationRequested: false }) Toasts.Show("No scale found. Turn it on, keep it close, and try again.", ToastKind.Error, true);
+            // Not scanned while another scan still runs (the switch turned off and on quickly): that one reports its own result.
+            if (!scanned && !ScaleService.IsScanning) Toasts.Show("Turn on Bluetooth to find the scale.", ToastKind.Error, true);
+            else if (scanned && foundScales.Count == 0 && scaleScan is { IsCancellationRequested: false }) Toasts.Show("No scale found. Turn it on, keep it close, and try again.", ToastKind.Error, true);
         }
         catch (Exception e)
         {
