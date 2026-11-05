@@ -17,12 +17,16 @@ namespace BambuMan.Shared.Models
 
         public IEnumerable<SpoolUploadResult> Failures => Results.Where(x => x.Status == SpoolUploadStatus.Failed);
 
-        /// <summary>One line for a toast or the log, e.g. <c>Sent to Spoolman: 3 created, 1 updated, 1 failed.</c></summary>
+        /// <summary>Sent spools whose server spool kept its own, lower weight — see <see cref="SpoolUploadResult.KeptServerWeight"/>.</summary>
+        public IEnumerable<SpoolUploadResult> WeightsKept => Results.Where(x => x.Status != SpoolUploadStatus.Failed && x.KeptServerWeight != null);
+
+        /// <summary>One line for a toast or the log, e.g. <c>Sent to Spoolman: 3 created, 2 updated (1 kept server weight), 1 failed.</c></summary>
         public string Text
         {
             get
             {
-                var parts = new List<string> { $"{Created} created", $"{Updated} updated" };
+                var weightsKept = WeightsKept.Count();
+                var parts = new List<string> { $"{Created} created", weightsKept > 0 ? $"{Updated} updated ({weightsKept} kept server weight)" : $"{Updated} updated" };
 
                 if (Failed > 0) parts.Add($"{Failed} failed");
                 if (Skipped > 0) parts.Add($"{Skipped} not sent");

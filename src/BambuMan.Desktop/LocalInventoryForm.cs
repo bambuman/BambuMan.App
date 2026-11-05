@@ -205,7 +205,11 @@ public class LocalInventoryForm : Form
             var summary = await manager.SendSpoolsAsync(target, keys, progress, sendCancellation.Token);
 
             var failures = summary.Failures.Select(x => $"{x.Spool.Title} ({x.Spool.Key}): {x.Message}").ToList();
-            var text = failures.Count == 0 ? summary.Text : $"{summary.Text}\r\n\r\nNot sent:\r\n{string.Join("\r\n", failures.Take(20))}{(failures.Count > 20 ? $"\r\n… and {failures.Count - 20} more, see the log." : "")}";
+            var weightsKept = summary.WeightsKept.Select(x => $"{x.Spool.Title} ({x.Spool.Key}): {x.StatusText}").ToList();
+            var text = summary.Text;
+
+            if (failures.Count > 0) text += $"\r\n\r\nNot sent:\r\n{string.Join("\r\n", failures.Take(20))}{(failures.Count > 20 ? $"\r\n… and {failures.Count - 20} more, see the log." : "")}";
+            if (weightsKept.Count > 0) text += $"\r\n\r\n{ServerName} had less filament left than stored here, so it kept its weight:\r\n{string.Join("\r\n", weightsKept.Take(20))}{(weightsKept.Count > 20 ? $"\r\n… and {weightsKept.Count - 20} more, see the log." : "")}";
 
             MessageBox.Show(this, text, $"Send to {ServerName}", MessageBoxButtons.OK, failures.Count == 0 ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
         }

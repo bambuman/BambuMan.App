@@ -64,7 +64,26 @@
                 </div>
                 <p class="small subtle">Failed spools are left as they were. Fix them (or the server) and send them again.</p>
             }
-            else
+
+            @* The server had less filament left on these than stored here, so it kept its own weight. *@
+            @if (summary.WeightsKept.Any())
+            {
+                <div class="list">
+                    @foreach (var kept in summary.WeightsKept)
+                    {
+                        <div class="list-row" @key="kept.Spool.Key">
+                            <a class="list-row-main" href="spools/@kept.Spool.Key">
+                                <div class="list-row-text">
+                                    <div class="list-row-title">@kept.Spool.Title</div>
+                                    <div class="list-row-sub">@kept.StatusText</div>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (summary.Failed == 0)
             {
                 <p class="small subtle">The spools stay on this device, marked as sent. Delete them here once you no longer need them.</p>
             }

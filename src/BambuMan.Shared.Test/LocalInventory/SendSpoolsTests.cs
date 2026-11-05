@@ -90,6 +90,21 @@ namespace BambuMan.Shared.Test.LocalInventory
             Assert.Equal("Sending cancelled. Sent to Spoolman: 2 created, 1 updated, 1 failed, 1 not sent.", summary.Text);
         }
 
+        [Fact(DisplayName = "The summary lists and counts the spools whose server weight was kept")]
+        public void Summary_CountsWeightsKept()
+        {
+            var spool = new LocalSpool { Info = Tag(SampleTags.AbsBlack) };
+
+            var summary = new SpoolUploadSummary(InventoryBackend.Bambuddy,
+            [
+                new(spool, SpoolUploadStatus.Updated, KeptServerWeight: 600),
+                new(spool, SpoolUploadStatus.Updated)
+            ], Total: 2, Cancelled: false);
+
+            Assert.Equal("Updated (kept server weight: 600 g)", Assert.Single(summary.WeightsKept).StatusText);
+            Assert.Equal("Sent to Bambuddy: 0 created, 2 updated (1 kept server weight).", summary.Text);
+        }
+
         #endregion
 
         #region BaseManager.UploadSpoolAsync
@@ -143,7 +158,9 @@ namespace BambuMan.Shared.Test.LocalInventory
             var result = await manager.UploadSpoolAsync(new LocalSpool { Info = Tag(SampleTags.AbsBlack), Weight = 1250, EmptyWeight = 200, Location = "Shelf A" });
 
             Assert.Equal(SpoolUploadStatus.Updated, result.Status);
-            Assert.Equal("Kept the weight Spoolman has, it has less filament left than stored here", result.Message);
+            Assert.Null(result.Message);
+            Assert.Equal(600, result.KeptServerWeight);
+            Assert.Equal("Updated (kept server weight: 600 g)", result.StatusText);
 
             var update = Assert.Single(manager.Updates);
             Assert.Equal((600, 250), (update.Weight, update.EmptyWeight));
@@ -159,6 +176,7 @@ namespace BambuMan.Shared.Test.LocalInventory
 
             Assert.Equal(SpoolUploadStatus.Created, result.Status);
             Assert.Null(result.Message);
+            Assert.Null(result.KeptServerWeight);
             Assert.Equal(1400, Assert.Single(manager.Updates).Weight);
         }
 

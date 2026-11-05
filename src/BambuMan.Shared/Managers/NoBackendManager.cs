@@ -315,7 +315,7 @@ namespace BambuMan.Shared.Managers
 
                 await SaveAndNotifyAsync();
 
-                await Log(LogLevel.Information, $"Spool {spool.Title} ({spool.Key}) {(result.Status == SpoolUploadStatus.Created ? "added to" : "updated in")} {backendName}{(result.Message == null ? "" : $": {result.Message}")}");
+                await Log(LogLevel.Information, $"Spool {spool.Title} ({spool.Key}) {(result.Status == SpoolUploadStatus.Created ? "added to" : "updated in")} {backendName}{(result.KeptServerWeight == null ? "" : $", kept server weight {result.KeptServerWeight:0.#} g")}{(result.Message == null ? "" : $": {result.Message}")}");
             }
 
             progress?.Report(new SpoolUploadProgress(results.Count, spools.Count, null));

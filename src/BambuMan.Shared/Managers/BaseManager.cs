@@ -376,7 +376,7 @@ namespace BambuMan.Shared.Managers
                 var found = capture.Found;
                 var created = capture.Created;
                 var input = spool.ToEditInput(found);
-                string? weightKept = null;
+                decimal? keptServerWeight = null;
 
                 // The server may have tracked filament used since this spool was stored (prints, a later scan and weigh), so a
                 // stale stored weight must not hand that filament back: a spool the server already had keeps its own weight
@@ -384,9 +384,9 @@ namespace BambuMan.Shared.Managers
                 if (!created && RemainingWeight(input) > RemainingWeight(found.ToEditInput()))
                 {
                     input = input with { Weight = found.Weight, EmptyWeight = found.EmptyWeight };
-                    weightKept = $"Kept the weight {BackendName} has, it has less filament left than stored here";
+                    keptServerWeight = found.Weight;
 
-                    await Log(LogLevel.Information, $"Spool '{spool.Key}': {weightKept} ({found.Weight:0.#}g, stored {spool.Weight:0.#}g)");
+                    await Log(LogLevel.Information, $"Spool '{spool.Key}': kept the weight {BackendName} has ({found.Weight:0.#}g), it has less filament left than stored here ({spool.Weight:0.#}g)");
                 }
 
                 // A spool just created from the stored values, or one the server already has the same values for, needs no update.
@@ -399,9 +399,7 @@ namespace BambuMan.Shared.Managers
                     if (capture.Error != null) return new(spool, SpoolUploadStatus.Failed, created ? $"Added, but its weight and details weren't saved: {capture.Error}" : capture.Error);
                 }
 
-                var message = string.Join(". ", new[] { capture.Warning, weightKept }.OfType<string>());
-
-                return new(spool, created ? SpoolUploadStatus.Created : SpoolUploadStatus.Updated, message.Length == 0 ? null : message);
+                return new(spool, created ? SpoolUploadStatus.Created : SpoolUploadStatus.Updated, capture.Warning, keptServerWeight);
             }
             catch (Exception e)
             {
