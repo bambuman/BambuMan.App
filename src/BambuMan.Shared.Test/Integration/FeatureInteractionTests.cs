@@ -1,4 +1,6 @@
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Managers;
+using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
 using BambuMan.Shared.Nfc;
 using BambuMan.Shared.Services;
@@ -127,6 +129,38 @@ namespace BambuMan.Shared.Test.Integration
             Assert.Equal([JsonConvert.DeserializeObject<BambuFilamentInfo>(SampleTags.PlaWood)!.TrayUid, rejected.TrayUid], manager.Sent.Select(x => x.Info.TrayUid));
         }
 
+        [Fact(DisplayName = "Spoolman matches a third-party tag of another brand only once its catalog has loaded, as on the reconnect that sends the queued scans")]
+        public async Task Spoolman_ThirdPartyTagWaitsForCatalog()
+        {
+            var manager = new LoadingSpoolmanManager();
+            var match = manager.FindExternalFilament(OpenSpoolTag());
+
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+
+            Assert.False(match.IsCompleted);
+
+            var filament = ExternalFilamentMatcher.LoadEmbeddedFilaments().First(x => x.Material == "PETG");
+            filament.Manufacturer = "Polymaker";
+            filament.ColorHex = "FF0000";
+            filament.ColorHexes = null;
+
+            manager.AllExternalFilaments = [filament];
+            manager.Load.SetResult();
+
+            Assert.Same(filament, await match);
+        }
+
         #endregion
+
+        /// <summary>A Spoolman manager whose background load of the external catalog is still running until the test ends it.</summary>
+        private sealed class LoadingSpoolmanManager : SpoolmanManager
+        {
+            public TaskCompletionSource Load { get; } = new();
+
+            public LoadingSpoolmanManager() : base(null)
+            {
+                ExternalFilamentsLoad = Load.Task;
+            }
+        }
     }
 }

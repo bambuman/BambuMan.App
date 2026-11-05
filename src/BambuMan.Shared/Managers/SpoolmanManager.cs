@@ -50,6 +50,12 @@ namespace BambuMan.Shared.Managers
         public List<ExternalFilament> AllExternalFilaments { get; set; } = [];
 
         /// <summary>
+        /// The background load of <see cref="AllExternalFilaments"/>, started as Spoolman becomes ready. A third-party tag of another
+        /// brand waits for it: the queued scans a reconnect sends straight away would otherwise all be matched against an empty catalog.
+        /// </summary>
+        protected Task ExternalFilamentsLoad { get; set; } = Task.CompletedTask;
+
+        /// <summary>
         /// Bambu lab's external filaments (thread-safe; updated from background API fetch)
         /// </summary>
         public List<ExternalFilament> BambuLabExternalFilaments
@@ -144,7 +150,12 @@ namespace BambuMan.Shared.Managers
             await TryLoadLocalFilamentsAsync();
             await TryLoadLocationsAsync();
 
-            return defaultsChecked && localFilamentsLoaded;
+            var ready = defaultsChecked && localFilamentsLoaded;
+
+            // Started before Ready is reported rather than in OnReady: reporting it sends the queued scans, which wait for this.
+            if (ready) ExternalFilamentsLoad = LoadExternalFilamentsInBackground();
+
+            return ready;
         }
 
         protected override void ResetInitState()
@@ -157,7 +168,6 @@ namespace BambuMan.Shared.Managers
 
         protected override Task OnReady()
         {
-            _ = LoadExternalFilamentsInBackground();
             _ = LoadSpoolsInBackground();
 
             return Task.CompletedTask;
@@ -566,7 +576,7 @@ namespace BambuMan.Shared.Managers
 
         public async Task<ExternalFilament?> FindExternalFilament(ISpoolTag tag)
         {
-            var result = await ExternalFilamentMatcher.FindExternalFilament(CatalogFor(tag), tag, Overrides);
+            var result = await ExternalFilamentMatcher.FindExternalFilament(await CatalogForAsync(tag), tag, Overrides);
 
             var spoolmanErrorLevel = UnknownFilamentEnabled ? ManagerStatusType.Ready : ManagerStatusType.Error;
             var logLevel = UnknownFilamentEnabled ? LogLevel.Warning : LogLevel.Error;
@@ -606,10 +616,17 @@ namespace BambuMan.Shared.Managers
 
         /// <summary>
         /// The catalog to match a tag against: the Bambu Lab one (api + embedded) for Bambu tags and third-party tags
-        /// branded Bambu Lab, Spoolman's whole external database for any other brand (empty until its background load).
+        /// branded Bambu Lab, Spoolman's whole external database for any other brand (once its background load is done).
         /// </summary>
-        private List<ExternalFilament> CatalogFor(ISpoolTag tag) =>
-            tag is BambuFilamentInfo || ExternalFilamentMatcher.NormalizeBrand(tag.Brand) == DefaultBambuLabVendor ? BambuLabExternalFilaments : AllExternalFilaments;
+        private async Task<List<ExternalFilament>> CatalogForAsync(ISpoolTag tag)
+        {
+            if (tag is BambuFilamentInfo || ExternalFilamentMatcher.NormalizeBrand(tag.Brand) == DefaultBambuLabVendor) return BambuLabExternalFilaments;
+
+            // Never faults: the load logs its own errors and leaves the catalog as it was.
+            await ExternalFilamentsLoad;
+
+            return AllExternalFilaments;
+        }
 
         /// <summary>The Spoolman vendor for a filament: Bambu Lab's, or one found / created by the catalog manufacturer's name.</summary>
         private async Task<Vendor?> GetVendorAsync(ExternalFilament externalFilament)
