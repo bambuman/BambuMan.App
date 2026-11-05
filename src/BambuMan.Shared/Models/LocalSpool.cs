@@ -1,3 +1,7 @@
+using BambuMan.Shared.Enums;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace BambuMan.Shared.Models
 {
     /// <summary>
@@ -45,8 +49,34 @@ namespace BambuMan.Shared.Models
 
         public DateTime LastScanned { get; set; }
 
+        /// <summary>
+        /// The inventory server this spool was last sent to, with its fields as they are now. Cleared when the spool is
+        /// edited afterwards, so it reads as not sent until it is sent again. Stored by name.
+        /// </summary>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public InventoryBackend? SentTo { get; set; }
+
+        /// <summary>When the spool was sent to <see cref="SentTo"/>.</summary>
+        public DateTime? SentAt { get; set; }
+
         /// <summary>Identity used to de-duplicate — see <see cref="KeyOf"/>.</summary>
         public string? Key => KeyOf(Info);
+
+        /// <summary>The edit card's fields as this spool has them.</summary>
+        [JsonIgnore]
+        public SpoolEditInput EditInput => new(Weight, EmptyWeight, Price, BuyDate, LotNr, Location);
+
+        /// <summary>Material and catalog colour name, e.g. <c>PLA Basic Black</c>, for lists and messages.</summary>
+        [JsonIgnore]
+        public string Title
+        {
+            get
+            {
+                var material = Info.DetailedFilamentType ?? Info.FilamentType;
+
+                return Name == null ? material ?? "Unknown filament" : $"{material} {Name}";
+            }
+        }
 
         #endregion
 
@@ -64,6 +94,19 @@ namespace BambuMan.Shared.Models
 
             return string.IsNullOrEmpty(serial) ? null : serial.ToUpperInvariant();
         }
+
+        /// <summary>
+        /// The edit-card input that brings a server's spool in line with this one: every field this spool has a value
+        /// for wins, every field it has none for keeps what the server has (<paramref name="current"/>) — so an unweighed
+        /// stored spool doesn't reset the server's remaining weight, and a missing price doesn't clear the server's.
+        /// </summary>
+        public SpoolEditInput ToEditInput(SpoolFound current) => new(
+            Weight: Weight ?? current.Weight,
+            EmptyWeight: EmptyWeight ?? current.EmptyWeight,
+            Price: Price ?? current.Price,
+            BuyDate: BuyDate ?? current.BuyDate,
+            LotNr: LotNr ?? current.LotNr,
+            Location: Location ?? current.Location);
 
         #endregion
     }

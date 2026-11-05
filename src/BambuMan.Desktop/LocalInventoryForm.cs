@@ -1,4 +1,7 @@
+using BambuMan.Shared.Enums;
+using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Managers;
+using BambuMan.Shared.Models;
 using BambuMan.Shared.Services;
 using System.Globalization;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
@@ -7,7 +10,8 @@ namespace BambuMan.Desktop;
 
 /// <summary>
 /// The spools the no-backend mode keeps on this computer ("Store spools locally"): search by name or tag, filter by
-/// location, edit, delete, and csv import / export — the desktop counterpart of the Android Stored spools page.
+/// location, edit, delete, and csv import / export — the desktop counterpart of the Android Stored spools page — and,
+/// with Spoolman or Bambuddy selected, sending them there.
 /// </summary>
 public class LocalInventoryForm : Form
 {
@@ -23,17 +27,34 @@ public class LocalInventoryForm : Form
     private readonly Button btnEdit = new();
     private readonly Button btnDelete = new();
     private readonly Button btnDeleteAll = new();
+    private readonly Button btnImport = new();
     private readonly Button btnExport = new();
+    private readonly Button btnSend = new() { AutoSize = true };
 
     private List<LocalSpoolItem> allSpools = [];
 
     // Set while the location list is rebuilt, so the selection it restores doesn't filter halfway.
     private bool updatingLocations;
 
-    public LocalInventoryForm(NoBackendManager manager, Action<LogLevel, string> log)
+    private readonly BaseManager? server;
+    private CancellationTokenSource? sendCancellation;
+    private bool closeAfterSend;
+
+    /// <summary>True while stored spools are being sent; the main form holds back scans meanwhile.</summary>
+    public bool IsSending => sendCancellation != null;
+
+    /// <summary>
+    /// Whether spools were sent from this window. The server's "current spool" is then the last one sent, so a spool still shown
+    /// in the main form's edit panel must not be saved.
+    /// </summary>
+    public bool HasSent { get; private set; }
+
+    /// <param name="server">The selected backend, when it is a server the spools can be sent to; null with no backend.</param>
+    public LocalInventoryForm(NoBackendManager manager, Action<LogLevel, string> log, BaseManager? server)
     {
         this.manager = manager;
         this.log = log;
+        this.server = server is ISpoolUploadTarget ? server : null;
 
         Text = "Stored spools";
         Size = new Size(1100, 550);
@@ -86,6 +107,7 @@ public class LocalInventoryForm : Form
         dgvSpools.Columns.Add("TrayUid", "Tray uid");
         dgvSpools.Columns.Add("TagUid", "Tag uid");
         dgvSpools.Columns.Add("LastScanned", "Last scanned");
+        dgvSpools.Columns.Add("Sent", "Sent");
         dgvSpools.CellDoubleClick += dgvSpools_CellDoubleClick;
         dgvSpools.KeyDown += dgvSpools_KeyDown;
         dgvSpools.SelectionChanged += dgvSpools_SelectionChanged;
@@ -93,6 +115,9 @@ public class LocalInventoryForm : Form
         #endregion
 
         #region Buttons
+
+        btnSend.Click += btnSend_Click;
+        btnSend.Visible = this.server != null;
 
         btnEdit.Text = "Edit...";
         btnEdit.AutoSize = true;
@@ -106,7 +131,8 @@ public class LocalInventoryForm : Form
         btnDeleteAll.AutoSize = true;
         btnDeleteAll.Click += btnDeleteAll_Click;
 
-        var btnImport = new Button { Text = "Import CSV...", AutoSize = true };
+        btnImport.Text = "Import CSV...";
+        btnImport.AutoSize = true;
         btnImport.Click += btnImport_Click;
 
         btnExport.Text = "Export CSV...";
@@ -121,7 +147,7 @@ public class LocalInventoryForm : Form
         lblCount.Margin = new Padding(3, 8, 20, 3);
 
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, AutoSize = true, Padding = new Padding(6) };
-        buttons.Controls.AddRange([lblCount, btnEdit, btnDelete, btnDeleteAll, btnImport, btnExport, btnClose]);
+        buttons.Controls.AddRange([lblCount, btnSend, btnEdit, btnDelete, btnDeleteAll, btnImport, btnExport, btnClose]);
 
         #endregion
 
@@ -143,6 +169,8 @@ public class LocalInventoryForm : Form
     }
 
     #region Methods
+
+    private string ServerName => server?.Backend.DisplayName() ?? string.Empty;
 
     private string? SelectedLocation => cmbLocation.SelectedIndex > 0 ? cmbLocation.SelectedItem as string : null;
 
@@ -194,7 +222,8 @@ public class LocalInventoryForm : Form
                 spool.LotNr ?? "",
                 info.TrayUid ?? "",
                 info.SerialNumber,
-                spool.LastScanned.ToString("yyyy-MM-dd HH:mm", CultureInfo.CurrentCulture));
+                spool.LastScanned.ToString("yyyy-MM-dd HH:mm", CultureInfo.CurrentCulture),
+                spool.SentTo == null ? "" : $"{spool.SentTo.Value.DisplayName()} {spool.SentAt?.ToString("yyyy-MM-dd HH:mm", CultureInfo.CurrentCulture)}");
 
             var row = dgvSpools.Rows[index];
             row.Tag = item.Key;
@@ -214,19 +243,130 @@ public class LocalInventoryForm : Form
         else if (filtered.Count == 0) lblCount.Text = $"No spools match the filter ({allSpools.Count} stored).";
         else lblCount.Text = LocalSpoolFilter.CountText(filtered.Count, allSpools.Count, groups.Count, LocalSpoolFilter.IsFiltered(txtSearch.Text, SelectedLocation));
 
-        btnDeleteAll.Enabled = allSpools.Count > 0;
-        btnExport.Enabled = allSpools.Count > 0;
-        UpdateSelectionButtons();
+        UpdateButtons();
     }
 
-    private void UpdateSelectionButtons()
+    private void UpdateSendButton()
     {
-        btnEdit.Enabled = dgvSpools.SelectedRows.Count == 1;
-        btnDelete.Enabled = dgvSpools.SelectedRows.Count > 0;
+        if (server == null) return;
+
+        if (IsSending)
+        {
+            btnSend.Text = "Stop sending";
+            return;
+        }
+
+        var selected = dgvSpools.SelectedRows.Count;
+        btnSend.Text = selected > 0 ? $"Send {selected} selected to {ServerName}" : $"Send all to {ServerName}";
+    }
+
+    protected override void OnLoad(EventArgs e)
+    {
+        base.OnLoad(e);
+
+        // Nothing selected sends them all; the grid would otherwise select the first row by itself.
+        dgvSpools.ClearSelection();
+        UpdateButtons();
+    }
+
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        // Closing mid-send would leave it running unseen: stop it after the spool being sent now, and close once it has.
+        if (sendCancellation != null)
+        {
+            sendCancellation.Cancel();
+            btnSend.Enabled = false;
+            closeAfterSend = true;
+            e.Cancel = true;
+        }
+
+        base.OnFormClosing(e);
+    }
+
+    /// <summary>Sends the selected spools (all of them when none is selected) to the selected server; a second click stops it.</summary>
+    private async void btnSend_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (sendCancellation != null)
+            {
+                sendCancellation.Cancel();
+                btnSend.Enabled = false;
+                return;
+            }
+
+            if (server is not ISpoolUploadTarget target) return;
+
+            var selected = SelectedKeys;
+            var keys = selected.Count > 0 ? selected : manager.Spools.Select(x => x.Key).OfType<string>().ToList();
+
+            if (keys.Count == 0) return;
+
+            if (MessageBox.Show(this, $"Send {keys.Count} stored spools to {ServerName}? A spool {ServerName} already has (same tag) is updated with the values stored here, otherwise it is added. The spools stay on this computer, marked as sent.",
+                    $"Send to {ServerName}", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK) return;
+
+            sendCancellation = new CancellationTokenSource();
+            HasSent = true;
+            UpdateButtons();
+
+            // A health check may have run into an error since the last scan; Init reconnects (or reports why it can't).
+            lblCount.Text = $"Connecting to {ServerName} …";
+            await server.Init();
+
+            if (server.Status != ManagerStatusType.Ready)
+            {
+                MessageBox.Show(this, $"Can't reach {ServerName}. Check its url and try again.", $"Send to {ServerName}", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Progress<T> reports on this (the ui) thread.
+            var progress = new Progress<SpoolUploadProgress>(p => lblCount.Text = p.Current == null ? $"Sent {p.Done} of {p.Total}" : $"Sending {p.Done + 1} of {p.Total}: {p.Current.Title}");
+
+            var summary = await manager.SendSpoolsAsync(target, keys, progress, sendCancellation.Token);
+
+            var failures = summary.Failures.Select(x => $"{x.Spool.Title} ({x.Spool.Key}): {x.Message}").ToList();
+            var weightsKept = summary.WeightsKept.Select(x => $"{x.Spool.Title} ({x.Spool.Key}): {x.StatusText}").ToList();
+            var text = summary.Text;
+
+            if (failures.Count > 0) text += $"\r\n\r\nNot sent:\r\n{string.Join("\r\n", failures.Take(20))}{(failures.Count > 20 ? $"\r\n… and {failures.Count - 20} more, see the log." : "")}";
+            if (weightsKept.Count > 0) text += $"\r\n\r\n{ServerName} had less filament left than stored here, so it kept its weight:\r\n{string.Join("\r\n", weightsKept.Take(20))}{(weightsKept.Count > 20 ? $"\r\n… and {weightsKept.Count - 20} more, see the log." : "")}";
+
+            MessageBox.Show(this, text, $"Send to {ServerName}", MessageBoxButtons.OK, failures.Count == 0 ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Send failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            if (sendCancellation != null)
+            {
+                sendCancellation.Dispose();
+                sendCancellation = null;
+            }
+
+            btnSend.Enabled = true;
+            LoadSpools();
+
+            if (closeAfterSend) Close();
+        }
+    }
+
+    /// <summary>Enables the buttons for the current list and selection; while spools are being sent only stopping it is offered.</summary>
+    private void UpdateButtons()
+    {
+        btnEdit.Enabled = !IsSending && dgvSpools.SelectedRows.Count == 1;
+        btnDelete.Enabled = !IsSending && dgvSpools.SelectedRows.Count > 0;
+        btnDeleteAll.Enabled = !IsSending && allSpools.Count > 0;
+        btnImport.Enabled = !IsSending;
+        btnExport.Enabled = allSpools.Count > 0;
+        UpdateSendButton();
     }
 
     private void EditSelected()
     {
+        if (IsSending) return;
+
         if (SelectedKeys is not [var key]) return;
 
         // Deleted in the meantime (the list reloads on every change, so only a race gets here).
@@ -240,7 +380,7 @@ public class LocalInventoryForm : Form
     {
         var keys = SelectedKeys;
 
-        if (keys.Count == 0) return;
+        if (keys.Count == 0 || IsSending) return;
 
         var question = keys.Count == 1
             ? $"Delete {allSpools.FirstOrDefault(x => x.Key == keys[0])?.Title ?? keys[0]} from this computer?"
@@ -344,7 +484,7 @@ public class LocalInventoryForm : Form
         cmbLocation.SelectedIndex = 0;
     }
 
-    private void dgvSpools_SelectionChanged(object? sender, EventArgs e) => UpdateSelectionButtons();
+    private void dgvSpools_SelectionChanged(object? sender, EventArgs e) => UpdateButtons();
 
     private void dgvSpools_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
     {

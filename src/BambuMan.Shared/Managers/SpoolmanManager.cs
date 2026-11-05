@@ -1,4 +1,5 @@
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,7 @@ using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.Shared.Managers
 {
-    public class SpoolmanManager(ILogger<SpoolmanManager>? logger) : BaseManager(logger)
+    public class SpoolmanManager(ILogger<SpoolmanManager>? logger) : BaseManager(logger), ISpoolUploadTarget
     {
         public const string DefaultBambuLabVendor = "Bambu Lab";
         public const string ExtraBuyDate = "buy_date";
@@ -674,7 +675,7 @@ namespace BambuMan.Shared.Managers
                     TrackNewLocation(location);
                     ShowMessage(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
                     await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
-                    OnSpoolInventoried(addedSpool, info);
+                    OnSpoolInventoried(addedSpool, info, created: true);
                 }
                 else
                 {
@@ -759,7 +760,7 @@ namespace BambuMan.Shared.Managers
             return spool;
         }
 
-        private void OnSpoolInventoried(Spool spool, BambuFilamentInfo info)
+        private void OnSpoolInventoried(Spool spool, BambuFilamentInfo info, bool created = false)
         {
             // A queued scan sent in the background must not become the spool an open edit card saves to.
             if (SendingScan?.IsQueued != true)
@@ -768,7 +769,7 @@ namespace BambuMan.Shared.Managers
                 currentInfo = info;
             }
 
-            RaiseSpoolFound(BuildSpoolFound(spool, info), info);
+            RaiseSpoolFound(BuildSpoolFound(spool, info), info, created);
         }
 
         private static SpoolFound BuildSpoolFound(Spool spool, BambuFilamentInfo info) => new(

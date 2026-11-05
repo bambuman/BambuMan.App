@@ -1,6 +1,6 @@
 # <img alt="logo" src="branding/appiconv2.png" height="36" /> BambuMan
 
-BambuMan imports `Bambu Lab` filament spools into your inventory by reading their `NFC` tag. It supports two inventory backends — [bambuddy](https://bambuddy.cool) and [Spoolman](https://github.com/Donkie/Spoolman) — selectable in the app settings (Android) or the `Options` menu (Windows). With **No backend** it works fully offline: read spools stay on the device and can be exported to a CSV file that bambuddy imports.
+BambuMan imports `Bambu Lab` filament spools into your inventory by reading their `NFC` tag. It supports two inventory backends — [bambuddy](https://bambuddy.cool) and [Spoolman](https://github.com/Donkie/Spoolman) — selectable in the app settings (Android) or the `Options` menu (Windows). With **No backend** it works fully offline: read spools stay on the device, can be exported to a CSV file that bambuddy imports, and can later be sent straight to bambuddy or Spoolman.
 
 The app tries to match the tag info with the existing [SpoolmanDB](https://github.com/Donkie/SpoolmanDB) entry. When a match is found, the app creates the filament and spool. Imported spools will have the same `tray_uuid` as the `AMS` reports over `MQTT`.
 
@@ -22,6 +22,7 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
  - **Offline scan queue** — a spool read while the bambuddy or Spoolman server can't be reached (server down, phone away from the home network) is kept on the device and sent automatically, in scan order, once the server is back; queued scans can be listed, sent again or discarded
  - **Stored spools** — keep read spools on the device, search and filter them by name, tag or location, edit or delete them
  - **CSV export / import** — the export uses bambuddy's CSV columns, so it imports straight into bambuddy (`Inventory` → `Import CSV`)
+ - **Send stored spools to a server** — once bambuddy or Spoolman is set up, send the stored spools there; spools the server already has are updated instead of added twice
  - **Automatic filament matching** with SpoolmanDB — covers most Bambu Lab filaments; unmatched spools can optionally be added as an unknown filament
  - **Inventory tracking** — groups scanned spools by material with AMS tray UID tracking
  - **Quick weighing** — optionally focuses the weight field when a spool is read, and can move already known spools to the default location
@@ -82,7 +83,8 @@ The Android app can inventory into [bambuddy](https://bambuddy.cool). Pick the b
  1. In BambuMan settings, switch the backend to **No backend**. Nothing is sent to an inventory server.
  2. Turn on **Store spools locally** to keep read spools between app starts. Off, read spools are only shown, and only the current session's scans are exported.
  3. Read `NFC` tags. Stored spools are listed on the **Stored spools** page, where they can be edited, deleted, and exported or imported as CSV.
- 4. To move them into bambuddy, use **Export CSV** and import the file in bambuddy's `Inventory` → `Import CSV`.
+ 4. To move them into bambuddy or Spoolman, set that backend up in settings (see above). The stored spools stay on the device, and **Spools** stays in the menu while there are any. On the **Stored spools** page, **Send to bambuddy / Spoolman** sends the spools the filters show (or open a spool to send just that one). Each goes through the same path as reading its tag — filament matching, and a spool the server already has for that tag is updated rather than added twice — with its stored weight, price, location, buy date and lot nr (bambuddy has no buy date or lot nr). The one exception is the weight of a spool the server already has: when the stored weight would leave more filament on it than the server has (e.g. it was printed from since it was stored), the server keeps its own weight, so a send never adds used filament back. A summary lists what was created, updated (and where the server's weight was kept) or failed and why. Sent spools are kept on the device, marked as sent (the filter can show the ones not sent yet); delete them once you no longer need them. Editing a spool after sending marks it as not sent again.
+    - Spoolman has no CSV import, so this is the way to move stored spools into Spoolman. For bambuddy, **Export CSV** and bambuddy's `Inventory` → `Import CSV` still work too.
 
 ### Windows
 
@@ -99,6 +101,7 @@ The Android app can inventory into [bambuddy](https://bambuddy.cool). Pick the b
  7. No backend: scanned tags are only shown in the log. `Options` → `Store spools locally` keeps them on the computer, and `File` → `Export CSV...` writes them to a file that bambuddy can import.
 	 - With spools stored locally, `File` → `Stored spools...` lists them: search by name or tag, filter by location, edit a spool (double-click it: weight, empty weight, price, buy date, lot nr, location), delete spools, and import or export CSV
 	 - `File` → `Import CSV...` adds the spools of a BambuMan export to the stored spools; a spool already stored is replaced
+	 - After switching to Bambuddy or Spoolman, `File` → `Stored spools...` can send them there (all, or the selected rows)
 
 ## F-Droid repository
 

@@ -1,6 +1,9 @@
+@using BambuMan.Shared.Managers
+@using BambuMan.Shared.Resolvers
 @using BambuMan.UI.Settings
 @implements IDisposable
 @inject NavigationManager Navigation
+@inject IInventoryBackendResolver Backends
 
 <aside class="sidebar">
     <div class="sidebar-inner">
@@ -14,7 +17,8 @@
                 <Blazicon Svg="Lucide.Nfc" /> Scanner
             </NavLink>
 
-            @* The device store is the only spool list the app keeps itself; the servers have their own UIs. *@
+            @* The device store is the only spool list the app keeps itself; the servers have their own UIs. With a server
+               selected it stays listed while it still has spools, so they can be sent there. *@
             @if (ShowLocalSpools)
             {
                 <NavLink class="nav-item" href="spools">
@@ -38,11 +42,17 @@
 </aside>
 
 @code {
+    private NoBackendManager noBackend = null!;
+
     protected override void OnInitialized()
     {
-        // The Spools item depends on settings; show or hide it as soon as they change, not on the next start.
+        noBackend = (NoBackendManager)Backends.Resolve(InventoryBackend.NoBackend);
+
+        // The Spools item depends on settings and, with a server selected, on spools being left; show or hide it as
+        // soon as either changes, not on the next start.
         SettingsPage.SettingsChanged += OnSettingsChanged;
         Navigation.LocationChanged += OnLocationChanged;
+        noBackend.OnSpoolsChanged += OnSettingsChanged;
     }
 
     private void OnSettingsChanged() => _ = InvokeAsync(StateHasChanged);
@@ -53,8 +63,10 @@
     {
         SettingsPage.SettingsChanged -= OnSettingsChanged;
         Navigation.LocationChanged -= OnLocationChanged;
+        noBackend.OnSpoolsChanged -= OnSettingsChanged;
     }
 
-    private static bool ShowLocalSpools =>
-        SettingsPage.GetInventoryBackend() == InventoryBackend.NoBackend && Preferences.Default.Get(SettingsPage.KeyStoreSpoolsLocally, false);
+    private bool ShowLocalSpools =>
+        Preferences.Default.Get(SettingsPage.KeyStoreSpoolsLocally, false)
+        && (SettingsPage.GetInventoryBackend() == InventoryBackend.NoBackend || noBackend is { IsStoreLoaded: true, Spools.Count: > 0 });
 }

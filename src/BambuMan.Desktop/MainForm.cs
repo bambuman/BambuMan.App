@@ -42,6 +42,9 @@ public partial class MainForm : Form
     private Spool? currentSpool;
     private BambuFilamentInfo? currentBambuFilamentInfo;
 
+    // Open while the stored spools are shown; sending them holds back scans.
+    private LocalInventoryForm? localInventoryForm;
+
     private InventoryBackend backend;
 
     private BaseManager? ActiveManager => backend switch
@@ -158,6 +161,14 @@ public partial class MainForm : Form
             await LoadPendingScansAsync();
 
             if (ActiveManager != null) await ActiveManager.Init();
+
+            // Spools stored while no backend was selected stay listed with a server selected, so they can be sent there.
+            if (backend != InventoryBackend.NoBackend && noBackendManager is { StoreSpoolsLocally: true })
+            {
+                await noBackendManager.LoadStoreAsync();
+                UpdateBackendUi();
+            }
+
             if (filamentOverrideService != null) await filamentOverrideService.RefreshAsync();
         }
         catch (Exception ex)
@@ -186,6 +197,13 @@ public partial class MainForm : Form
 
             var json = JsonConvert.SerializeObject(info, Formatting.Indented);
             AppendText(LogLevel.Information, json);
+
+            // Sending goes through the same backend calls and leaves the sent spool as the current one; a scan in between would mix them up.
+            if (localInventoryForm?.IsSending == true)
+            {
+                AppendText(LogLevel.Warning, "Stored spools are being sent. Scan again once that's done.");
+                return;
+            }
 
             if (ActiveManager != null) await InventorySpoolAsync(ActiveManager, info);
             if (fullTagScanAndUploadToolStripMenuItem.Checked && tagApiService != null) await tagApiService.UploadNfcTagAsync(info);
@@ -533,8 +551,17 @@ public partial class MainForm : Form
     {
         if (noBackendManager is not { IsStoreLoaded: true }) return;
 
-        using var form = new LocalInventoryForm(noBackendManager, AppendText);
+        // With Spoolman or Bambuddy selected the form can send the spools there.
+        using var form = new LocalInventoryForm(noBackendManager, AppendText, backend == InventoryBackend.NoBackend ? null : ActiveManager);
+
+        localInventoryForm = form;
         form.ShowDialog(this);
+        localInventoryForm = null;
+
+        // Saving the spool panel now would write to the last spool sent, not the one shown.
+        if (form.HasSent) gbSpoolInfo.Enabled = false;
+
+        UpdateBackendUi();
     }
 
     private async void sendQueuedScansToolStripMenuItem_Click(object? sender, EventArgs e)
@@ -742,7 +769,9 @@ public partial class MainForm : Form
 
         exportCsvToolStripMenuItem.Visible = isNoBackend;
         importCsvToolStripMenuItem.Visible = stored;
-        storedSpoolsToolStripMenuItem.Visible = stored;
+
+        // With a server selected the stored spools stay listed while there are any, to be sent there.
+        storedSpoolsToolStripMenuItem.Visible = stored || (!isNoBackend && noBackendManager is { StoreSpoolsLocally: true, IsStoreLoaded: true, Spools.Count: > 0 });
 
         // The server url (and Bambuddy's api key); without a backend there is nothing to connect to.
         lblSpoolmanUrl.Text = isBambuddy ? "Bambuddy Url:" : "Spoolman Url:";

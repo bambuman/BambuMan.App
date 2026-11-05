@@ -4,6 +4,10 @@
 <PageHeader Title="Stored spools" Icon="Lucide.Boxes">
     <Subtitle>@Vm.CountText</Subtitle>
     <Actions>
+        @if (Vm.SendBackend is { } backend)
+        {
+            <button class="btn btn-primary" disabled="@(Scanner.IsSendingSpools || Vm.FilteredKeys.Count == 0)" @onclick="SendAsync"><Blazicon Svg="Lucide.Send" /> Send @(Vm.IsFiltered ? $"{Vm.FilteredKeys.Count} " : "")to @backend.DisplayName()</button>
+        }
         <button class="btn btn-secondary" @onclick="Scanner.ImportCsvAsync"><Blazicon Svg="Lucide.FileUp" /> Import CSV</button>
         <button class="btn btn-secondary" @onclick="Scanner.ExportCsvAsync"><Blazicon Svg="Lucide.FileDown" /> Export CSV</button>
         <button class="btn btn-tertiary" disabled="@(Vm.TotalCount == 0)" @onclick="DeleteAllAsync"><Blazicon Svg="Lucide.Trash" /> Delete all</button>
@@ -11,6 +15,80 @@
 </PageHeader>
 
 <div class="stack">
+
+    @if (Vm.SendBackend is { } target && Vm.TotalCount > 0 && Scanner.SendProgress == null && Scanner.LastSendSummary == null)
+    {
+        <Banner Kind="info" Icon="Lucide.Info" Message="@($"Scanned spools now go to {target.DisplayName()}. These were stored on this device before; send them to add them there. A spool {target.DisplayName()} already has is updated, not added twice, and every spool stays here until you delete it.")" />
+    }
+
+    @if (Scanner.SendProgress is { } progress)
+    {
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><Blazicon Svg="Lucide.Send" /> Sending to @(Vm.SendBackend?.DisplayName() ?? "server")</div>
+                <button class="btn btn-secondary btn-sm" disabled="@cancelRequested" @onclick="Cancel"><Blazicon Svg="Lucide.X" /> @(cancelRequested ? "Stopping …" : "Stop")</button>
+            </div>
+
+            <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="@progress.Total" aria-valuenow="@progress.Done">
+                <div style="width: @((progress.Total == 0 ? 0 : progress.Done * 100 / progress.Total).ToString(CultureInfo.InvariantCulture))%"></div>
+            </div>
+
+            <div class="small subtle send-progress-text">
+                @(progress.Current == null && progress.Done == 0 ? "Connecting …" : $"{progress.Done} of {progress.Total} sent{(progress.Current == null ? "" : $" · {progress.Current.Title}")}")
+            </div>
+        </div>
+    }
+
+    @if (Scanner.LastSendSummary is { } summary)
+    {
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><Blazicon Svg="@(summary.Failed > 0 ? Lucide.TriangleAlert : Lucide.CircleCheck)" /> @summary.Text</div>
+                <button class="btn btn-secondary btn-sm" @onclick="Scanner.DismissSendSummary"><Blazicon Svg="Lucide.X" /> Close</button>
+            </div>
+
+            @if (summary.Failed > 0)
+            {
+                <div class="list">
+                    @foreach (var failure in summary.Failures)
+                    {
+                        <div class="list-row" @key="failure.Spool.Key">
+                            <a class="list-row-main" href="spools/@failure.Spool.Key">
+                                <div class="list-row-text">
+                                    <div class="list-row-title">@failure.Spool.Title</div>
+                                    <div class="list-row-sub send-failure">@failure.Message</div>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+                <p class="small subtle">Failed spools are left as they were. Fix them (or the server) and send them again.</p>
+            }
+
+            @* The server had less filament left on these than stored here, so it kept its own weight. *@
+            @if (summary.WeightsKept.Any())
+            {
+                <div class="list">
+                    @foreach (var kept in summary.WeightsKept)
+                    {
+                        <div class="list-row" @key="kept.Spool.Key">
+                            <a class="list-row-main" href="spools/@kept.Spool.Key">
+                                <div class="list-row-text">
+                                    <div class="list-row-title">@kept.Spool.Title</div>
+                                    <div class="list-row-sub">@kept.StatusText</div>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (summary.Failed == 0)
+            {
+                <p class="small subtle">The spools stay on this device, marked as sent. Delete them here once you no longer need them.</p>
+            }
+        </div>
+    }
 
     @if (Vm.TotalCount > 0)
     {
@@ -28,13 +106,24 @@
                     }
                 </select>
             </FormField>
+
+            @if (Vm.SendBackend is { } sentTo)
+            {
+                <FormField Icon="Lucide.Send" Class="filter-location">
+                    <select aria-label="Sent to @sentTo.DisplayName()" @bind="Vm.Sent">
+                        <option value="@LocalSpoolSentFilter.All">All spools</option>
+                        <option value="@LocalSpoolSentFilter.NotSent">Not sent to @sentTo.DisplayName()</option>
+                        <option value="@LocalSpoolSentFilter.Sent">Sent to @sentTo.DisplayName()</option>
+                    </select>
+                </FormField>
+            }
         </div>
     }
 
     <div class="card">
         @if (Vm.TotalCount == 0)
         {
-            <div class="empty">No spools stored yet. Scan a spool to add it.</div>
+            <div class="empty">@(Vm.SendBackend == null ? "No spools stored yet. Scan a spool to add it." : "No spools are stored on this device.")</div>
         }
         else if (Vm.Groups.Count == 0)
         {
@@ -56,7 +145,7 @@
                             <a class="list-row-main" href="spools/@spool.Key">
                                 <div class="swatch round" style="background: @SpoolSwatch.ToCss(spool.Color)"></div>
                                 <div class="list-row-text">
-                                    <div class="list-row-title">@spool.Title</div>
+                                    <div class="list-row-title">@spool.Title @if (Vm.IsSent(spool.Spool)) { <span class="pill success">Sent</span> }</div>
                                     <div class="list-row-sub">@spool.Subtitle</div>
                                 </div>
                             </a>
@@ -85,7 +174,7 @@
                                         <div class="list-row" @key="spool.Key">
                                             <a class="list-row-main" href="spools/@spool.Key">
                                                 <div class="list-row-text">
-                                                    <div class="small">@(spool.Location ?? "No location") · @spool.Spool.LastScanned.ToString("yyyy-MM-dd")</div>
+                                                    <div class="small">@(spool.Location ?? "No location") · @spool.Spool.LastScanned.ToString("yyyy-MM-dd") @if (Vm.IsSent(spool.Spool)) { <span class="pill success">Sent</span> }</div>
                                                     <div class="list-row-sub mono">@(spool.Spool.Info.TrayUid ?? spool.Spool.Info.SerialNumber)</div>
                                                 </div>
                                             </a>

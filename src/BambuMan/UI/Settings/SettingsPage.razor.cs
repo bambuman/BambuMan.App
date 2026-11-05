@@ -82,6 +82,10 @@ public partial class SettingsPage
     public static TextScale GetTextScale() =>
         Enum.TryParse<TextScale>(Preferences.Default.Get(KeyTextScale, string.Empty), out var scale) ? scale : TextScale.Normal;
 
+    /// <summary>Spools kept on the device ("Store spools locally"); they stay there when a server backend is selected, to be sent to it.</summary>
+    private int StoredSpoolCount =>
+        Preferences.Default.Get(KeyStoreSpoolsLocally, false) && Backends.Resolve(InventoryBackend.NoBackend) is NoBackendManager { IsStoreLoaded: true } noBackend ? noBackend.Spools.Count : 0;
+
     protected override void OnInitialized()
     {
         try

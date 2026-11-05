@@ -3,6 +3,7 @@ using Bambuddy.Api.Client;
 using Bambuddy.Api.Extensions;
 using Bambuddy.Api.Model;
 using BambuMan.Shared.Enums;
+using BambuMan.Shared.Interfaces;
 using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +20,7 @@ namespace BambuMan.Shared.Managers
     /// endpoint upstream yet). Auth is the API key sent as <c>Authorization: Bearer bb_xxx</c>, which Bambuddy
     /// accepts as an API key.
     /// </summary>
-    public class BambuddyManager(ILogger<BambuddyManager>? logger) : BaseManager(logger)
+    public class BambuddyManager(ILogger<BambuddyManager>? logger) : BaseManager(logger), ISpoolUploadTarget
     {
         public string? ApiKey { get; set; }
 
@@ -188,7 +189,7 @@ namespace BambuMan.Shared.Managers
                     AddToCache(spool);
                     ShowMessage(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
                     await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
-                    OnSpoolInventoried(spool, info);
+                    OnSpoolInventoried(spool, info, created: true);
                 }
                 else
                 {
@@ -510,7 +511,7 @@ namespace BambuMan.Shared.Managers
             return (material, subtype, slicerFilament, slicerFilamentName);
         }
 
-        private void OnSpoolInventoried(SpoolResponse spool, BambuFilamentInfo info)
+        private void OnSpoolInventoried(SpoolResponse spool, BambuFilamentInfo info, bool created = false)
         {
             // A queued scan sent in the background must not become the spool an open edit card saves to.
             if (SendingScan?.IsQueued != true)
@@ -519,7 +520,7 @@ namespace BambuMan.Shared.Managers
                 currentInfo = info;
             }
 
-            RaiseSpoolFound(BuildSpoolFound(spool, info), info);
+            RaiseSpoolFound(BuildSpoolFound(spool, info), info, created);
         }
 
         private static SpoolFound BuildSpoolFound(SpoolResponse s, BambuFilamentInfo info)

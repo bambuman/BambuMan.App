@@ -1305,6 +1305,29 @@ body.editing .content {
     flex: 1 1 160px;
 }
 
+/* Sending stored spools to a server: progress, and why a spool failed. */
+.progress-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--border);
+    overflow: hidden;
+}
+
+.progress-bar > div {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.2s;
+}
+
+.send-progress-text {
+    margin-top: 8px;
+}
+
+.list-row-sub.send-failure {
+    color: var(--error-text);
+    white-space: normal;
+}
+
 .group-head {
     width: 100%;
     border: none;
