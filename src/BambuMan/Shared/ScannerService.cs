@@ -911,8 +911,11 @@ namespace BambuMan
         /// <summary>True while NFC waits for a tag to write <see cref="StartOpenSpoolWrite"/>'s spool to.</summary>
         public bool IsTagWritePending => pendingTagWrite != null;
 
-        /// <summary>Whether this device can write NFC tags at all.</summary>
-        public static bool CanWriteTags => CrossNfc.IsSupported && CrossNfc.Current.IsWritingTagSupported;
+        /// <summary>
+        /// Whether this device can write NFC tags at all. Android only for now: the iOS write session is untested with
+        /// this flow.
+        /// </summary>
+        public static bool CanWriteTags => DeviceInfo.Platform == DevicePlatform.Android && CrossNfc.IsSupported && CrossNfc.Current.IsAvailable && CrossNfc.Current.IsWritingTagSupported;
 
         /// <summary>
         /// Write <paramref name="spool"/> as an OpenSpool record to the next tag held to the phone. Reading spools is
