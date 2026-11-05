@@ -14,6 +14,8 @@ public partial class LocalInventoryPage
     /// <summary>Groups the user has opened. Kept by group key, so they stay open across a filter change or reload.</summary>
     private readonly HashSet<string> expanded = [];
 
+    private bool cancelRequested;
+
     [Inject] private LocalInventoryPageViewModel Vm { get; set; } = null!;
     [Inject] private ILogger<LocalInventoryPage> Logger { get; set; } = null!;
     [Inject] private IInventoryBackendResolver Backends { get; set; } = null!;
@@ -27,10 +29,12 @@ public partial class LocalInventoryPage
 
             Observe(Vm);
             manager.OnSpoolsChanged += OnSpoolsChanged;
+            Scanner.SendStateChanged += OnSendStateChanged;
 
             // Opened straight from settings, the store may not be loaded yet.
             await Scanner.PrepareLocalInventoryAsync();
 
+            Vm.SendBackend = Scanner.SendTarget?.Backend;
             Vm.Load(manager.Spools);
         }
         catch (Exception e)
@@ -41,6 +45,8 @@ public partial class LocalInventoryPage
 
     // An import changes the store; reload the list from it.
     private void OnSpoolsChanged() => _ = InvokeAsync(() => Vm.Load(manager.Spools));
+
+    private void OnSendStateChanged() => _ = InvokeAsync(StateHasChanged);
 
     private bool IsExpanded(LocalSpoolGroup group) => expanded.Contains(group.Key);
 
@@ -82,10 +88,48 @@ public partial class LocalInventoryPage
         }
     }
 
+    #region Send to a server
+
+    /// <summary>Sends the spools the filters show to the selected server backend, after asking.</summary>
+    private async Task SendAsync()
+    {
+        try
+        {
+            var keys = Vm.FilteredKeys;
+
+            if (Vm.SendBackend is not { } backend || keys.Count == 0) return;
+
+            var page = Application.Current?.Windows.FirstOrDefault()?.Page;
+            if (page == null) return;
+
+            var name = backend.DisplayName();
+            var spools = keys.Count == 1 ? "1 spool" : $"{keys.Count} spools";
+
+            if (!await page.DisplayAlertAsync($"Send to {name}", $"Send {spools} to {name}? A spool {name} already has (same tag) is updated with the values stored here, otherwise it is added. The spools stay on this device, marked as sent.", "Send", "Cancel")) return;
+
+            cancelRequested = false;
+
+            await Scanner.SendStoredSpoolsAsync(keys);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in SendAsync");
+        }
+    }
+
+    private void Cancel()
+    {
+        cancelRequested = true;
+        Scanner.CancelSendingSpools();
+    }
+
+    #endregion
+
     public override void Dispose()
     {
         // Null when the page is torn down before it initialized (an error during the first render).
         if (manager != null) manager.OnSpoolsChanged -= OnSpoolsChanged;
+        Scanner.SendStateChanged -= OnSendStateChanged;
         base.Dispose();
     }
 }

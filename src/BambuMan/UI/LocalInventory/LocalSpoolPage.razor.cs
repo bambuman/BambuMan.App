@@ -79,6 +79,19 @@ public partial class LocalSpoolPage
         }
     }
 
+    /// <summary>Sends this spool to the selected server backend; the result is shown as a toast.</summary>
+    private async Task SendAsync()
+    {
+        try
+        {
+            await Scanner.SendStoredSpoolsAsync([Key]);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error sending spool {Key}", Key);
+        }
+    }
+
     private async Task DeleteAsync()
     {
         try

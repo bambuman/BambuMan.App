@@ -33,6 +33,10 @@ else
                     <div class="spool-head-text">
                         <div class="spool-title">@Title</div>
                         <div class="small subtle">Last scanned @spool.LastScanned.ToString("yyyy-MM-dd HH:mm")</div>
+                        @if (spool.SentTo is { } sentTo)
+                        {
+                            <div class="small subtle">Sent to @sentTo.DisplayName() @(spool.SentAt?.ToString("yyyy-MM-dd HH:mm"))</div>
+                        }
                     </div>
                 </div>
 
@@ -43,6 +47,11 @@ else
         @if (info != null)
         {
             <SpoolInfoCard Info="info" />
+        }
+
+        @if (Scanner.SendTarget is { } target)
+        {
+            <button class="btn btn-secondary btn-block" disabled="@Scanner.IsSendingSpools" @onclick="SendAsync"><Blazicon Svg="Lucide.Send" /> @(Scanner.IsSendingSpools ? "Sending …" : $"Send to {target.Backend.DisplayName()}")</button>
         }
 
         <button class="btn btn-tertiary btn-block" @onclick="DeleteAsync"><Blazicon Svg="Lucide.Trash" /> Delete spool</button>

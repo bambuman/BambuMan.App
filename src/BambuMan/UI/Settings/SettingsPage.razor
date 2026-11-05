@@ -34,6 +34,12 @@
                     break;
             }
         </p>
+
+        @* Switching to a server keeps the spools stored without one; say where to send them from. *@
+        @if (!Vm.IsNoBackend && StoredSpoolCount > 0)
+        {
+            <Banner Kind="info" Icon="Lucide.Boxes" Message="@($"{(StoredSpoolCount == 1 ? "1 spool is" : $"{StoredSpoolCount} spools are")} still stored on this device. Open Spools in the menu to send them to {Vm.InventoryBackend.DisplayName()}.")" />
+        }
     </div>
 
     @if (Vm.ShowServerUrl)

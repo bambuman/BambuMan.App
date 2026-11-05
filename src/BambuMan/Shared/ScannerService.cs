@@ -341,6 +341,20 @@ namespace BambuMan
 
             _ = active.RefreshLocationsAsync();
 
+            // Spools stored while no backend was selected stay on the device with a server selected too, so they can be
+            // sent there; load them for the menu and the spool list.
+            if (active.Backend != InventoryBackend.NoBackend)
+            {
+                try
+                {
+                    await PrepareLocalInventoryAsync();
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error loading stored spools");
+                }
+            }
+
             // The device store only loads during Init, and whether spools can be edited depends on it.
             UpdateEditCapabilities(active);
             UpdateLocalSpools();
@@ -355,7 +369,8 @@ namespace BambuMan
 
         /// <summary>
         /// Makes sure the no-backend spools reflect the "store spools locally" setting, for the spool pages, which can
-        /// be opened straight from settings before the scan page has re-applied it.
+        /// be opened straight from settings before the scan page has re-applied it. With a server selected only the
+        /// stored spools are loaded: the no-backend mode isn't started, so it doesn't log or report itself ready.
         /// </summary>
         public async Task PrepareLocalInventoryAsync()
         {
@@ -364,7 +379,11 @@ namespace BambuMan
 
             noBackend.StoreSpoolsLocally = storeLocally;
 
-            if (!noBackend.IsInitialized || noBackend.IsStoreLoaded != storeLocally) await noBackend.Init();
+            if (ActiveManager != noBackend)
+            {
+                if (noBackend.IsStoreLoaded != storeLocally) await noBackend.LoadStoreAsync();
+            }
+            else if (!noBackend.IsInitialized || noBackend.IsStoreLoaded != storeLocally) await noBackend.Init();
         }
 
         #endregion
@@ -595,6 +614,15 @@ namespace BambuMan
             string? defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
 
             await viewModel.ClearMessages();
+
+            // Sending goes through the same backend calls and leaves the sent spool as the one an edit is saved to, so a
+            // scan in between would mix the two up.
+            if (IsSendingSpools)
+            {
+                await viewModel.ShowErrorMessage("Stored spools are being sent. Scan again once that's done.");
+                toasts.Show("Stored spools are being sent. Scan again once that's done.", ToastKind.Error);
+                return;
+            }
 
             var active = ActiveManager;
 
@@ -879,6 +907,106 @@ namespace BambuMan
                 toasts.Show("Import failed. See logs.", ToastKind.Error, true);
                 logger.LogError(ex, "Error in ImportCsvAsync");
             }
+        }
+
+        #endregion
+
+        #region Sending stored spools
+
+        private CancellationTokenSource? sendCancellation;
+
+        /// <summary>Raised when sending stored spools starts, progresses or ends — for the spool list, which is rebuilt on every navigation.</summary>
+        public event Action? SendStateChanged;
+
+        /// <summary>The server stored spools can be sent to: the selected backend, unless that is "No backend".</summary>
+        public ISpoolUploadTarget? SendTarget => ActiveManager as ISpoolUploadTarget;
+
+        /// <summary>How far the current send is; null while nothing is being sent. <c>Done</c> 0 without a current spool is still connecting.</summary>
+        public SpoolUploadProgress? SendProgress { get; private set; }
+
+        public bool IsSendingSpools => SendProgress != null;
+
+        /// <summary>The outcome of the last send, shown on the spool list until the next one starts or it is dismissed.</summary>
+        public SpoolUploadSummary? LastSendSummary { get; private set; }
+
+        /// <summary>
+        /// Send stored spools to the selected server backend (see <see cref="NoBackendManager.SendSpoolsAsync"/>). Applies the current
+        /// settings and connects the backend first — the spool list can be opened straight from settings, before the scan page has.
+        /// Sent spools stay on the device, marked as sent.
+        /// </summary>
+        public async Task SendStoredSpoolsAsync(IReadOnlyCollection<string> keys)
+        {
+            if (IsSendingSpools || keys.Count == 0) return;
+
+            try
+            {
+                sendCancellation = new CancellationTokenSource();
+                LastSendSummary = null;
+                SetSendProgress(new SpoolUploadProgress(0, keys.Count, null));
+
+                // A spool open in the scan page's edit card would be saved to the last spool sent instead.
+                CloseSpool();
+
+                await ApplySettingsAsync();
+                await InitializeBackendsAsync();
+
+                var active = ActiveManager;
+
+                if (active is not ISpoolUploadTarget target)
+                {
+                    toasts.Show("Select Spoolman or Bambuddy in Settings to send the stored spools there.", ToastKind.Error, true);
+                    return;
+                }
+
+                if (active.Status != ManagerStatusType.Ready)
+                {
+                    toasts.Show($"Can't reach {active.Backend.DisplayName()}. Check its url in Settings and try again.", ToastKind.Error, true);
+                    return;
+                }
+
+                var summary = await NoBackend.SendSpoolsAsync(target, keys, new InlineProgress(SetSendProgress), sendCancellation.Token);
+
+                LastSendSummary = summary;
+
+                // A single failure (e.g. the one spool sent from its own page) says why; more are listed on the spool list.
+                var failures = summary.Failures.ToList();
+                toasts.Show(failures.Count == 1 ? $"{summary.Text} {failures[0].Message}" : summary.Text, failures.Count > 0 ? ToastKind.Error : ToastKind.Success, true);
+            }
+            catch (Exception ex)
+            {
+                toasts.Show("Sending the stored spools failed. See logs.", ToastKind.Error, true);
+                logger.LogError(ex, "Error in SendStoredSpoolsAsync");
+            }
+            finally
+            {
+                sendCancellation?.Dispose();
+                sendCancellation = null;
+                SetSendProgress(null);
+            }
+        }
+
+        /// <summary>Stop sending after the spool being sent now; the ones already sent stay marked.</summary>
+        public void CancelSendingSpools() => sendCancellation?.Cancel();
+
+        public void DismissSendSummary()
+        {
+            LastSendSummary = null;
+            SendStateChanged?.Invoke();
+        }
+
+        private void SetSendProgress(SpoolUploadProgress? progress)
+        {
+            SendProgress = progress;
+            SendStateChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Reports on the sending thread. <see cref="Progress{T}"/> would post each report instead, and a late one could arrive after
+        /// the send finished and make it look running again.
+        /// </summary>
+        private sealed class InlineProgress(Action<SpoolUploadProgress> report) : IProgress<SpoolUploadProgress>
+        {
+            public void Report(SpoolUploadProgress value) => report(value);
         }
 
         #endregion
