@@ -24,6 +24,12 @@ public class LocalInventoryForm : Form
     /// <summary>True while stored spools are being sent; the main form holds back scans meanwhile.</summary>
     public bool IsSending => sendCancellation != null;
 
+    /// <summary>
+    /// Whether spools were sent from this window. The server's "current spool" is then the last one sent, so a spool still shown
+    /// in the main form's edit panel must not be saved.
+    /// </summary>
+    public bool HasSent { get; private set; }
+
     /// <param name="server">The selected backend, when it is a server the spools can be sent to; null with no backend.</param>
     public LocalInventoryForm(NoBackendManager manager, BaseManager? server)
     {
@@ -176,6 +182,7 @@ public class LocalInventoryForm : Form
                     $"Send to {ServerName}", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK) return;
 
             sendCancellation = new CancellationTokenSource();
+            HasSent = true;
             btnDelete.Enabled = false;
             btnDeleteAll.Enabled = false;
             UpdateSendButton();

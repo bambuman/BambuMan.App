@@ -563,6 +563,9 @@ public partial class MainForm : Form
         form.ShowDialog(this);
         localInventoryForm = null;
 
+        // Saving the spool panel now would write to the last spool sent, not the one shown.
+        if (form.HasSent) gbSpoolInfo.Enabled = false;
+
         UpdateBackendUi();
     }
 
