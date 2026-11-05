@@ -141,7 +141,7 @@ public class LocalSpoolEditForm : Form
         }
         catch (Exception ex)
         {
-            txtInfo.Text = $"Could not read the spool info: {ex.Message}";
+            if (!IsDisposed) txtInfo.Text = $"Could not read the spool info: {ex.Message}";
         }
     }
 
