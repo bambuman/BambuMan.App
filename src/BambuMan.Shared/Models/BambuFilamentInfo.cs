@@ -27,6 +27,13 @@ public class BambuFilamentInfo : ITagInfo
         set => Identifier = value.StringToByteArray();
     }
 
+    /// <summary>
+    /// False for a spool added by hand (see <see cref="ManualSpool"/>): neither a tag uid nor a tray uid, so there is
+    /// nothing to recognise the spool by on a later scan.
+    /// </summary>
+    [JsonIgnore]
+    public bool HasTag => Identifier.Length > 0 || !string.IsNullOrEmpty(TrayUid);
+
     [JsonIgnore]
     public bool IsWritable { get; set; } = false;
 

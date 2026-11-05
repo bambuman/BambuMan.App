@@ -4,6 +4,7 @@ using BambuMan.Shared.Models;
 using BambuMan.Shared.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ExternalFilament = SpoolMan.Api.Model.ExternalFilament;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
 
 namespace BambuMan.Shared.Managers
@@ -290,6 +291,19 @@ namespace BambuMan.Shared.Managers
 
         /// <summary>Persist edits to the spool most recently surfaced via <see cref="OnSpoolFound"/>. Fields the backend doesn't model are ignored.</summary>
         public abstract Task UpdateCurrentSpoolAsync(SpoolEditInput input);
+
+        /// <summary>
+        /// Add a spool whose tag couldn't be read, with the edit card's fields filled in. It has no tag to look an
+        /// existing spool up by, so it is always created new, then surfaced via <see cref="OnSpoolFound"/> like a scan.
+        /// Only where <see cref="CanEditSpools"/>. Returns false when it couldn't be saved (the reason is shown/logged).
+        /// </summary>
+        public abstract Task<bool> AddManualSpoolAsync(ManualSpool spool, SpoolEditInput input);
+
+        /// <summary>
+        /// The Bambu Lab filaments this backend matches tags against, for picking a filament by hand. Empty until
+        /// <see cref="Init"/> loaded them.
+        /// </summary>
+        public abstract IReadOnlyList<ExternalFilament> KnownFilaments { get; }
 
         /// <summary>Refresh known storage locations (backend-specific; base no-op).</summary>
         public virtual Task RefreshLocationsAsync() => Task.CompletedTask;

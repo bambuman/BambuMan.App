@@ -42,7 +42,7 @@ namespace BambuMan.Shared.Services
             "manufacturer", "filament_name", "filament_code", "variant_id", "material_id", "filament_type",
             "detailed_filament_type", "diameter", "spool_width", "filament_length", "drying_temperature", "drying_time",
             "bed_temperature", "nozzle_diameter", "production_date", "color_count", "second_color", "price",
-            "first_scanned", "last_scanned", "weight", "buy_date", "lot_nr"
+            "first_scanned", "last_scanned", "weight", "buy_date", "lot_nr", "manual_id", "filament_id"
         ];
 
         public static readonly string[] Columns = [.. BambuddyColumns, .. TagColumns, .. BambuManColumns];
@@ -121,13 +121,14 @@ namespace BambuMan.Shared.Services
                 ["nozzle_temp_max"] = Format(info.MaxTemperatureForHotend),
                 ["storage_location"] = spool.Location,
 
+                // A spool added by hand has no tag, so no tag uid and nothing for data_origin / tag_type to describe.
                 ["tag_uid"] = info.SerialNumber,
                 ["tray_uuid"] = info.TrayUid,
                 ["slicer_filament"] = slicerFilament,
                 ["slicer_filament_name"] = slicerFilamentName,
                 ["core_weight"] = Format(coreWeight),
-                ["data_origin"] = "nfc_scan",
-                ["tag_type"] = "bambu_rfid",
+                ["data_origin"] = info.HasTag ? "nfc_scan" : null,
+                ["tag_type"] = info.HasTag ? "bambu_rfid" : null,
 
                 ["manufacturer"] = spool.Manufacturer,
                 ["filament_name"] = spool.Name,
@@ -151,7 +152,9 @@ namespace BambuMan.Shared.Services
                 ["last_scanned"] = spool.LastScanned.ToString(DateFormat, CultureInfo.InvariantCulture),
                 ["weight"] = Format(spool.Weight),
                 ["buy_date"] = spool.BuyDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-                ["lot_nr"] = spool.LotNr
+                ["lot_nr"] = spool.LotNr,
+                ["manual_id"] = spool.ManualId,
+                ["filament_id"] = spool.FilamentId
             };
         }
 
@@ -192,6 +195,7 @@ namespace BambuMan.Shared.Services
         /// <summary>
         /// Read spools back from a csv. A row needs a <c>tag_uid</c> or <c>tray_uuid</c> — without one there is nothing
         /// to recognise the spool by on its next scan — so a plain Bambuddy export (which has neither) yields errors only.
+        /// The one exception is a spool added by hand, which BambuMan's own export keys by its <c>manual_id</c>.
         /// </summary>
         public static LocalSpoolCsvReadResult Read(TextReader reader)
         {
@@ -216,7 +220,7 @@ namespace BambuMan.Shared.Services
 
             var headers = (csv.HeaderRecord ?? []).Select(NormalizeHeader).ToHashSet();
 
-            if (!headers.Contains("tag_uid") && !headers.Contains("tray_uuid"))
+            if (!headers.Contains("tag_uid") && !headers.Contains("tray_uuid") && !headers.Contains("manual_id"))
             {
                 errors.Add("The file has no tag_uid or tray_uuid column, so its spools can't be matched to their tags.");
                 return new LocalSpoolCsvReadResult(spools, errors);
@@ -247,8 +251,9 @@ namespace BambuMan.Shared.Services
         {
             var tagUid = cell("tag_uid");
             var trayUid = cell("tray_uuid");
+            var manualId = cell("manual_id");
 
-            if (tagUid == null && trayUid == null) throw new FormatException("tag_uid or tray_uuid is required");
+            if (tagUid == null && trayUid == null && manualId == null) throw new FormatException("tag_uid or tray_uuid is required (or manual_id, for a spool added by hand)");
             if (tagUid != null && (tagUid.Length % 2 != 0 || !tagUid.All(Uri.IsHexDigit))) throw new FormatException($"tag_uid must be hex (got '{tagUid}')");
 
             var material = cell("material");
@@ -305,6 +310,8 @@ namespace BambuMan.Shared.Services
                 EmptyWeight = coreWeight,
                 BuyDate = ParseDate(cell, "buy_date"),
                 LotNr = cell("lot_nr"),
+                ManualId = manualId?.ToUpperInvariant(),
+                FilamentId = cell("filament_id"),
                 FirstScanned = ParseDate(cell, "first_scanned") ?? now,
                 LastScanned = ParseDate(cell, "last_scanned") ?? now
             };

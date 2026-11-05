@@ -141,6 +141,67 @@ namespace BambuMan.Shared.Managers
         /// <summary>Saves the edit card to the spool the last scan surfaced. Does nothing while only this session's scans are kept.</summary>
         public override Task UpdateCurrentSpoolAsync(SpoolEditInput input) => currentKey == null || !CanEditSpools ? Task.CompletedTask : UpdateSpoolAsync(currentKey, input);
 
+        public override IReadOnlyList<ExternalFilament> KnownFilaments => bambuLabFilaments;
+
+        /// <summary>
+        /// Keeps a spool added by hand under a new <see cref="LocalSpool.ManualId"/>, with the edit card's fields. Only
+        /// while the store is loaded — this session's scans alone are shown, not edited, and the same goes for these.
+        /// </summary>
+        public override async Task<bool> AddManualSpoolAsync(ManualSpool spool, SpoolEditInput input)
+        {
+            if (!CanEditSpools)
+            {
+                await Log(LogLevel.Warning, "Spools can only be added by hand while they are stored locally");
+                return false;
+            }
+
+            var now = DateTime.Now;
+            var filament = spool.Filament;
+
+            var localSpool = new LocalSpool
+            {
+                Info = spool.Info,
+                ManualId = LocalSpool.NewManualId(),
+                FilamentId = filament?.Id,
+                Manufacturer = filament?.Manufacturer,
+                Name = filament?.Name,
+                ColorHexes = filament?.ColorHexes?.Select(x => x.TrimStart('#').ToUpperInvariant()).ToList() ?? [],
+                Weight = input.Weight,
+                EmptyWeight = input.EmptyWeight,
+                Price = input.Price,
+                BuyDate = input.BuyDate,
+                LotNr = string.IsNullOrWhiteSpace(input.LotNr) ? null : input.LotNr.Trim(),
+                Location = string.IsNullOrWhiteSpace(input.Location) ? null : input.Location.Trim(),
+                FirstScanned = now,
+                LastScanned = now
+            };
+
+            lock (spoolLock)
+            {
+                sessionSpools.Add(localSpool);
+                storedSpools?.Add(localSpool);
+            }
+
+            await SaveAndNotifyAsync();
+
+            currentKey = localSpool.Key;
+
+            await Log(LogLevel.Success, $"Spool {spool.Label} added manually");
+            ShowMessage(false, $"Spool {spool.Label} added.");
+
+            RaiseSpoolFound(new SpoolFound(
+                Material: filament?.Material ?? spool.Info.FilamentType,
+                TrayUid: null,
+                Weight: localSpool.Weight,
+                EmptyWeight: localSpool.EmptyWeight,
+                Price: localSpool.Price,
+                BuyDate: localSpool.BuyDate,
+                LotNr: localSpool.LotNr,
+                Location: localSpool.Location), spool.Info);
+
+            return true;
+        }
+
         #endregion
 
         #region Local spools
@@ -232,6 +293,10 @@ namespace BambuMan.Shared.Managers
                 bambuLabFilaments = ExternalFilamentMatcher.LoadEmbeddedFilaments();
                 catalogLoaded = true;
             }
+
+            // A spool added by hand has no tag data to match by — it is the filament it was picked as, or unknown.
+            if (spool.IsManual)
+                return SpoolDisplayInfo.From(spool.Info, spool.FilamentId == null ? null : bambuLabFilaments.FirstOrDefault(x => x.Id == spool.FilamentId), Overrides);
 
             var candidates = await ExternalFilamentMatcher.FindExternalFilament(bambuLabFilaments, spool.Info, Overrides);
 

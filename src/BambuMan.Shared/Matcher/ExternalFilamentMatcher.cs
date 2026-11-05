@@ -104,6 +104,45 @@ namespace BambuMan.Shared.Matcher
         }
 
         /// <summary>
+        /// Free-text search of the catalog for picking a filament by hand (a spool whose tag can't be read). Every word
+        /// of <paramref name="query"/> has to appear in the material, name, colour hex, finish or pattern, in any order and
+        /// case, so "matte pla blue" finds <c>PLA Matte Ice Blue</c> and "#000000" finds the black ones. An empty query
+        /// returns the whole catalog. Sorted by material, then name, then weight (largest first).
+        /// </summary>
+        public static List<ExternalFilament> Search(IEnumerable<ExternalFilament> externalFilaments, string? query)
+        {
+            var words = (query ?? string.Empty)
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(x => x.TrimStart('#'))
+                .Where(x => x.Length > 0)
+                .ToArray();
+
+            return externalFilaments
+                .Where(x =>
+                {
+                    var text = SearchText(x);
+                    return words.All(word => text.ContainsCI(word));
+                })
+                .OrderBy(x => x.Material, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenByDescending(x => x.Weight)
+                .ToList();
+        }
+
+        /// <summary>What <see cref="Search"/> looks in: material, name, colour hex(es), finish, pattern and the translucent / glow flags.</summary>
+        private static string SearchText(ExternalFilament filament) => string.Join(" ", new[]
+        {
+            filament.Material,
+            filament.Name,
+            filament.ColorHex,
+            filament.ColorHexes == null ? null : string.Join(" ", filament.ColorHexes),
+            filament.Finish?.ToString(),
+            filament.Pattern?.ToString(),
+            filament.Translucent == true ? "Translucent" : null,
+            filament.Glow == true ? "Glow" : null
+        }.Where(x => !string.IsNullOrEmpty(x)));
+
+        /// <summary>
         /// Does a scanned tag satisfy an override's criteria? Every supplied field must match; null fields are
         /// ignored. <paramref name="color"/> is the 6-character hex prefix — the criteria may also target the
         /// full 8-character <see cref="BambuFilamentInfo.Color"/> (hex + opacity).
