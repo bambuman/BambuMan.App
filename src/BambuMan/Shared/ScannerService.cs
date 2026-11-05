@@ -691,7 +691,7 @@ namespace BambuMan
                 string tagName = data["tag_name"]?.ToString() ?? currentTagName;
 
                 viewModel.NewVersionAvailable = !tagName.Equals(currentTagName, StringComparison.CurrentCultureIgnoreCase);
-                viewModel.NewVersionText = string.Format(AppResources.Main_NewVersionAvailableTag, tagName);
+                viewModel.NewVersionTag = tagName;
 
                 //In debug we should not show it hoggs screen
 #if DEBUG

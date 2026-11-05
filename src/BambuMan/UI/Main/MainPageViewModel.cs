@@ -69,7 +69,12 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private string? infoMessage;
 
         [ObservableProperty] private bool newVersionAvailable;
-        [ObservableProperty] private string? newVersionText = AppResources.Main_NewVersionAvailable;
+        // The release tag, not the banner text: the text is formatted on every read, so it follows a language switch.
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(NewVersionText))]
+        private string? newVersionTag;
+
+        public string NewVersionText => NewVersionTag == null ? AppResources.Main_NewVersionAvailable : string.Format(AppResources.Main_NewVersionAvailableTag, NewVersionTag);
 
         [ObservableProperty] private IEnumerable<string> existingLocations = [];
 
