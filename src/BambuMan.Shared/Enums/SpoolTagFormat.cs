@@ -35,17 +35,22 @@ namespace BambuMan.Shared.Enums
             _ => format.ToString().ToLowerInvariant()
         };
 
-        /// <summary>Inverse of <see cref="TagType"/>; null when the value names no known format.</summary>
+        /// <summary>
+        /// Inverse of <see cref="TagType"/>, also taking the enum name; null when the value names no known format.
+        /// Names only — a number such as <c>1</c> or <c>7</c> is not a tag type.
+        /// </summary>
         public static SpoolTagFormat? FromTagType(string? tagType)
         {
             if (string.IsNullOrWhiteSpace(tagType)) return null;
 
+            var value = tagType.Trim();
+
             foreach (var format in Enum.GetValues<SpoolTagFormat>())
             {
-                if (format.TagType().Equals(tagType.Trim(), StringComparison.OrdinalIgnoreCase)) return format;
+                if (format.TagType().Equals(value, StringComparison.OrdinalIgnoreCase) || format.ToString().Equals(value, StringComparison.OrdinalIgnoreCase)) return format;
             }
 
-            return Enum.TryParse<SpoolTagFormat>(tagType.Trim(), true, out var parsed) ? parsed : null;
+            return null;
         }
     }
 }
