@@ -569,6 +569,17 @@ namespace BambuMan.Shared.Managers
             var spoolmanErrorLevel = UnknownFilamentEnabled ? ManagerStatusType.Ready : ManagerStatusType.Error;
             var logLevel = UnknownFilamentEnabled ? LogLevel.Warning : LogLevel.Error;
 
+            // A third-party tag the catalog doesn't know is expected (any brand, any colour), not a matching bug to
+            // report with the tag data — tell the user what was read and how to add it anyway.
+            if (tag.Format != SpoolTagFormat.BambuLab && result.Count != 1)
+            {
+                var hint = UnknownFilamentEnabled ? "" : " Turn on 'Import unknown filament' in settings to add it anyway.";
+                await LogAndSetStatus(spoolmanErrorLevel, LogLevel.Warning, $"{tag.Format.DisplayName()} tag ({tag.Brand} {tag.DetailedFilamentType} #{tag.Color}) matched {result.Count} filaments in the catalog.{hint}");
+                if (!UnknownFilamentEnabled) ShowMessage(true, $"{tag.Format.DisplayName()} tag not found in the filament catalog.{hint}");
+                PlayErrorTone();
+                return null;
+            }
+
             switch (result.Count)
             {
                 case > 1:

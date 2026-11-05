@@ -1,6 +1,7 @@
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Nfc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 namespace BambuMan.Shared.Models
@@ -22,6 +23,7 @@ namespace BambuMan.Shared.Models
 
         #region Properties
 
+        [JsonConverter(typeof(StringEnumConverter))]
         public SpoolTagFormat Format { get; set; }
 
         [JsonIgnore]

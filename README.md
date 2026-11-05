@@ -122,7 +122,7 @@ To participate, enable **Research Data Contribution** in the app settings. Uploa
  - Third-party tags (OpenSpool, TigerTag):
 	- are read on Android and, with a PC/SC reader that reports NTAG as MIFARE Ultralight (e.g. ACR122U), on Windows. iOS is untested, and can't read TigerTag (no raw page access).
 	- carry no spool id, so each tag is its own spool. A spool with a tag on both sides counts twice unless only one side is scanned.
-	- only match a known filament when the catalog has that brand, material and exact colour. The embedded catalog has Bambu Lab filaments only; Spoolman also matches against its full external filament database. Anything else goes the unknown filament path (Spoolman needs "unknown filament" enabled; bambuddy and no backend mode add the spool with the tag data).
+	- only match a known filament when the catalog has that brand, material and exact colour. The embedded catalog has Bambu Lab filaments only; Spoolman also matches against its full external filament database. Anything else goes the unknown filament path (Spoolman needs "Import unknown filament" turned on; bambuddy and no backend mode add the spool with the tag data).
 	- are never uploaded to the tag library, whatever the Research Data Contribution setting.
 	- TigerTag signatures (TigerTag+ Certified) are not verified, and resin / non-filament TigerTags are ignored.
  - Writing OpenSpool tags needs an NDEF-formatted NTAG215/216 (blank tags usually are). It replaces whatever the tag holds, and refuses Bambu Lab tags and TigerTags.
