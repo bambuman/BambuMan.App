@@ -2,6 +2,7 @@ using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Resolvers;
+using BambuMan.Shared.Resources.Strings;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -32,9 +33,6 @@ public partial class SettingsPage
     public const string KeyStoreSpoolsLocally = "store_spools_locally";
     public const string KeyTextScale = "text_scale";
     public const string KeyLanguage = "language";
-
-    /// <summary>The device's ui language, captured before the saved language replaces it, so "System default" can restore it.</summary>
-    private static readonly CultureInfo SystemUiCulture = CultureInfo.CurrentUICulture;
 
     /// <summary>Raised after a setting is stored, for parts of the ui outside this page that depend on it (the menu).</summary>
     public static event Action? SettingsChanged;
@@ -92,16 +90,22 @@ public partial class SettingsPage
         Enum.TryParse<AppLanguage>(Preferences.Default.Get(KeyLanguage, string.Empty), out var language) ? language : AppLanguage.SystemDefault;
 
     /// <summary>
-    /// Shows the ui in <paramref name="language"/> from the next string read on: sets the ui culture of this thread and
-    /// the default for every other one. Only the ui culture — number and date formats keep following the device.
+    /// Shows the ui in <paramref name="language"/> from the next string read on, on every thread. Sets the resource
+    /// classes' culture rather than <see cref="CultureInfo.CurrentUICulture"/>: that one flows with the async context, so
+    /// a change made in an event handler would be undone when the handler returns. Only the language changes — number
+    /// and date formats keep following the device.
     /// </summary>
     public static void ApplyLanguage(AppLanguage language)
     {
         var cultureName = language.CultureName();
-        var culture = cultureName == null ? SystemUiCulture : CultureInfo.GetCultureInfo(cultureName);
+        var culture = cultureName == null ? null : CultureInfo.GetCultureInfo(cultureName);
 
+        // Null looks strings up in the device language.
+        AppResources.Culture = culture;
+        SharedResources.Culture = culture;
+
+        // For anything else that reads the ui culture; null goes back to the device language too.
         CultureInfo.DefaultThreadCurrentUICulture = culture;
-        CultureInfo.CurrentUICulture = culture;
     }
 
     protected override void OnInitialized()

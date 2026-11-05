@@ -28,6 +28,7 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
  - **QR code scanner** for quick backend URL and API key setup
  - **Configurable import defaults** — buy date, price, lot number, location
  - **Log viewer** with email export for troubleshooting
+ - **Translations** — the Android app in English, Estonian and German, following the phone's language or the language setting (see [Translations](#translations))
  - **Auto-setup** — creates required extra fields and default vendor in Spoolman
 
 ## The app is available in two versions
@@ -123,6 +124,27 @@ To participate, enable **Research Data Contribution** in the app settings. Uploa
   - [bambuddy](https://bambuddy.cool) v0.2.4.5+ (recommended)
   - [Spoolman](https://github.com/Donkie/Spoolman) v0.22.1, v0.23.0, v0.23.1
   - [OpenSpoolMan](https://github.com/drndos/openspoolman) v0.1.8
+
+## Translations
+
+The Android app is available in English, Estonian and German. It follows the phone's language, or the **Language** setting. The Estonian and German texts are machine translations, so corrections from native speakers are very welcome. The Windows app is English only.
+
+The texts are standard .NET `.resx` resources. English is the base file, and each language has a copy next to it named with its [culture code](https://learn.microsoft.com/dotnet/api/system.globalization.cultureinfo#culture-names-and-identifiers):
+
+| File | Contains |
+|---|---|
+| `src/BambuMan/Resources/Strings/AppResources.resx` | The app's pages, dialogs and messages |
+| `src/BambuMan.Shared/Resources/Strings/SharedResources.resx` | Spool info labels and the messages shown after a scan |
+
+To **fix a translation**, edit its `value` in `AppResources.<code>.resx` or `SharedResources.<code>.resx`.
+
+To **add a language** (French, `fr`, as an example):
+
+1. Copy `AppResources.de.resx` to `AppResources.fr.resx`, and `SharedResources.de.resx` to `SharedResources.fr.resx`, and translate every `value`. The English file's `comment` says where a text is shown or what goes into its placeholders. Keep each `{0}`, `{1}` as it is; you can move it within the sentence.
+2. Add the language to `AppLanguage` in `src/BambuMan.Shared/Enums/AppLanguage.cs`: a new enum member, its culture code in `CultureName()` and its name in its own language (`Français`) in `NativeName()`.
+3. Run the tests (`dotnet run --project src/BambuMan.Shared.Test/BambuMan.Shared.Test.csproj`). They check that every translation keeps the English text's placeholders and that each language in the setting has its files.
+
+A text that is missing from a translation falls back to English. New texts go into the English `.resx` first; the `AppResources` and `SharedResources` classes are generated from it when building, so don't add a `Designer.cs` file or set a *Custom Tool* on the `.resx`.
 
 ## Roadmap
 

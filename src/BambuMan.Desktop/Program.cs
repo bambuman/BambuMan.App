@@ -1,3 +1,4 @@
+using BambuMan.Shared.Resources.Strings;
 using System.Globalization;
 
 namespace BambuMan.Desktop
@@ -18,8 +19,7 @@ namespace BambuMan.Desktop
 
             // Only the Android app is translated. Keep the messages and labels this ui shows from BambuMan.Shared in
             // English too, rather than mixing in the Windows display language.
-            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo("en");
-            CultureInfo.CurrentUICulture = CultureInfo.DefaultThreadCurrentUICulture;
+            SharedResources.Culture = CultureInfo.GetCultureInfo("en");
 
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
