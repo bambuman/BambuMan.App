@@ -14,6 +14,12 @@
 		<SelfContained>false</SelfContained>
 		<PublishSingleFile>true</PublishSingleFile>
 		<PublishReadyToRun>false</PublishReadyToRun>
+
+		<!-- Only the Android app is translated (Program pins SharedResources to English); don't ship the et/de satellites.
+		     SatelliteResourceLanguages filters the packages' satellites; the project references' ones (BambuMan.Shared)
+		     are found next to their assemblies unless the related-satellite lookup is off. -->
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+		<ResolveAssemblyReferencesFindRelatedSatellites>false</ResolveAssemblyReferencesFindRelatedSatellites>
 	</PropertyGroup>
 
 	<ItemGroup>
