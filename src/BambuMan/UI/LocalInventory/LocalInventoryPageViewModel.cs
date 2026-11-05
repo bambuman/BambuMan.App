@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
@@ -76,11 +77,13 @@ namespace BambuMan.UI.LocalInventory
                 .GroupBy(GroupKey)
                 .Select(g => new LocalSpoolGroup(g.Key, g.First().Title, g.First().Color, g.ToList())));
 
-            var groupText = Groups.Count == 1 ? "1 filament" : $"{Groups.Count} filaments";
+            var groupText = string.Format(Groups.Count == 1 ? AppResources.Spools_FilamentCountOne : AppResources.Spools_FilamentCountMany, Groups.Count);
 
-            CountText = IsFiltered
-                ? $"{filtered.Count} of {allSpools.Count} spools · {groupText}"
-                : $"{allSpools.Count} {(allSpools.Count == 1 ? "spool" : "spools")} · {groupText}";
+            var spoolText = IsFiltered
+                ? string.Format(AppResources.Spools_FilteredCount, filtered.Count, allSpools.Count)
+                : string.Format(allSpools.Count == 1 ? AppResources.Spools_SpoolCountOne : AppResources.Spools_SpoolCountMany, allSpools.Count);
+
+            CountText = $"{spoolText} · {groupText}";
 
             OnPropertyChanged(nameof(TotalCount));
             OnPropertyChanged(nameof(IsFiltered));
@@ -101,7 +104,7 @@ namespace BambuMan.UI.LocalInventory
         {
             var info = spool.Info;
             var material = info.DetailedFilamentType ?? info.FilamentType;
-            var title = spool.Name == null ? material ?? "Unknown filament" : $"{material} {spool.Name}";
+            var title = spool.Name == null ? material ?? AppResources.Spools_UnknownFilament : $"{material} {spool.Name}";
             var subtitle = string.Join(" · ", new[] { spool.Location, info.TrayUid ?? info.SerialNumber, $"{spool.LastScanned:yyyy-MM-dd}" }.Where(x => !string.IsNullOrEmpty(x)));
 
             // Same colour the read-only card shows for this tag.

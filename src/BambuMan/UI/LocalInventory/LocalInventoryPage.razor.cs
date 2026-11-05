@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Resolvers;
@@ -71,7 +72,7 @@ public partial class LocalInventoryPage
             var page = Application.Current?.Windows.FirstOrDefault()?.Page;
             if (page == null) return;
 
-            if (!await page.DisplayAlertAsync("Delete all spools", $"Delete all {manager.Spools.Count} stored spools from this device? Export them to CSV first if you want to keep them.", "Delete all", "Cancel")) return;
+            if (!await page.DisplayAlertAsync(AppResources.Spools_DeleteAllTitle, string.Format(AppResources.Spools_DeleteAllMessage, manager.Spools.Count), AppResources.Spools_DeleteAll, AppResources.Common_Cancel)) return;
 
             await manager.ClearSpoolsAsync();
             Vm.Load(manager.Spools);

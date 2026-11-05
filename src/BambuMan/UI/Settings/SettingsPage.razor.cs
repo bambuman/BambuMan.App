@@ -1,3 +1,4 @@
+using BambuMan.Resources.Strings;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Resolvers;
@@ -351,17 +352,17 @@ public partial class SettingsPage
         {
             if (!EnsureApiHost())
             {
-                Toasts.Show("Set a Spoolman URL first");
+                Toasts.Show(AppResources.Settings_SetSpoolmanUrlFirst);
                 return;
             }
 
             await FetchLocationsAsync();
 
-            Toasts.Show("Locations refreshed", ToastKind.Success);
+            Toasts.Show(AppResources.Settings_LocationsRefreshed, ToastKind.Success);
         }
         catch (Exception)
         {
-            Toasts.Show("Failed to refresh locations", ToastKind.Error);
+            Toasts.Show(AppResources.Settings_LocationsRefreshFailed, ToastKind.Error);
         }
     }
 
@@ -377,7 +378,7 @@ public partial class SettingsPage
         {
             if (!Vm.ValidateServerUrl())
             {
-                Toasts.Show(Vm.ServerUrlError ?? "Invalid URL", ToastKind.Error, true);
+                Toasts.Show(Vm.ServerUrlError ?? AppResources.Settings_InvalidUrl, ToastKind.Error, true);
                 return;
             }
 
@@ -397,7 +398,7 @@ public partial class SettingsPage
             var url = Vm.SpoolmanUrl;
             if (string.IsNullOrWhiteSpace(url))
             {
-                Toasts.Show("Spoolman URL is empty", ToastKind.Error);
+                Toasts.Show(AppResources.Settings_SpoolmanUrlEmpty, ToastKind.Error);
                 return;
             }
 
@@ -406,25 +407,25 @@ public partial class SettingsPage
             var defaultApi = testHost.Services.GetRequiredService<IDefaultApi>();
             var healthResult = await defaultApi.HealthHealthGetAsync();
 
-            if (healthResult.TryOk(out _)) Toasts.Show("Connection successful", ToastKind.Success, true);
-            else Toasts.Show($"Connection failed: {healthResult.RawContent}", ToastKind.Error, true);
+            if (healthResult.TryOk(out _)) Toasts.Show(AppResources.Settings_ConnectionSuccessful, ToastKind.Success, true);
+            else Toasts.Show(string.Format(AppResources.Settings_ConnectionFailed, healthResult.RawContent), ToastKind.Error, true);
         }
         catch (TaskCanceledException)
         {
-            Toasts.Show("Connection timed out — check the URL and ensure Spoolman is running", ToastKind.Error, true);
+            Toasts.Show(AppResources.Settings_SpoolmanTimeout, ToastKind.Error, true);
         }
         catch (HttpRequestException)
         {
-            Toasts.Show("Could not reach Spoolman — check the URL and network connection", ToastKind.Error, true);
+            Toasts.Show(AppResources.Settings_SpoolmanUnreachable, ToastKind.Error, true);
         }
         catch (UriFormatException)
         {
-            Toasts.Show("Invalid URL format", ToastKind.Error, true);
+            Toasts.Show(AppResources.Settings_InvalidUrlFormat, ToastKind.Error, true);
         }
         catch (Exception ex)
         {
             Logger.LogDebug("Test Spoolman URL failed: {Message}", ex.Message);
-            Toasts.Show($"Connection failed: {ex.Message}", ToastKind.Error, true);
+            Toasts.Show(string.Format(AppResources.Settings_ConnectionFailed, ex.Message), ToastKind.Error, true);
         }
     }
 
@@ -435,19 +436,19 @@ public partial class SettingsPage
             var url = Vm.BambuddyUrl;
             if (string.IsNullOrWhiteSpace(url))
             {
-                Toasts.Show("Bambuddy URL is empty", ToastKind.Error);
+                Toasts.Show(AppResources.Settings_BambuddyUrlEmpty, ToastKind.Error);
                 return;
             }
 
             var (ok, error) = await BambuddyManager.TestConnectionAsync(url, Vm.BambuddyApiKey);
 
-            if (ok) Toasts.Show("Connection successful", ToastKind.Success, true);
-            else Toasts.Show($"Connection failed: {error}", ToastKind.Error, true);
+            if (ok) Toasts.Show(AppResources.Settings_ConnectionSuccessful, ToastKind.Success, true);
+            else Toasts.Show(string.Format(AppResources.Settings_ConnectionFailed, error), ToastKind.Error, true);
         }
         catch (Exception ex)
         {
             Logger.LogDebug("Test Bambuddy URL failed: {Message}", ex.Message);
-            Toasts.Show($"Connection failed: {ex.Message}", ToastKind.Error, true);
+            Toasts.Show(string.Format(AppResources.Settings_ConnectionFailed, ex.Message), ToastKind.Error, true);
         }
     }
 

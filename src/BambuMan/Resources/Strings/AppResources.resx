@@ -312,4 +312,318 @@
   <data name="Main_ImportFailed" xml:space="preserve">
     <value>Import failed. See logs.</value>
   </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings_Subtitle" xml:space="preserve">
+    <value>Changes are saved as you make them.</value>
+  </data>
+  <data name="Settings_InventoryBackend" xml:space="preserve">
+    <value>Inventory backend</value>
+  </data>
+  <data name="Settings_BackendBambuddyDescription" xml:space="preserve">
+    <value>Read spools are added to, or updated in, your Bambuddy inventory.</value>
+  </data>
+  <data name="Settings_BackendSpoolmanDescription" xml:space="preserve">
+    <value>Read spools are added to, or updated in, your Spoolman server.</value>
+  </data>
+  <data name="Settings_BackendNoneDescription" xml:space="preserve">
+    <value>Nothing is sent to an inventory server, and it works offline. Read spools are shown and can be exported to CSV — or, stored on this device, edited too.</value>
+  </data>
+  <data name="Settings_Connection" xml:space="preserve">
+    <value>Connection</value>
+  </data>
+  <data name="Settings_ServerUrl" xml:space="preserve">
+    <value>Server url</value>
+  </data>
+  <data name="Settings_ScanQr" xml:space="preserve">
+    <value>Scan QR</value>
+  </data>
+  <data name="Settings_BambuddyApiKey" xml:space="preserve">
+    <value>Bambuddy API key</value>
+  </data>
+  <data name="Settings_Testing" xml:space="preserve">
+    <value>Testing …</value>
+  </data>
+  <data name="Settings_TestUrl" xml:space="preserve">
+    <value>Test {0} url</value>
+    <comment>{0} is the backend name, e.g. Spoolman or Bambuddy.</comment>
+  </data>
+  <data name="Settings_TextSize" xml:space="preserve">
+    <value>Text size</value>
+  </data>
+  <data name="Settings_TextSizeDescription" xml:space="preserve">
+    <value>Makes the text larger on every page. The change shows right away.</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_LanguageSystemDefault" xml:space="preserve">
+    <value>System default</value>
+    <comment>The language choice that follows the phone's language.</comment>
+  </data>
+  <data name="Settings_LanguageDescription" xml:space="preserve">
+    <value>System default follows your phone's language.</value>
+  </data>
+  <data name="Settings_Scanning" xml:space="preserve">
+    <value>Scanning</value>
+  </data>
+  <data name="Settings_UploadTitle" xml:space="preserve">
+    <value>Participate in NFC data upload</value>
+  </data>
+  <data name="Settings_UploadDescription" xml:space="preserve">
+    <value>Uploads full tag data to a public research library.</value>
+  </data>
+  <data name="Settings_UploadInfo" xml:space="preserve">
+    <value>About the NFC data upload</value>
+  </data>
+  <data name="Settings_StoreLocallyTitle" xml:space="preserve">
+    <value>Store spools locally</value>
+  </data>
+  <data name="Settings_StoreLocallyDescription" xml:space="preserve">
+    <value>Keeps read spools on this device between app starts, so they can be edited, listed, exported and imported. Off, read spools are only shown, and only this session's scans are exported.</value>
+  </data>
+  <data name="Settings_UnknownFilamentTitle" xml:space="preserve">
+    <value>Import unknown filament</value>
+  </data>
+  <data name="Settings_UnknownFilamentDescription" xml:space="preserve">
+    <value>Adds spools the filament catalog has no match for, as an unknown filament, instead of rejecting them.</value>
+  </data>
+  <data name="Settings_ShowLogsTitle" xml:space="preserve">
+    <value>Show logs on main page</value>
+  </data>
+  <data name="Settings_ShowKeyboardTitle" xml:space="preserve">
+    <value>Show keyboard on spool read</value>
+  </data>
+  <data name="Settings_ShowKeyboardDescription" xml:space="preserve">
+    <value>Focuses the weight field when a spool is read, ready to type its weight.</value>
+  </data>
+  <data name="Settings_OverrideLocationDescription" xml:space="preserve">
+    <value>Moves an already known spool to the default location below when it is read.</value>
+  </data>
+  <data name="Settings_Defaults" xml:space="preserve">
+    <value>Defaults for read spools</value>
+  </data>
+  <data name="Settings_RefreshLocations" xml:space="preserve">
+    <value>Refresh locations</value>
+  </data>
+  <data name="Settings_BackToScanner" xml:space="preserve">
+    <value>Back to scanner</value>
+  </data>
+  <data name="Settings_SetSpoolmanUrlFirst" xml:space="preserve">
+    <value>Set a Spoolman URL first</value>
+  </data>
+  <data name="Settings_LocationsRefreshed" xml:space="preserve">
+    <value>Locations refreshed</value>
+  </data>
+  <data name="Settings_LocationsRefreshFailed" xml:space="preserve">
+    <value>Failed to refresh locations</value>
+  </data>
+  <data name="Settings_InvalidUrl" xml:space="preserve">
+    <value>Invalid URL</value>
+  </data>
+  <data name="Settings_SpoolmanUrlEmpty" xml:space="preserve">
+    <value>Spoolman URL is empty</value>
+  </data>
+  <data name="Settings_BambuddyUrlEmpty" xml:space="preserve">
+    <value>Bambuddy URL is empty</value>
+  </data>
+  <data name="Settings_ConnectionSuccessful" xml:space="preserve">
+    <value>Connection successful</value>
+  </data>
+  <data name="Settings_ConnectionFailed" xml:space="preserve">
+    <value>Connection failed: {0}</value>
+    <comment>{0} is the error the server or network reported (not translated).</comment>
+  </data>
+  <data name="Settings_SpoolmanTimeout" xml:space="preserve">
+    <value>Connection timed out — check the URL and ensure Spoolman is running</value>
+  </data>
+  <data name="Settings_SpoolmanUnreachable" xml:space="preserve">
+    <value>Could not reach Spoolman — check the URL and network connection</value>
+  </data>
+  <data name="Settings_InvalidUrlFormat" xml:space="preserve">
+    <value>Invalid URL format</value>
+  </data>
+  <data name="Settings_ServerUrlRequired" xml:space="preserve">
+    <value>Server url is required.</value>
+  </data>
+  <data name="Settings_ServerUrlInvalid" xml:space="preserve">
+    <value>Invalid url, must start with http:// or https://</value>
+  </data>
+  <data name="Settings_ApiKeyRequired" xml:space="preserve">
+    <value>API key is required.</value>
+  </data>
+  <data name="Spool_Weight" xml:space="preserve">
+    <value>Weight (g)</value>
+  </data>
+  <data name="Spool_EmptyWeight" xml:space="preserve">
+    <value>Empty weight (g)</value>
+  </data>
+  <data name="Spool_Price" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="Spool_BuyDate" xml:space="preserve">
+    <value>Buy date</value>
+  </data>
+  <data name="Spool_LotNr" xml:space="preserve">
+    <value>Lot nr</value>
+  </data>
+  <data name="Spool_Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="Spool_SaveChanges" xml:space="preserve">
+    <value>Save changes</value>
+  </data>
+  <data name="Spool_WeightNegative" xml:space="preserve">
+    <value>Weight can't be negative.</value>
+  </data>
+  <data name="Spool_EmptyWeightNegative" xml:space="preserve">
+    <value>Empty weight can't be negative.</value>
+  </data>
+  <data name="Spool_PriceNegative" xml:space="preserve">
+    <value>Price can't be negative.</value>
+  </data>
+  <data name="Spool_NotInCatalog" xml:space="preserve">
+    <value>Not found in the filament catalog — showing tag data only.</value>
+  </data>
+  <data name="Spool_NotFoundTitle" xml:space="preserve">
+    <value>Spool not found</value>
+  </data>
+  <data name="Spool_NotFoundMessage" xml:space="preserve">
+    <value>This spool is no longer stored on this device.</value>
+  </data>
+  <data name="Spool_LastScanned" xml:space="preserve">
+    <value>Last scanned {0}</value>
+    <comment>{0} is a date and time, e.g. 2026-11-05 14:30.</comment>
+  </data>
+  <data name="Spool_Delete" xml:space="preserve">
+    <value>Delete spool</value>
+  </data>
+  <data name="Spool_DeleteMessage" xml:space="preserve">
+    <value>Delete {0} from this device?</value>
+    <comment>{0} is the spool's name, e.g. PLA Basic Black.</comment>
+  </data>
+  <data name="Spool_Deleted" xml:space="preserve">
+    <value>Spool deleted</value>
+  </data>
+  <data name="Spool_NoLongerStored" xml:space="preserve">
+    <value>This spool is no longer stored.</value>
+  </data>
+  <data name="Spool_Saved" xml:space="preserve">
+    <value>Spool saved</value>
+  </data>
+  <data name="Spool_SaveFailed" xml:space="preserve">
+    <value>Saving the spool failed. See logs.</value>
+  </data>
+  <data name="Spools_Title" xml:space="preserve">
+    <value>Stored spools</value>
+  </data>
+  <data name="Spools_DeleteAll" xml:space="preserve">
+    <value>Delete all</value>
+  </data>
+  <data name="Spools_Search" xml:space="preserve">
+    <value>Search name or tag</value>
+  </data>
+  <data name="Spools_AllLocations" xml:space="preserve">
+    <value>All locations</value>
+  </data>
+  <data name="Spools_Empty" xml:space="preserve">
+    <value>No spools stored yet. Scan a spool to add it.</value>
+  </data>
+  <data name="Spools_NoMatch" xml:space="preserve">
+    <value>No spools match the filter.</value>
+  </data>
+  <data name="Spools_ClearFilter" xml:space="preserve">
+    <value>Clear filter</value>
+  </data>
+  <data name="Spools_DeleteSpool" xml:space="preserve">
+    <value>Delete {0}</value>
+    <comment>Accessible label of a list row's delete button; {0} is the spool's name.</comment>
+  </data>
+  <data name="Spools_DeleteAllTitle" xml:space="preserve">
+    <value>Delete all spools</value>
+  </data>
+  <data name="Spools_DeleteAllMessage" xml:space="preserve">
+    <value>Delete all {0} stored spools from this device? Export them to CSV first if you want to keep them.</value>
+  </data>
+  <data name="Spools_FilamentCountOne" xml:space="preserve">
+    <value>{0} filament</value>
+    <comment>{0} is 1.</comment>
+  </data>
+  <data name="Spools_FilamentCountMany" xml:space="preserve">
+    <value>{0} filaments</value>
+    <comment>{0} is a number other than 1.</comment>
+  </data>
+  <data name="Spools_SpoolCountOne" xml:space="preserve">
+    <value>{0} spool</value>
+    <comment>{0} is 1.</comment>
+  </data>
+  <data name="Spools_SpoolCountMany" xml:space="preserve">
+    <value>{0} spools</value>
+    <comment>{0} is a number other than 1.</comment>
+  </data>
+  <data name="Spools_FilteredCount" xml:space="preserve">
+    <value>{0} of {1} spools</value>
+    <comment>{0} spools match the filter, out of {1} stored.</comment>
+  </data>
+  <data name="Spools_UnknownFilament" xml:space="preserve">
+    <value>Unknown filament</value>
+  </data>
+  <data name="Logs_Title" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="Logs_Clear" xml:space="preserve">
+    <value>Clear logs</value>
+  </data>
+  <data name="Logs_Email" xml:space="preserve">
+    <value>Email logs</value>
+  </data>
+  <data name="Logs_Empty" xml:space="preserve">
+    <value>No log messages yet.</value>
+  </data>
+  <data name="Logs_CountOne" xml:space="preserve">
+    <value>{0} message, newest first</value>
+    <comment>{0} is 1.</comment>
+  </data>
+  <data name="Logs_CountMany" xml:space="preserve">
+    <value>{0} messages, newest first</value>
+    <comment>{0} is a number other than 1.</comment>
+  </data>
+  <data name="Consent_Title" xml:space="preserve">
+    <value>Research Data Contribution</value>
+  </data>
+  <data name="Consent_Intro" xml:space="preserve">
+    <value>Help improve Bambu Lab filament research by uploading NFC tag data to the {0}.</value>
+    <comment>{0} is replaced by a link named Bambu-Lab-RFID-Library. Consent text: keep it faithful to the English.</comment>
+  </data>
+  <data name="Consent_Archive" xml:space="preserve">
+    <value>The uploaded data will also be available at {0} as a downloadable archive.</value>
+    <comment>{0} is replaced by a link named bambuman.ee. Consent text: keep it faithful to the English.</comment>
+  </data>
+  <data name="Consent_WhatIsUploaded" xml:space="preserve">
+    <value>What is uploaded:</value>
+  </data>
+  <data name="Consent_WhatIsUploadedValue" xml:space="preserve">
+    <value>Full NFC tag data with keys</value>
+    <comment>Consent text: keep it faithful to the English.</comment>
+  </data>
+  <data name="Consent_PublicWarning" xml:space="preserve">
+    <value>The uploaded data will be PUBLIC and freely available without restrictions.</value>
+    <comment>Consent text: keep it faithful to the English, including the emphasis.</comment>
+  </data>
+  <data name="Consent_ScanBothSides" xml:space="preserve">
+    <value>Please scan both sides of the spool — each tag contains unique data.</value>
+  </data>
+  <data name="Consent_DailyLimit" xml:space="preserve">
+    <value>Limited to 1000 tag uploads per day.</value>
+  </data>
+  <data name="Consent_OptOut" xml:space="preserve">
+    <value>You can opt out anytime in Settings.</value>
+  </data>
+  <data name="Consent_Decline" xml:space="preserve">
+    <value>No Thanks</value>
+  </data>
+  <data name="Consent_Accept" xml:space="preserve">
+    <value>Participate</value>
+  </data>
 </root>

@@ -297,4 +297,301 @@
   <data name="Main_ImportFailed" xml:space="preserve">
     <value>Import fehlgeschlagen. Siehe Logs.</value>
   </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="Settings_Subtitle" xml:space="preserve">
+    <value>Änderungen werden sofort gespeichert.</value>
+  </data>
+  <data name="Settings_InventoryBackend" xml:space="preserve">
+    <value>Inventar-Backend</value>
+  </data>
+  <data name="Settings_BackendBambuddyDescription" xml:space="preserve">
+    <value>Gelesene Spulen werden deinem Bambuddy-Inventar hinzugefügt oder dort aktualisiert.</value>
+  </data>
+  <data name="Settings_BackendSpoolmanDescription" xml:space="preserve">
+    <value>Gelesene Spulen werden auf deinem Spoolman-Server hinzugefügt oder dort aktualisiert.</value>
+  </data>
+  <data name="Settings_BackendNoneDescription" xml:space="preserve">
+    <value>Es wird nichts an einen Inventarserver gesendet, und es funktioniert offline. Gelesene Spulen werden angezeigt und können als CSV exportiert werden – oder, auf diesem Gerät gespeichert, auch bearbeitet.</value>
+  </data>
+  <data name="Settings_Connection" xml:space="preserve">
+    <value>Verbindung</value>
+  </data>
+  <data name="Settings_ServerUrl" xml:space="preserve">
+    <value>Server-URL</value>
+  </data>
+  <data name="Settings_ScanQr" xml:space="preserve">
+    <value>QR scannen</value>
+  </data>
+  <data name="Settings_BambuddyApiKey" xml:space="preserve">
+    <value>Bambuddy-API-Schlüssel</value>
+  </data>
+  <data name="Settings_Testing" xml:space="preserve">
+    <value>Teste …</value>
+  </data>
+  <data name="Settings_TestUrl" xml:space="preserve">
+    <value>{0}-URL testen</value>
+  </data>
+  <data name="Settings_TextSize" xml:space="preserve">
+    <value>Textgröße</value>
+  </data>
+  <data name="Settings_TextSizeDescription" xml:space="preserve">
+    <value>Vergrößert den Text auf allen Seiten. Die Änderung ist sofort sichtbar.</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Sprache</value>
+  </data>
+  <data name="Settings_LanguageSystemDefault" xml:space="preserve">
+    <value>Systemstandard</value>
+  </data>
+  <data name="Settings_LanguageDescription" xml:space="preserve">
+    <value>Systemstandard folgt der Sprache deines Telefons.</value>
+  </data>
+  <data name="Settings_Scanning" xml:space="preserve">
+    <value>Scannen</value>
+  </data>
+  <data name="Settings_UploadTitle" xml:space="preserve">
+    <value>Am NFC-Daten-Upload teilnehmen</value>
+  </data>
+  <data name="Settings_UploadDescription" xml:space="preserve">
+    <value>Lädt die vollständigen Tag-Daten in eine öffentliche Forschungsbibliothek hoch.</value>
+  </data>
+  <data name="Settings_UploadInfo" xml:space="preserve">
+    <value>Über den NFC-Daten-Upload</value>
+  </data>
+  <data name="Settings_StoreLocallyTitle" xml:space="preserve">
+    <value>Spulen lokal speichern</value>
+  </data>
+  <data name="Settings_StoreLocallyDescription" xml:space="preserve">
+    <value>Behält gelesene Spulen zwischen App-Starts auf diesem Gerät, damit sie bearbeitet, aufgelistet, exportiert und importiert werden können. Ausgeschaltet werden gelesene Spulen nur angezeigt, und nur die Scans dieser Sitzung werden exportiert.</value>
+  </data>
+  <data name="Settings_UnknownFilamentTitle" xml:space="preserve">
+    <value>Unbekanntes Filament importieren</value>
+  </data>
+  <data name="Settings_UnknownFilamentDescription" xml:space="preserve">
+    <value>Fügt Spulen, für die der Filamentkatalog keinen Treffer hat, als unbekanntes Filament hinzu, statt sie abzulehnen.</value>
+  </data>
+  <data name="Settings_ShowLogsTitle" xml:space="preserve">
+    <value>Logs auf der Hauptseite anzeigen</value>
+  </data>
+  <data name="Settings_ShowKeyboardTitle" xml:space="preserve">
+    <value>Tastatur beim Lesen einer Spule anzeigen</value>
+  </data>
+  <data name="Settings_ShowKeyboardDescription" xml:space="preserve">
+    <value>Setzt beim Lesen einer Spule den Fokus auf das Gewichtsfeld, damit du das Gewicht direkt eingeben kannst.</value>
+  </data>
+  <data name="Settings_OverrideLocationDescription" xml:space="preserve">
+    <value>Verschiebt eine bereits bekannte Spule beim Lesen an den unten festgelegten Standard-Lagerort.</value>
+  </data>
+  <data name="Settings_Defaults" xml:space="preserve">
+    <value>Standardwerte für gelesene Spulen</value>
+  </data>
+  <data name="Settings_RefreshLocations" xml:space="preserve">
+    <value>Lagerorte aktualisieren</value>
+  </data>
+  <data name="Settings_BackToScanner" xml:space="preserve">
+    <value>Zurück zum Scanner</value>
+  </data>
+  <data name="Settings_SetSpoolmanUrlFirst" xml:space="preserve">
+    <value>Gib zuerst eine Spoolman-URL ein</value>
+  </data>
+  <data name="Settings_LocationsRefreshed" xml:space="preserve">
+    <value>Lagerorte aktualisiert</value>
+  </data>
+  <data name="Settings_LocationsRefreshFailed" xml:space="preserve">
+    <value>Lagerorte konnten nicht aktualisiert werden</value>
+  </data>
+  <data name="Settings_InvalidUrl" xml:space="preserve">
+    <value>Ungültige URL</value>
+  </data>
+  <data name="Settings_SpoolmanUrlEmpty" xml:space="preserve">
+    <value>Spoolman-URL ist leer</value>
+  </data>
+  <data name="Settings_BambuddyUrlEmpty" xml:space="preserve">
+    <value>Bambuddy-URL ist leer</value>
+  </data>
+  <data name="Settings_ConnectionSuccessful" xml:space="preserve">
+    <value>Verbindung erfolgreich</value>
+  </data>
+  <data name="Settings_ConnectionFailed" xml:space="preserve">
+    <value>Verbindung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="Settings_SpoolmanTimeout" xml:space="preserve">
+    <value>Zeitüberschreitung der Verbindung – prüfe die URL und ob Spoolman läuft</value>
+  </data>
+  <data name="Settings_SpoolmanUnreachable" xml:space="preserve">
+    <value>Spoolman ist nicht erreichbar – prüfe die URL und die Netzwerkverbindung</value>
+  </data>
+  <data name="Settings_InvalidUrlFormat" xml:space="preserve">
+    <value>Ungültiges URL-Format</value>
+  </data>
+  <data name="Settings_ServerUrlRequired" xml:space="preserve">
+    <value>Die Server-URL ist erforderlich.</value>
+  </data>
+  <data name="Settings_ServerUrlInvalid" xml:space="preserve">
+    <value>Ungültige URL, sie muss mit http:// oder https:// beginnen</value>
+  </data>
+  <data name="Settings_ApiKeyRequired" xml:space="preserve">
+    <value>Der API-Schlüssel ist erforderlich.</value>
+  </data>
+  <data name="Spool_Weight" xml:space="preserve">
+    <value>Gewicht (g)</value>
+  </data>
+  <data name="Spool_EmptyWeight" xml:space="preserve">
+    <value>Leergewicht (g)</value>
+  </data>
+  <data name="Spool_Price" xml:space="preserve">
+    <value>Preis</value>
+  </data>
+  <data name="Spool_BuyDate" xml:space="preserve">
+    <value>Kaufdatum</value>
+  </data>
+  <data name="Spool_LotNr" xml:space="preserve">
+    <value>Chargennr.</value>
+  </data>
+  <data name="Spool_Location" xml:space="preserve">
+    <value>Lagerort</value>
+  </data>
+  <data name="Spool_SaveChanges" xml:space="preserve">
+    <value>Änderungen speichern</value>
+  </data>
+  <data name="Spool_WeightNegative" xml:space="preserve">
+    <value>Das Gewicht darf nicht negativ sein.</value>
+  </data>
+  <data name="Spool_EmptyWeightNegative" xml:space="preserve">
+    <value>Das Leergewicht darf nicht negativ sein.</value>
+  </data>
+  <data name="Spool_PriceNegative" xml:space="preserve">
+    <value>Der Preis darf nicht negativ sein.</value>
+  </data>
+  <data name="Spool_NotInCatalog" xml:space="preserve">
+    <value>Nicht im Filamentkatalog gefunden – es werden nur die Tag-Daten angezeigt.</value>
+  </data>
+  <data name="Spool_NotFoundTitle" xml:space="preserve">
+    <value>Spule nicht gefunden</value>
+  </data>
+  <data name="Spool_NotFoundMessage" xml:space="preserve">
+    <value>Diese Spule ist nicht mehr auf diesem Gerät gespeichert.</value>
+  </data>
+  <data name="Spool_LastScanned" xml:space="preserve">
+    <value>Zuletzt gescannt: {0}</value>
+  </data>
+  <data name="Spool_Delete" xml:space="preserve">
+    <value>Spule löschen</value>
+  </data>
+  <data name="Spool_DeleteMessage" xml:space="preserve">
+    <value>{0} von diesem Gerät löschen?</value>
+  </data>
+  <data name="Spool_Deleted" xml:space="preserve">
+    <value>Spule gelöscht</value>
+  </data>
+  <data name="Spool_NoLongerStored" xml:space="preserve">
+    <value>Diese Spule ist nicht mehr gespeichert.</value>
+  </data>
+  <data name="Spool_Saved" xml:space="preserve">
+    <value>Spule gespeichert</value>
+  </data>
+  <data name="Spool_SaveFailed" xml:space="preserve">
+    <value>Speichern der Spule fehlgeschlagen. Siehe Logs.</value>
+  </data>
+  <data name="Spools_Title" xml:space="preserve">
+    <value>Gespeicherte Spulen</value>
+  </data>
+  <data name="Spools_DeleteAll" xml:space="preserve">
+    <value>Alle löschen</value>
+  </data>
+  <data name="Spools_Search" xml:space="preserve">
+    <value>Name oder Tag suchen</value>
+  </data>
+  <data name="Spools_AllLocations" xml:space="preserve">
+    <value>Alle Lagerorte</value>
+  </data>
+  <data name="Spools_Empty" xml:space="preserve">
+    <value>Noch keine Spulen gespeichert. Scanne eine Spule, um sie hinzuzufügen.</value>
+  </data>
+  <data name="Spools_NoMatch" xml:space="preserve">
+    <value>Keine Spulen entsprechen dem Filter.</value>
+  </data>
+  <data name="Spools_ClearFilter" xml:space="preserve">
+    <value>Filter zurücksetzen</value>
+  </data>
+  <data name="Spools_DeleteSpool" xml:space="preserve">
+    <value>{0} löschen</value>
+  </data>
+  <data name="Spools_DeleteAllTitle" xml:space="preserve">
+    <value>Alle Spulen löschen</value>
+  </data>
+  <data name="Spools_DeleteAllMessage" xml:space="preserve">
+    <value>Alle {0} gespeicherten Spulen von diesem Gerät löschen? Exportiere sie vorher als CSV, wenn du sie behalten möchtest.</value>
+  </data>
+  <data name="Spools_FilamentCountOne" xml:space="preserve">
+    <value>{0} Filament</value>
+  </data>
+  <data name="Spools_FilamentCountMany" xml:space="preserve">
+    <value>{0} Filamente</value>
+  </data>
+  <data name="Spools_SpoolCountOne" xml:space="preserve">
+    <value>{0} Spule</value>
+  </data>
+  <data name="Spools_SpoolCountMany" xml:space="preserve">
+    <value>{0} Spulen</value>
+  </data>
+  <data name="Spools_FilteredCount" xml:space="preserve">
+    <value>{0} von {1} Spulen</value>
+  </data>
+  <data name="Spools_UnknownFilament" xml:space="preserve">
+    <value>Unbekanntes Filament</value>
+  </data>
+  <data name="Logs_Title" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="Logs_Clear" xml:space="preserve">
+    <value>Logs leeren</value>
+  </data>
+  <data name="Logs_Email" xml:space="preserve">
+    <value>Logs per E-Mail senden</value>
+  </data>
+  <data name="Logs_Empty" xml:space="preserve">
+    <value>Noch keine Log-Meldungen.</value>
+  </data>
+  <data name="Logs_CountOne" xml:space="preserve">
+    <value>{0} Meldung, neueste zuerst</value>
+  </data>
+  <data name="Logs_CountMany" xml:space="preserve">
+    <value>{0} Meldungen, neueste zuerst</value>
+  </data>
+  <data name="Consent_Title" xml:space="preserve">
+    <value>Beitrag zu Forschungsdaten</value>
+  </data>
+  <data name="Consent_Intro" xml:space="preserve">
+    <value>Hilf, die Forschung zu Bambu-Lab-Filamenten zu verbessern, indem du NFC-Tag-Daten in die {0} hochlädst.</value>
+  </data>
+  <data name="Consent_Archive" xml:space="preserve">
+    <value>Die hochgeladenen Daten sind außerdem unter {0} als herunterladbares Archiv verfügbar.</value>
+  </data>
+  <data name="Consent_WhatIsUploaded" xml:space="preserve">
+    <value>Was hochgeladen wird:</value>
+  </data>
+  <data name="Consent_WhatIsUploadedValue" xml:space="preserve">
+    <value>Vollständige NFC-Tag-Daten mit Schlüsseln</value>
+  </data>
+  <data name="Consent_PublicWarning" xml:space="preserve">
+    <value>Die hochgeladenen Daten sind ÖFFENTLICH und ohne Einschränkungen frei verfügbar.</value>
+  </data>
+  <data name="Consent_ScanBothSides" xml:space="preserve">
+    <value>Bitte scanne beide Seiten der Spule – jeder Tag enthält eigene Daten.</value>
+  </data>
+  <data name="Consent_DailyLimit" xml:space="preserve">
+    <value>Begrenzt auf 1000 Tag-Uploads pro Tag.</value>
+  </data>
+  <data name="Consent_OptOut" xml:space="preserve">
+    <value>Du kannst dich jederzeit in den Einstellungen abmelden.</value>
+  </data>
+  <data name="Consent_Decline" xml:space="preserve">
+    <value>Nein, danke</value>
+  </data>
+  <data name="Consent_Accept" xml:space="preserve">
+    <value>Teilnehmen</value>
+  </data>
 </root>

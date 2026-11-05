@@ -5,8 +5,8 @@
 @inject IInvokeIndent InvokeIndent
 @inject ILogger<LogsPage> Logger
 
-<PageHeader Title="Logs" Icon="Lucide.ScrollText">
-    <Subtitle>@Vm.Logs.Count @(Vm.Logs.Count == 1 ? "message" : "messages"), newest first</Subtitle>
+<PageHeader Title="@AppResources.Logs_Title" Icon="Lucide.ScrollText">
+    <Subtitle>@(string.Format(Vm.Logs.Count == 1 ? AppResources.Logs_CountOne : AppResources.Logs_CountMany, Vm.Logs.Count))</Subtitle>
 </PageHeader>
 
 <LogPanel Logs="Vm.Logs" Full="true" OnClear="Vm.Logs.Clear" OnEmail="EmailLogsAsync" />
