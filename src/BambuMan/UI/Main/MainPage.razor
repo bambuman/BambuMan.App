@@ -130,6 +130,23 @@
         </div>
     }
 
+    @if (Vm.PendingScansCount > 0)
+    {
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><Blazicon Svg="Lucide.Server" /> Queued scans <span class="pill caution">@Vm.PendingScansCount</span></div>
+                <div class="card-actions">
+                    <a class="btn btn-secondary btn-sm" href="pending"><Blazicon Svg="Lucide.List" /> List</a>
+                    @if (Vm.CanSendPendingScans)
+                    {
+                        <button class="btn btn-secondary btn-sm" @onclick="Scanner.SendPendingScansAsync"><Blazicon Svg="Lucide.RefreshCw" /> Send now</button>
+                    }
+                </div>
+            </div>
+            <div class="small subtle">@Vm.PendingScansText</div>
+        </div>
+    }
+
     @if (Vm.ShowLocalSpools)
     {
         <div class="card">

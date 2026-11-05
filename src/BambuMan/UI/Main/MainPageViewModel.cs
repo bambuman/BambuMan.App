@@ -43,6 +43,11 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private string? localSpoolsText = "Scanned spools";
         [ObservableProperty] private int localSpoolsCount;
 
+        // Scans kept on the device while the backend couldn't be reached, waiting to be sent.
+        [ObservableProperty] private int pendingScansCount;
+        [ObservableProperty] private string? pendingScansText;
+        [ObservableProperty] private bool canSendPendingScans;
+
         // The spool behind the edit card, kept whole so the card can show tag fields (colour, material) directly.
         [ObservableProperty] private SpoolFound? spool;
         [ObservableProperty] private BambuFilamentInfo? spoolTag;
@@ -162,7 +167,7 @@ namespace BambuMan.UI.Main
 
             if (!SpoolmanConnecting && !manager.IsHealth)
             {
-                await ShowErrorMessage("Inventory api is not healthy");
+                await ShowErrorMessage("Inventory server can't be reached. Read spools are queued and sent once it's back.");
                 return;
             }
 

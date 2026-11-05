@@ -19,6 +19,7 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
  - **NFC tag reading** on Android (built-in NFC) and Windows desktop (PCSC compatible reader)
  - **Two inventory backends** — choose [bambuddy](https://bambuddy.cool) or [Spoolman](https://github.com/Donkie/Spoolman) in the settings
  - **No backend mode** — works offline, no inventory server needed
+ - **Offline scan queue** — a spool read while the bambuddy or Spoolman server can't be reached (server down, phone away from the home network) is kept on the device and sent automatically, in scan order, once the server is back; queued scans can be listed, sent again or discarded
  - **Stored spools** — keep read spools on the device, search and filter them by name, tag or location, edit or delete them
  - **CSV export / import** — the export uses bambuddy's CSV columns, so it imports straight into bambuddy (`Inventory` → `Import CSV`)
  - **Automatic filament matching** with SpoolmanDB — covers most Bambu Lab filaments; unmatched spools can optionally be added as an unknown filament

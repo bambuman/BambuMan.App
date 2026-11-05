@@ -143,7 +143,7 @@ namespace BambuMan.Shared.Test.PendingScans
             Assert.Equal("{ not json", await File.ReadAllTextAsync(FilePath));
         }
 
-        [Fact(DisplayName = "Discarding removes one scan, or every scan of one backend")]
+        [Fact(DisplayName = "Discarding removes one scan, every scan of one backend, or all")]
         public async Task RemoveAndClear()
         {
             var queue = Queue();
@@ -161,6 +161,9 @@ namespace BambuMan.Shared.Test.PendingScans
             var restarted = Queue();
             await restarted.LoadAsync();
             Assert.Equal(PlaWoodTray, Assert.Single(restarted.Items).Key);
+
+            await restarted.ClearAsync();
+            Assert.Empty(restarted.Items);
         }
 
         [Fact(DisplayName = "Every change raises OnChanged")]

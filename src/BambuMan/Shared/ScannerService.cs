@@ -32,12 +32,13 @@ namespace BambuMan
         private readonly TagApiService tagApiService;
         private readonly IFilamentOverrideService filamentOverrides;
         private readonly ToastService toasts;
+        private readonly IPendingScanQueue pendingScans;
 
 #if !GOOGLE_PLAY
         private bool versionChecked;
 #endif
 
-        public ScannerService(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<ScannerService> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IFilamentOverrideService filamentOverrides, ToastService toasts)
+        public ScannerService(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<ScannerService> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IFilamentOverrideService filamentOverrides, ToastService toasts, IPendingScanQueue pendingScans)
         {
             this.viewModel = viewModel;
             this.backends = backends;
@@ -47,6 +48,7 @@ namespace BambuMan
             this.tagApiService = tagApiService;
             this.filamentOverrides = filamentOverrides;
             this.toasts = toasts;
+            this.pendingScans = pendingScans;
 
             this.filamentOverrides.LogAction = async void (level, message) =>
             {
@@ -85,6 +87,7 @@ namespace BambuMan
 
             viewModel.PropertyChanged += ViewModel_PropertyChanged;
             NoBackend.OnSpoolsChanged += NoBackendOnSpoolsChanged;
+            pendingScans.OnChanged += PendingScansOnChanged;
         }
 
         /// <summary>Raised with true when a read spool should take keyboard focus, false when the edit card closes.</summary>
@@ -103,6 +106,7 @@ namespace BambuMan
         public async Task ActivateAsync()
         {
             await ApplySettingsAsync();
+            await LoadPendingScansAsync();
             await InitializeBackendsAsync();
             await SetupNfcAsync();
             await RefreshFilamentOverridesAsync().ConfigureAwait(false);
@@ -121,6 +125,9 @@ namespace BambuMan
         {
             try
             {
+                // A queued scan rejected in the background isn't the spool in hand; the summary toast reports it.
+                if (IsSendingQueuedScan) return;
+
                 if (toneGenerator != null) await toneGenerator.PlayAlarmTone();
             }
             catch (Exception e)
@@ -131,6 +138,9 @@ namespace BambuMan
 
         private void ManagerOnSpoolFound(SpoolFound found, BambuFilamentInfo info)
         {
+            // Read now: the send is over by the time the main thread runs the code below.
+            var queued = IsSendingQueuedScan;
+
             // On the main thread, so the inventory counter is updated before HasInventoryItems is read back from it.
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -138,8 +148,9 @@ namespace BambuMan
                 {
                     viewModel.InventorySpool(found, info);
 
+                    // A queued scan sent in the background only counts; the edit card is for the spool just read.
                     // A backend that can't save edits shows the info card from OnSpoolInfoRead instead.
-                    if (!ActiveManager.CanEditSpools) return;
+                    if (queued || !ActiveManager.CanEditSpools) return;
 
                     viewModel.ShowSpool(found, info);
 
@@ -171,6 +182,9 @@ namespace BambuMan
         {
             try
             {
+                // Each queued scan sent in the background would replace the banner; the summary toast reports them.
+                if (!isError && IsSendingQueuedScan) return;
+
                 await viewModel.ClearMessages();
 
                 if (isError)
@@ -211,6 +225,10 @@ namespace BambuMan
                 viewModel.BackendStatus = manager.Status;
 
                 await viewModel.Validate(manager);
+
+                // Connected (again): send what was queued while the backend couldn't be reached.
+                if (manager.Status == ManagerStatusType.Ready && manager.CanSendScans && !pendingScans.IsSending && pendingScans.CountFor(manager.Backend) > 0)
+                    _ = SendQueuedScansAsync(manual: false, x => pendingScans.SendAsync(x));
             }
             catch (Exception e)
             {
@@ -254,6 +272,7 @@ namespace BambuMan
                 viewModel.BackendStatus = active.Status;
                 UpdateEditCapabilities(active);
                 viewModel.ShowLocalSpools = active.Backend == InventoryBackend.NoBackend;
+                UpdatePendingScans();
 
                 // Only show connecting animation if the active backend's config changed or it's not yet initialized
                 if (activeChanged || !active.IsInitialized)
@@ -609,7 +628,11 @@ namespace BambuMan
             }
 
             SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
-            await active.InventorySpool(info, buyDate, defaultPrice, defaultLotNr, defaultLocation);
+
+            var scan = new PendingScan { Backend = active.Backend, Info = info, BuyDate = buyDate, Price = defaultPrice, LotNr = defaultLotNr, Location = defaultLocation };
+            var result = await active.SendScanAsync(scan);
+
+            if (result.Status == ScanSendStatus.Unreachable) await QueueScanAsync(scan);
 
             if (viewModel.FullTagScanAndUpload)
             {
@@ -647,6 +670,109 @@ namespace BambuMan
             message += $"MimeType: {record.MimeType}";
 
             return message;
+        }
+
+        #endregion
+
+        #region Queued scans
+
+        /// <summary>True while the active backend is sending a scan from the queue rather than one just read.</summary>
+        private bool IsSendingQueuedScan => ActiveManager.SendingScan?.IsQueued == true;
+
+        /// <summary>Reads the queued scans from the device (once). A damaged file is reported and left alone, never saved over.</summary>
+        public async Task LoadPendingScansAsync()
+        {
+            try
+            {
+                await pendingScans.LoadAsync();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error loading queued scans");
+                toasts.Show("Could not read the queued scans. See logs.", ToastKind.Error, true);
+            }
+
+            UpdatePendingScans();
+        }
+
+        /// <summary>Keeps a scan the backend couldn't be reached for, to send once it's back.</summary>
+        private async Task QueueScanAsync(PendingScan scan)
+        {
+            try
+            {
+                await pendingScans.EnqueueAsync(scan);
+
+                var message = $"{scan.Backend.DisplayName()} can't be reached. The spool is queued and will be sent when it's back.";
+
+                await viewModel.ShowInfoMessage(message);
+                toasts.Show(message, ToastKind.Info, true);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error queuing a scan");
+                await viewModel.ShowErrorMessage("Could not queue the scan. See logs.");
+                toasts.Show("Could not queue the scan. See logs.", ToastKind.Error, true);
+            }
+        }
+
+        /// <summary>Sends every scan queued for the selected backend, the rejected ones too.</summary>
+        public Task SendPendingScansAsync() => SendQueuedScansAsync(manual: true, x => pendingScans.SendAsync(x, retryRejected: true));
+
+        /// <summary>Sends one queued scan, rejected before or not.</summary>
+        public Task SendPendingScanAsync(Guid id) => SendQueuedScansAsync(manual: true, x => pendingScans.SendOneAsync(x, id));
+
+        /// <summary>Sends queued scans to the active backend and reports the outcome. Only a send the user asked for reports a backend still unreachable.</summary>
+        private async Task SendQueuedScansAsync(bool manual, Func<BaseManager, Task<PendingScanSendResult>> send)
+        {
+            try
+            {
+                var active = ActiveManager;
+                var name = active.Backend.DisplayName();
+                var result = await send(active);
+
+                if (result.Sent > 0)
+                    toasts.Show(result.Sent == 1 ? $"Sent 1 queued scan to {name}." : $"Sent {result.Sent} queued scans to {name}.", ToastKind.Success, true);
+
+                if (result.Rejected > 0)
+                    toasts.Show(result.Rejected == 1 ? $"{name} rejected 1 queued scan. See Queued scans." : $"{name} rejected {result.Rejected} queued scans. See Queued scans.", ToastKind.Error, true);
+
+                if (manual && result.Unreachable)
+                    toasts.Show($"{name} still can't be reached. The scans stay queued.", ToastKind.Error, true);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error sending queued scans");
+                toasts.Show("Sending the queued scans failed. See logs.", ToastKind.Error, true);
+            }
+        }
+
+        private void PendingScansOnChanged() => UpdatePendingScans();
+
+        private void UpdatePendingScans()
+        {
+            var scans = pendingScans.Items;
+            var backend = ActiveManager.Backend;
+
+            var waiting = scans.Count(x => x.Backend == backend && !x.IsRejected);
+            var rejected = scans.Count(x => x.Backend == backend && x.IsRejected);
+            var otherBackend = scans.Count(x => x.Backend != backend);
+
+            var parts = new List<string>();
+
+            if (waiting > 0) parts.Add($"Sent automatically when {backend.DisplayName()} is reachable again.");
+            if (rejected > 0) parts.Add(rejected == 1 ? "1 was rejected, open the list to send it again or discard it." : $"{rejected} were rejected, open the list to send them again or discard them.");
+            if (otherBackend > 0) parts.Add(otherBackend == 1 ? "1 is for another backend." : $"{otherBackend} are for another backend.");
+
+            var count = scans.Count;
+            var text = string.Join(" ", parts);
+            var canSend = waiting + rejected > 0;
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                viewModel.PendingScansCount = count;
+                viewModel.PendingScansText = text;
+                viewModel.CanSendPendingScans = canSend;
+            });
         }
 
         #endregion

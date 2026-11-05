@@ -44,8 +44,8 @@ namespace BambuMan.Shared.Services
 
         Task RemoveAsync(Guid id);
 
-        /// <summary>Discard every scan waiting for <paramref name="backend"/>.</summary>
-        Task ClearAsync(InventoryBackend backend);
+        /// <summary>Discard every scan waiting for <paramref name="backend"/>, or every queued scan when null.</summary>
+        Task ClearAsync(InventoryBackend? backend = null);
 
         /// <summary>
         /// Send the scans waiting for <paramref name="manager"/>'s backend, oldest first. Each one inventoried is removed;
@@ -131,7 +131,7 @@ namespace BambuMan.Shared.Services
 
         public Task RemoveAsync(Guid id) => ChangeAsync(list => list.RemoveAll(x => x.Id == id));
 
-        public Task ClearAsync(InventoryBackend backend) => ChangeAsync(list => list.RemoveAll(x => x.Backend == backend));
+        public Task ClearAsync(InventoryBackend? backend = null) => ChangeAsync(list => list.RemoveAll(x => backend == null || x.Backend == backend));
 
         public Task<PendingScanSendResult> SendAsync(BaseManager manager, bool retryRejected = false) =>
             SendCoreAsync(manager, x => retryRejected || !x.IsRejected);
