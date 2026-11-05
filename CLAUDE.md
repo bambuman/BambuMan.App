@@ -91,6 +91,17 @@ Note this repo is a git submodule of BambuMan.Web — a policy revision is a sep
 
 Per-SKU matching exceptions are data, not code branches: `src/BambuMan.Shared/FilamentMatchOverrides.cs`. Add corrections there rather than adding `if` chains to `ExternalFilamentMatcher.FindExternalFilament`, and **bump `FilamentMatchOverrides.CurrentVersion`** — clients that cached an older set key off it. The BambuMan API serves its compiled copy of the same file, so a correction reaches existing installs on an API redeploy and the next app release inherits it automatically.
 
+## Pending: .NET 11 / Android 17 upgrade
+When the Android target moves to `net11.0-android` (or the target SDK otherwise reaches **API 37 / Android 17**), handle Android 17's local network protection in the same change. Apps targeting API 37+ can't reach LAN addresses (private IP ranges, `.local` hosts) without the new permission, and users usually self-host Spoolman / Bambuddy on their LAN.
+
+- Add `<uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />` to `src/BambuMan/Platforms/Android/AndroidManifest.xml` (check the exact name against the API 37 docs)
+- Request it at runtime (Nearby devices group) before the first server connection/test, and show a clear message when it's denied
+- Play Console: submit the **Local Network permission** declaration. Justification: connects to the user's self-hosted Spoolman / Bambuddy server on their local network; a device picker can't select a user-entered HTTP server
+- Privacy policy: add a revision in BambuMan.Web if it doesn't already state that the app connects to servers on the local network
+- Test a LAN IP, a `.local` host, a public HTTPS domain and a VPN address (e.g. Tailscale) once it's built against API 37
+
+Remove this section once it's done.
+
 ## Git
 - Commit messages must **not** include `Co-Authored-By` lines
 - Branch names are `<type>/<short-description>`: a type prefix, then a few lowercase words joined by hyphens that say what the change does — e.g. `feature/text-scaling-setting`, `fix/bambuddy-location-sync`. Types: `feature`, `fix`, `refactor`, `docs`, `chore`
