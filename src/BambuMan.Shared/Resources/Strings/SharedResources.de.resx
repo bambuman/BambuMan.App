@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Machine translation, needs review by a native speaker. -->
+  <data name="SpoolInfo_Manufacturer" xml:space="preserve">
+    <value>Hersteller</value>
+  </data>
+  <data name="SpoolInfo_Material" xml:space="preserve">
+    <value>Material</value>
+  </data>
+  <data name="SpoolInfo_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SpoolInfo_FilamentCode" xml:space="preserve">
+    <value>Filamentcode</value>
+  </data>
+  <data name="SpoolInfo_Variant" xml:space="preserve">
+    <value>Variante</value>
+  </data>
+  <data name="SpoolInfo_Manufactured" xml:space="preserve">
+    <value>Hergestellt</value>
+  </data>
+  <data name="SpoolInfo_Colour" xml:space="preserve">
+    <value>Farbe</value>
+  </data>
+  <data name="SpoolInfo_ColourType" xml:space="preserve">
+    <value>Farbtyp</value>
+  </data>
+  <data name="SpoolInfo_Diameter" xml:space="preserve">
+    <value>Durchmesser</value>
+  </data>
+  <data name="SpoolInfo_SpoolWeight" xml:space="preserve">
+    <value>Spulengewicht</value>
+  </data>
+  <data name="SpoolInfo_DryingTemperature" xml:space="preserve">
+    <value>Trocknungstemperatur</value>
+  </data>
+  <data name="SpoolInfo_DryingTime" xml:space="preserve">
+    <value>Trocknungszeit</value>
+  </data>
+  <data name="SpoolInfo_HotendTemperature" xml:space="preserve">
+    <value>Hotend-Temperatur</value>
+  </data>
+  <data name="SpoolInfo_MinNozzleDiameter" xml:space="preserve">
+    <value>Min. Düsendurchmesser</value>
+  </data>
+  <data name="SpoolInfo_TagSerial" xml:space="preserve">
+    <value>Tag-Seriennummer</value>
+  </data>
+  <data name="SpoolInfo_TrayUid" xml:space="preserve">
+    <value>Tray-UID</value>
+  </data>
+  <data name="Backend_NoBackend" xml:space="preserve">
+    <value>Kein Backend</value>
+  </data>
+  <data name="Manager_ExistingSpoolFound" xml:space="preserve">
+    <value>Vorhandene Spule '{0}' gefunden</value>
+  </data>
+  <data name="Manager_SpoolAdded" xml:space="preserve">
+    <value>Spule '{0}' hinzugefügt</value>
+  </data>
+  <data name="Manager_SpoolUpdatedUsedWeight" xml:space="preserve">
+    <value>Spule '{0}' aktualisiert, verbrauchtes Gewicht auf {1} g gesetzt</value>
+  </data>
+  <data name="Manager_SpoolUpdatedUsedWeightNoName" xml:space="preserve">
+    <value>Spule aktualisiert, verbrauchtes Gewicht auf {0} g gesetzt</value>
+  </data>
+  <data name="Manager_LocalSpoolUpdated" xml:space="preserve">
+    <value>Spule {0} aktualisiert.</value>
+  </data>
+  <data name="Manager_LocalStoreReadFailed" xml:space="preserve">
+    <value>Die lokal gespeicherten Spulen konnten nicht gelesen werden. Siehe Logs.</value>
+  </data>
+  <data name="Manager_LocalStoreSaveFailed" xml:space="preserve">
+    <value>Die lokal gespeicherten Spulen konnten nicht gespeichert werden. Siehe Logs.</value>
+  </data>
+  <data name="Manager_NetworkTimedOut" xml:space="preserve">
+    <value>{0}: Zeitüberschreitung. Wird automatisch erneut versucht.</value>
+  </data>
+  <data name="Manager_NetworkFailed" xml:space="preserve">
+    <value>{0}: fehlgeschlagen. Wird automatisch erneut versucht.</value>
+  </data>
+  <data name="Manager_OperationInventorySpool" xml:space="preserve">
+    <value>Spule inventarisieren</value>
+  </data>
+  <data name="Manager_OperationAddUpdateFilament" xml:space="preserve">
+    <value>Filament hinzufügen/aktualisieren</value>
+  </data>
+  <data name="Manager_OperationAddSpool" xml:space="preserve">
+    <value>Spule hinzufügen</value>
+  </data>
+  <data name="Manager_OperationUpdateSpool" xml:space="preserve">
+    <value>Spule aktualisieren</value>
+  </data>
+  <data name="Manager_ConnectionTimedOut" xml:space="preserve">
+    <value>Zeitüberschreitung der Verbindung</value>
+  </data>
+  <data name="Manager_InvalidUrlFormat" xml:space="preserve">
+    <value>Ungültiges URL-Format</value>
+  </data>
+</root>

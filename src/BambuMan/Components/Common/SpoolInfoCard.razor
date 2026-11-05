@@ -1,10 +1,12 @@
+@using BambuMan.Shared.Resources.Strings
+
 <div class="card spool-card">
     <div class="section-title">@AppResources.Main_SpoolInfo</div>
 
     <div class="spool-head">
         <SpoolSwatch Info="Info" />
         <div class="spool-head-text">
-            <div class="spool-title">@(Info.Rows.FirstOrDefault(x => x.Label == "Material")?.Value ?? "Spool")</div>
+            <div class="spool-title">@(Info.Rows.FirstOrDefault(x => x.Label == SharedResources.SpoolInfo_Material)?.Value ?? AppResources.Main_SpoolSection)</div>
             @if (!Info.Matched)
             {
                 <div class="small subtle">@AppResources.Spool_NotInCatalog</div>

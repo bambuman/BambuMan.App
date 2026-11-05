@@ -1,6 +1,7 @@
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
+using BambuMan.Shared.Resources.Strings;
 using BambuMan.Shared.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -383,11 +384,10 @@ namespace BambuMan.Shared.Managers
 
         #region Error handling
 
-        protected async Task HandleNetworkError(Exception ex, string operation)
+        /// <summary>Shows that <paramref name="displayOperation"/> (translated) failed; the log names <paramref name="operation"/>.</summary>
+        protected async Task HandleNetworkError(Exception ex, string operation, string displayOperation)
         {
-            var message = ex is TaskCanceledException
-                ? $"{operation} timed out. Will retry automatically."
-                : $"{operation} failed. Will retry automatically.";
+            var message = string.Format(ex is TaskCanceledException ? SharedResources.Manager_NetworkTimedOut : SharedResources.Manager_NetworkFailed, displayOperation);
 
             OnShowMessage?.Invoke(true, message);
             await Log(LogLevel.Information, $"{operation}: {ex.Message}");

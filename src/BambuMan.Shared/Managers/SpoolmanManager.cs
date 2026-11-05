@@ -1,6 +1,7 @@
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Matcher;
 using BambuMan.Shared.Models;
+using BambuMan.Shared.Resources.Strings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -537,7 +538,7 @@ namespace BambuMan.Shared.Managers
                         await Log(LogLevel.Success, $"Location updated to '{location}' for spool '{info.TrayUid?.TrimTo(14, "...")}'");
                     }
 
-                    ShowMessage(false, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
+                    ShowMessage(false, string.Format(SharedResources.Manager_ExistingSpoolFound, info.TrayUid?.TrimTo(14, "...")));
                     await Log(LogLevel.Success, $"Existing spool '{info.TrayUid?.TrimTo(14, "...")}' fount");
                     OnSpoolInventoried(spool, info);
                 }
@@ -546,7 +547,7 @@ namespace BambuMan.Shared.Managers
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await HandleNetworkError(ex, "Inventory spool");
+                await HandleNetworkError(ex, "Inventory spool", SharedResources.Manager_OperationInventorySpool);
                 return false;
             }
         }
@@ -630,7 +631,7 @@ namespace BambuMan.Shared.Managers
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await HandleNetworkError(ex, "Add/update filament");
+                await HandleNetworkError(ex, "Add/update filament", SharedResources.Manager_OperationAddUpdateFilament);
                 return null;
             }
         }
@@ -672,7 +673,7 @@ namespace BambuMan.Shared.Managers
                 {
                     UpdateCachedSpool(addedSpool);
                     TrackNewLocation(location);
-                    ShowMessage(false, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
+                    ShowMessage(false, string.Format(SharedResources.Manager_SpoolAdded, info.TrayUid?.TrimTo(14, "...")));
                     await Log(LogLevel.Success, $"Spool '{info.TrayUid?.TrimTo(14, "...")}' added");
                     OnSpoolInventoried(addedSpool, info);
                 }
@@ -683,7 +684,7 @@ namespace BambuMan.Shared.Managers
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await HandleNetworkError(ex, "Add spool");
+                await HandleNetworkError(ex, "Add spool", SharedResources.Manager_OperationAddSpool);
             }
         }
 
@@ -726,7 +727,7 @@ namespace BambuMan.Shared.Managers
                 {
                     UpdateCachedSpool(updatedSpool);
                     TrackNewLocation(location);
-                    ShowMessage(false, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
+                    ShowMessage(false, string.Format(SharedResources.Manager_SpoolUpdatedUsedWeight, trayUid, $"{usedWeight:0.#}"));
                     await Log(LogLevel.Success, $"Spool '{trayUid}' updated, used weight set to {usedWeight:0.#}g");
                 }
                 else
@@ -736,7 +737,7 @@ namespace BambuMan.Shared.Managers
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                await HandleNetworkError(ex, "Update spool");
+                await HandleNetworkError(ex, "Update spool", SharedResources.Manager_OperationUpdateSpool);
             }
         }
 

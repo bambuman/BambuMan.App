@@ -1,5 +1,6 @@
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Matcher;
+using BambuMan.Shared.Resources.Strings;
 using SpoolMan.Api.Model;
 using System.Globalization;
 
@@ -51,22 +52,22 @@ namespace BambuMan.Shared.Models
                 if (!string.IsNullOrWhiteSpace(value)) rows.Add(new SpoolInfoRow(label, value));
             }
 
-            Add("Manufacturer", matched?.Manufacturer);
-            Add("Material", info.DetailedFilamentType ?? info.FilamentType);
-            Add("Name", matched?.Name);
-            Add("Filament code", ExternalFilamentMatcher.FindFilamentCode(info, overrides));
-            Add("Variant", info.MaterialVariantIdentifier);
-            Add("Manufactured", info.ProductionDateTime?.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
-            Add("Colour", colorText);
-            Add("Colour type", matched?.MultiColorDirection?.ToString());
-            Add("Diameter", info.FilamentDiameter == null ? null : $"{info.FilamentDiameter.Value.ToString("0.00", CultureInfo.InvariantCulture)} mm");
-            Add("Spool weight", info.SpoolWeight == null ? null : $"{info.SpoolWeight} g");
-            Add("Drying temperature", info.DryingTemperature == null ? null : $"{info.DryingTemperature} °C");
-            Add("Drying time", info.DryingTime == null ? null : $"{info.DryingTime} h");
-            Add("Hotend temperature", FormatRange(info.MinTemperatureForHotend, info.MaxTemperatureForHotend, "°C"));
-            Add("Min nozzle diameter", info.NozzleDiameter == null ? null : $"{info.NozzleDiameter.Value.ToString("0.0#", CultureInfo.InvariantCulture)} mm");
-            Add("Tag serial", info.SerialNumber);
-            Add("Tray uid", info.TrayUid);
+            Add(SharedResources.SpoolInfo_Manufacturer, matched?.Manufacturer);
+            Add(SharedResources.SpoolInfo_Material, info.DetailedFilamentType ?? info.FilamentType);
+            Add(SharedResources.SpoolInfo_Name, matched?.Name);
+            Add(SharedResources.SpoolInfo_FilamentCode, ExternalFilamentMatcher.FindFilamentCode(info, overrides));
+            Add(SharedResources.SpoolInfo_Variant, info.MaterialVariantIdentifier);
+            Add(SharedResources.SpoolInfo_Manufactured, info.ProductionDateTime?.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+            Add(SharedResources.SpoolInfo_Colour, colorText);
+            Add(SharedResources.SpoolInfo_ColourType, matched?.MultiColorDirection?.ToString());
+            Add(SharedResources.SpoolInfo_Diameter, info.FilamentDiameter == null ? null : $"{info.FilamentDiameter.Value.ToString("0.00", CultureInfo.InvariantCulture)} mm");
+            Add(SharedResources.SpoolInfo_SpoolWeight, info.SpoolWeight == null ? null : $"{info.SpoolWeight} g");
+            Add(SharedResources.SpoolInfo_DryingTemperature, info.DryingTemperature == null ? null : $"{info.DryingTemperature} °C");
+            Add(SharedResources.SpoolInfo_DryingTime, info.DryingTime == null ? null : $"{info.DryingTime} h");
+            Add(SharedResources.SpoolInfo_HotendTemperature, FormatRange(info.MinTemperatureForHotend, info.MaxTemperatureForHotend, "°C"));
+            Add(SharedResources.SpoolInfo_MinNozzleDiameter, info.NozzleDiameter == null ? null : $"{info.NozzleDiameter.Value.ToString("0.0#", CultureInfo.InvariantCulture)} mm");
+            Add(SharedResources.SpoolInfo_TagSerial, info.SerialNumber);
+            Add(SharedResources.SpoolInfo_TrayUid, info.TrayUid);
 
             return new SpoolDisplayInfo
             {
