@@ -38,6 +38,12 @@ window.bambuman = {
         setTimeout(scroll, 900);
     },
 
+    // The language the ui is shown in (en, et, de), so screen readers read it with the right voice. The host page
+    // starts out as English.
+    setLanguage: function (language) {
+        document.documentElement.lang = language;
+    },
+
     // The edit card closed (save or cancel): drop the keyboard and go back to where the page was before the read.
     blur: function () {
         document.body.classList.remove("editing");

@@ -108,6 +108,20 @@ public partial class SettingsPage
         CultureInfo.DefaultThreadCurrentUICulture = culture;
     }
 
+    /// <summary>
+    /// The culture name of the language the strings are actually shown in, e.g. <c>et</c> for a phone set to et-EE.
+    /// <see cref="AppLanguage.SystemDefault"/> resolves to the device language when the app has it, English otherwise.
+    /// </summary>
+    public static string ShownCultureName()
+    {
+        var translated = Enum.GetValues<AppLanguage>().Select(x => x.CultureName()).OfType<string>().ToHashSet();
+
+        for (var culture = AppResources.Culture ?? CultureInfo.CurrentUICulture; !Equals(culture, CultureInfo.InvariantCulture); culture = culture.Parent)
+            if (translated.Contains(culture.Name)) return culture.Name;
+
+        return AppLanguage.English.CultureName()!;
+    }
+
     protected override void OnInitialized()
     {
         try

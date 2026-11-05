@@ -2,7 +2,10 @@
 @implements IDisposable
 @inject NavigationManager Navigation
 @inject AppNavigation AppNavigation
+@inject IJSRuntime Js
+@inject ILogger<MainLayout> Logger
 @using BambuMan.UI.Settings
+@using Microsoft.Extensions.Logging
 
 @* The text size is a css variable on the shell, so every page, dialog and toast scales with it from the first render.
    The shell is keyed by the language, so choosing another one rebuilds every component with the new strings. *@
@@ -33,6 +36,7 @@
     private bool menuOpen;
     private TextScale textScale;
     private AppLanguage language;
+    private AppLanguage? documentLanguage;
 
     protected override void OnInitialized()
     {
@@ -42,6 +46,23 @@
         AppNavigation.Attach(Navigation);
         Navigation.LocationChanged += OnLocationChanged;
         SettingsPage.SettingsChanged += OnSettingsChanged;
+    }
+
+    /// <summary>Tells the page which language it shows: on the first render and after every language change.</summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (documentLanguage == language) return;
+
+        documentLanguage = language;
+
+        try
+        {
+            await Js.InvokeVoidAsync("bambuman.setLanguage", SettingsPage.ShownCultureName());
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error setting the page language");
+        }
     }
 
     private void ToggleMenu() => menuOpen = !menuOpen;
