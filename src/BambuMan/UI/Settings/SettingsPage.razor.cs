@@ -29,6 +29,7 @@ public partial class SettingsPage
     public const string KeyBambuddyUrl = "bambuddy_url";
     public const string KeyBambuddyApiKey = "bambuddy_api_key";
     public const string KeyStoreSpoolsLocally = "store_spools_locally";
+    public const string KeyTextScale = "text_scale";
 
     /// <summary>Raised after a setting is stored, for parts of the ui outside this page that depend on it (the menu).</summary>
     public static event Action? SettingsChanged;
@@ -77,6 +78,10 @@ public partial class SettingsPage
         return string.IsNullOrWhiteSpace(activeUrl);
     }
 
+    /// <summary>The saved text size; normal size until one is chosen.</summary>
+    public static TextScale GetTextScale() =>
+        Enum.TryParse<TextScale>(Preferences.Default.Get(KeyTextScale, string.Empty), out var scale) ? scale : TextScale.Normal;
+
     protected override void OnInitialized()
     {
         try
@@ -84,6 +89,7 @@ public partial class SettingsPage
             Observe(Vm);
 
             Vm.InventoryBackend = GetInventoryBackend();
+            Vm.TextScale = GetTextScale();
             Vm.SpoolmanUrl = Preferences.Default.Get(KeySpoolmanUrl, string.Empty);
             Vm.BambuddyUrl = Preferences.Default.Get(KeyBambuddyUrl, string.Empty);
             Vm.BambuddyApiKey = Preferences.Default.Get(KeyBambuddyApiKey, string.Empty);
@@ -176,6 +182,17 @@ public partial class SettingsPage
         SettingsChanged?.Invoke();
 
         _ = LoadLocationsAsync();
+    }
+
+    private void SelectTextScale(TextScale scale)
+    {
+        if (Vm.TextScale == scale) return;
+
+        Vm.TextScale = scale;
+        Preferences.Default.Set(KeyTextScale, scale.ToString());
+
+        // The layout applies the new size to every page, this one included.
+        SettingsChanged?.Invoke();
     }
 
     private void ClearApiKey() => Set(() => Vm.BambuddyApiKey = null);

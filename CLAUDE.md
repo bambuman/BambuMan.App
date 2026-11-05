@@ -104,7 +104,8 @@ Remove this section once it's done.
 
 ## Git
 - Commit messages must **not** include `Co-Authored-By` lines
-- Branch names: `feature/<short-kebab-description>` for features and improvements, `fix/<short-kebab-description>` for bug fixes (e.g. `feature/text-scaling-setting`, `fix/nfc-scan-crash`). Branch from `main`; never use random or auto-generated names
+- Branch names are `<type>/<short-description>`: a type prefix, then a few lowercase words joined by hyphens that say what the change does — e.g. `feature/text-scaling-setting`, `fix/bambuddy-location-sync`. Types: `feature`, `fix`, `refactor`, `docs`, `chore`
+- Never use generated, random or meaningless branch names (e.g. `claude/magical-goodall-q48miu`, `patch-1`, `test`) — the name must describe the change
 
 ## Error Handling Philosophy
 - Always investigate and fix the **root cause** of errors — do not suppress, hide, or filter them
