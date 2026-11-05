@@ -24,6 +24,7 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
  - **Automatic filament matching** with SpoolmanDB — covers most Bambu Lab filaments; unmatched spools can optionally be added as an unknown filament
  - **Inventory tracking** — groups scanned spools by material with AMS tray UID tracking
  - **Quick weighing** — optionally focuses the weight field when a spool is read, and can move already known spools to the default location
+ - **Bluetooth scale** (Android) — fills in a read spool's weight from a Bluetooth LE scale: a DIY scale speaking the [BambuMan scale protocol](docs/scale-protocol.md) (ESP32 + HX711 example included) or a scale with the standard Weight Scale Service
  - **Research Data Contribution** — opt-in NFC tag data upload to the [bambuman.ee](https://bambuman.ee) tag library
  - **QR code scanner** for quick backend URL and API key setup
  - **Configurable import defaults** — buy date, price, lot number, location
@@ -82,6 +83,16 @@ The Android app can inventory into [bambuddy](https://bambuddy.cool). Pick the b
  2. Turn on **Store spools locally** to keep read spools between app starts. Off, read spools are only shown, and only the current session's scans are exported.
  3. Read `NFC` tags. Stored spools are listed on the **Stored spools** page, where they can be edited, deleted, and exported or imported as CSV.
  4. To move them into bambuddy, use **Export CSV** and import the file in bambuddy's `Inventory` → `Import CSV`.
+
+### Android — Bluetooth scale
+
+ 1. In BambuMan settings, turn on **Weigh with a Bluetooth scale** under **Bluetooth scale** and allow the Bluetooth (*Nearby devices*) permission. On Android 11 and older Android asks for location instead, which it requires for any Bluetooth scan; location services must be on while searching.
+ 2. Turn the scale on, tap **Find scale** and **Use** next to it. BambuMan remembers it, connects whenever it is in reach, and shows its live weight in the settings.
+ 3. Put a spool on the scale, then read its tag: the spool card's weight is filled from the scale (a settled, stable weight is preferred). It stays editable — once you type a weight, the scale no longer changes it.
+	 - The scale should show everything on it — filament **and** spool. That's what the weight field means for every backend; BambuMan takes the *Empty weight* off itself. So tare the scale empty, not with an empty spool on it.
+ 4. Supported are scales that offer the standard Bluetooth **Weight Scale Service**, and DIY scales that speak the **BambuMan scale protocol** — see [docs/scale-protocol.md](docs/scale-protocol.md) for the protocol and an ESP32 + HX711 sketch. Most kitchen scales use their maker's own protocol and are not found.
+
+The Windows desktop app has no Bluetooth scale support.
 
 ### Windows
 
