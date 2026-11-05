@@ -722,6 +722,13 @@ namespace BambuMan
         {
             try
             {
+                // Another send (e.g. the one a reconnect started) would make this one return without doing anything.
+                if (manual && pendingScans.IsSending)
+                {
+                    toasts.Show("Queued scans are already being sent.", ToastKind.Info);
+                    return;
+                }
+
                 var active = ActiveManager;
                 var name = active.Backend.DisplayName();
                 var result = await send(active);

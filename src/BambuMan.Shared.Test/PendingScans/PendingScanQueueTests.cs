@@ -399,6 +399,43 @@ namespace BambuMan.Shared.Test.PendingScans
             Assert.Equal(["Shelf A", "Shelf B"], manager.Sent.Select(x => x.Location));
         }
 
+        [Fact(DisplayName = "A send raises OnChanged when it starts and when it ends, so views can follow IsSending")]
+        public async Task Send_RaisesOnChangedForIsSending()
+        {
+            var manager = await Manager();
+            var queue = Queue();
+            await queue.EnqueueAsync(Scan(SampleTags.AbsBlack));
+
+            var seen = new List<bool>();
+            queue.OnChanged += () => seen.Add(queue.IsSending);
+
+            manager.Gate = new TaskCompletionSource();
+            var sending = queue.SendAsync(manager);
+
+            Assert.Equal([true], seen);
+
+            manager.Gate.SetResult();
+            await sending;
+
+            // The scan removed while sending, then the send over.
+            Assert.Equal([true, true, false], seen);
+        }
+
+        [Fact(DisplayName = "A send that finds nothing to send still reports that it is over")]
+        public async Task Send_NothingToSendEndsNotSending()
+        {
+            var manager = await Manager();
+            var queue = Queue();
+            await queue.LoadAsync();
+
+            var seen = new List<bool>();
+            queue.OnChanged += () => seen.Add(queue.IsSending);
+
+            await queue.SendAsync(manager);
+
+            Assert.Equal([true, false], seen);
+        }
+
         [Fact(DisplayName = "A scan discarded while a send is running is not sent")]
         public async Task Remove_WhileSending()
         {

@@ -15,7 +15,7 @@ namespace BambuMan.Shared.Services
     /// </summary>
     public interface IPendingScanQueue
     {
-        /// <summary>Raised whenever the queue changes — a scan queued, sent, rejected or discarded.</summary>
+        /// <summary>Raised whenever the queue changes — a scan queued, sent, rejected or discarded — and when a send starts or ends (<see cref="IsSending"/>).</summary>
         event Action? OnChanged;
 
         /// <summary>Where the file lives. Set by the host — the shared library can't know the platform's app data path.</summary>
@@ -184,6 +184,8 @@ namespace BambuMan.Shared.Services
 
             try
             {
+                OnChanged?.Invoke();
+
                 await LoadAsync();
 
                 int sent = 0, rejected = 0;
@@ -227,6 +229,9 @@ namespace BambuMan.Shared.Services
             finally
             {
                 Interlocked.Exchange(ref sending, 0);
+
+                // IsSending is false again: lets a view that disabled its send buttons enable them.
+                OnChanged?.Invoke();
             }
         }
 

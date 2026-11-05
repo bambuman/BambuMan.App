@@ -672,7 +672,8 @@ public partial class MainForm : Form
         }
         catch (Exception ex)
         {
-            // Left unloaded, so the damaged file is never saved over.
+            // A damaged file was moved aside (kept, never saved over) and the queue starts empty; the message names the
+            // kept file. Any other read error leaves the queue unloaded, to be read again on its next use.
             AppendText(LogLevel.Error, $"Could not read the queued scans: {ex.Message}");
         }
     }
