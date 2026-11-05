@@ -67,6 +67,7 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="10.0.120" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="Plugin.BLE" Version="3.2.1" />
 		<PackageReference Include="Sentry.Maui" Version="6.12.1" />
 		<PackageReference Include="Sentry.Serilog" Version="6.12.1" />
 		<PackageReference Include="Serilog" Version="4.4.0" />

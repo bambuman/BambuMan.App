@@ -37,5 +37,7 @@
 		</array>
 		<key>NSCameraUsageDescription</key>
 		<string>Enable camera for barcode scanning.</string>
+		<key>NSBluetoothAlwaysUsageDescription</key>
+		<string>Connects to your Bluetooth scale to fill in the weight of a read spool.</string>
 	</dict>
 </plist>

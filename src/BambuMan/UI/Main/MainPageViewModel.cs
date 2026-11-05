@@ -2,6 +2,7 @@
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
+using BambuMan.Shared.Scale;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using LogLevel = BambuMan.Shared.Enums.LogLevel;
@@ -53,6 +54,9 @@ namespace BambuMan.UI.Main
         [ObservableProperty] private ISpoolTag? spoolTag;
 
         [ObservableProperty] private SpoolEditModel spoolEdit = new();
+
+        // The Bluetooth scale reading the edit card's weight was last filled from; null while it holds the backend's weight.
+        [ObservableProperty] private ScaleReading? appliedScaleReading;
 
         [ObservableProperty] private bool settingsOk;
         [ObservableProperty] private bool spoolmanOk;
@@ -129,6 +133,7 @@ namespace BambuMan.UI.Main
             Spool = found;
             SpoolTag = tag;
             SpoolEdit = SpoolEditModel.From(found);
+            AppliedScaleReading = null;
             ShowSpoolEdit = true;
         }
 

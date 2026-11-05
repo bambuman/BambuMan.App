@@ -1,6 +1,7 @@
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Resolvers;
+using BambuMan.Shared.Scale;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,9 @@ public partial class SettingsPage
     public const string KeyBambuddyApiKey = "bambuddy_api_key";
     public const string KeyStoreSpoolsLocally = "store_spools_locally";
     public const string KeyTextScale = "text_scale";
+    public const string KeyScaleEnabled = "scale_enabled";
+    public const string KeyScaleDeviceId = "scale_device_id";
+    public const string KeyScaleDeviceName = "scale_device_name";
 
     /// <summary>Raised after a setting is stored, for parts of the ui outside this page that depend on it (the menu).</summary>
     public static event Action? SettingsChanged;
@@ -41,11 +45,15 @@ public partial class SettingsPage
     private bool consentDismissible;
     private bool testingConnection;
 
+    private readonly List<ScaleDevice> foundScales = [];
+    private CancellationTokenSource? scaleScan;
+
     [Inject] private SettingsPageViewModel Vm { get; set; } = null!;
     [Inject] private ILogger<SettingsPage> Logger { get; set; } = null!;
     [Inject] private IInventoryBackendResolver Backends { get; set; } = null!;
     [Inject] private QrScanService QrScan { get; set; } = null!;
     [Inject] private ToastService Toasts { get; set; } = null!;
+    [Inject] private IScaleService ScaleService { get; set; } = null!;
 
     /// <summary>
     /// The active inventory backend. An explicit saved choice always wins; with no saved choice, an upgrade from a
@@ -86,11 +94,37 @@ public partial class SettingsPage
     private int StoredSpoolCount =>
         Preferences.Default.Get(KeyStoreSpoolsLocally, false) && Backends.Resolve(InventoryBackend.NoBackend) is NoBackendManager { IsStoreLoaded: true } noBackend ? noBackend.Spools.Count : 0;
 
+    /// <summary>Read spools get an edit card (with a weight field): any backend but "No backend", or that with spools stored locally.</summary>
+    public static bool CanEditSpools() =>
+        GetInventoryBackend() != InventoryBackend.NoBackend || Preferences.Default.Get(KeyStoreSpoolsLocally, false);
+
+    /// <summary>
+    /// The Bluetooth scale to keep connected: the chosen one while the scale is turned on and read spools can be edited
+    /// (the settings card is hidden otherwise, and there is no weight to fill), else null. The setting itself is kept.
+    /// </summary>
+    public static Guid? GetScaleDeviceId() =>
+        Preferences.Default.Get(KeyScaleEnabled, false) && CanEditSpools() && Guid.TryParse(Preferences.Default.Get(KeyScaleDeviceId, string.Empty), out var id) ? id : null;
+
+    /// <summary>
+    /// Connects the chosen scale, or disconnects it when the scale is turned off or forgotten. Does nothing when that is
+    /// already so — except after a missing permission, which may have been granted in the system settings since.
+    /// </summary>
+    public static async Task ApplyScaleSettingsAsync(IScaleService scale)
+    {
+        var id = GetScaleDeviceId();
+
+        if (id == scale.DeviceId && scale.State != ScaleConnectionState.NoPermission) return;
+
+        if (id == null) await scale.StopAsync();
+        else await scale.StartAsync(id.Value, Preferences.Default.Get(KeyScaleDeviceName, string.Empty) is { Length: > 0 } name ? name : null);
+    }
+
     protected override void OnInitialized()
     {
         try
         {
             Observe(Vm);
+            Observe(ScaleService);
 
             Vm.InventoryBackend = GetInventoryBackend();
             Vm.TextScale = GetTextScale();
@@ -107,6 +141,9 @@ public partial class SettingsPage
             Vm.FullTagScanAndUpload = Preferences.Default.Get(FullTagScanAndUpload, false);
             Vm.StoreSpoolsLocally = Preferences.Default.Get(KeyStoreSpoolsLocally, false);
             Vm.OverrideLocationOnRead = Backends.Resolve(GetInventoryBackend()).OverrideLocationOnRead;
+            Vm.ScaleEnabled = Preferences.Default.Get(KeyScaleEnabled, false);
+            Vm.ScaleDeviceId = Guid.TryParse(Preferences.Default.Get(KeyScaleDeviceId, string.Empty), out var scaleId) ? scaleId : null;
+            Vm.ScaleDeviceName = Preferences.Default.Get(KeyScaleDeviceName, string.Empty);
 
             // First visit: ask about the research upload before anything else.
             if (!Preferences.Default.Get(TagUploadConsentShown, false))
@@ -164,6 +201,9 @@ public partial class SettingsPage
         foreach (var manager in Backends.All) manager.OverrideLocationOnRead = Vm.OverrideLocationOnRead;
 
         SettingsChanged?.Invoke();
+
+        // Storing spools locally decides, with no backend, whether the scale is used.
+        _ = ApplyScaleSettingsSafeAsync();
     }
 
     /// <summary>Applies a change made outside a bound input (switch, clear button) and stores it.</summary>
@@ -186,6 +226,7 @@ public partial class SettingsPage
         SettingsChanged?.Invoke();
 
         _ = LoadLocationsAsync();
+        _ = ApplyScaleSettingsSafeAsync();
     }
 
     private void SelectTextScale(TextScale scale)
@@ -244,6 +285,148 @@ public partial class SettingsPage
 
         return Task.CompletedTask;
     }
+
+    #endregion
+
+    #region Bluetooth scale
+
+    private async Task SetScaleEnabledAsync(bool enabled)
+    {
+        try
+        {
+            // Shown on first, so a refused permission below flips the switch back visibly.
+            Vm.ScaleEnabled = enabled;
+
+            if (enabled && !await ScaleService.RequestPermissionsAsync())
+            {
+                Vm.ScaleEnabled = false;
+                Toasts.Show("The scale needs the Bluetooth permission (\"Nearby devices\"). Allow it in the app's system settings.", ToastKind.Error, true);
+                return;
+            }
+
+            Preferences.Default.Set(KeyScaleEnabled, enabled);
+
+            if (!enabled) StopScaleScan();
+
+            await ApplyScaleSettingsAsync(ScaleService);
+
+            if (enabled && Vm.ScaleDeviceId == null) await FindScalesAsync();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error in SetScaleEnabledAsync");
+        }
+    }
+
+    /// <summary>Connects or lets go of the scale after a setting it depends on changed.</summary>
+    private async Task ApplyScaleSettingsSafeAsync()
+    {
+        try
+        {
+            if (!CanEditSpools()) StopScaleScan();
+
+            await ApplyScaleSettingsAsync(ScaleService);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error in ApplyScaleSettingsSafeAsync");
+        }
+    }
+
+    private async Task FindScalesAsync()
+    {
+        try
+        {
+            if (!await ScaleService.RequestPermissionsAsync())
+            {
+                Toasts.Show("The scale needs the Bluetooth permission (\"Nearby devices\").", ToastKind.Error, true);
+                return;
+            }
+
+            StopScaleScan();
+            foundScales.Clear();
+
+            scaleScan = new CancellationTokenSource();
+
+            var scanned = await ScaleService.ScanAsync(device => _ = InvokeAsync(() =>
+            {
+                if (foundScales.Any(x => x.Id == device.Id)) return;
+
+                foundScales.Add(device);
+                StateHasChanged();
+            }), scaleScan.Token);
+
+            // Not scanned while another scan still runs (the switch turned off and on quickly): that one reports its own result.
+            if (!scanned && !ScaleService.IsScanning) Toasts.Show("Turn on Bluetooth to find the scale.", ToastKind.Error, true);
+            else if (scanned && foundScales.Count == 0 && scaleScan is { IsCancellationRequested: false }) Toasts.Show("No scale found. Turn it on, keep it close, and try again.", ToastKind.Error, true);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error in FindScalesAsync");
+        }
+    }
+
+    private void StopScaleScan()
+    {
+        scaleScan?.Cancel();
+        scaleScan?.Dispose();
+        scaleScan = null;
+    }
+
+    private async Task UseScaleAsync(ScaleDevice device)
+    {
+        try
+        {
+            StopScaleScan();
+            foundScales.Clear();
+
+            Vm.ScaleDeviceId = device.Id;
+            Vm.ScaleDeviceName = device.Name;
+            Preferences.Default.Set(KeyScaleDeviceId, device.Id.ToString());
+            Preferences.Default.Set(KeyScaleDeviceName, device.Name ?? string.Empty);
+
+            await ApplyScaleSettingsAsync(ScaleService);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error in UseScaleAsync");
+        }
+    }
+
+    private async Task ForgetScaleAsync()
+    {
+        try
+        {
+            Vm.ScaleDeviceId = null;
+            Vm.ScaleDeviceName = null;
+            Preferences.Default.Remove(KeyScaleDeviceId);
+            Preferences.Default.Remove(KeyScaleDeviceName);
+
+            await ApplyScaleSettingsAsync(ScaleService);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error in ForgetScaleAsync");
+        }
+    }
+
+    private async Task TareScaleAsync()
+    {
+        if (await ScaleService.TareAsync()) Toasts.Show("Scale zeroed", ToastKind.Success);
+        else Toasts.Show("Couldn't zero the scale", ToastKind.Error);
+    }
+
+    private string ScaleDot => ScaleService.State switch
+    {
+        ScaleConnectionState.Connected => "success",
+        ScaleConnectionState.Connecting or ScaleConnectionState.Reconnecting => "info",
+        ScaleConnectionState.Off => "",
+        _ => "error"
+    };
+
+    private string ScaleStatusText => ScaleService is { State: ScaleConnectionState.Connected, Protocol: { } protocol }
+        ? $"Connected · {protocol.DisplayName()}"
+        : ScaleService.State.DisplayName();
 
     #endregion
 
@@ -428,6 +611,7 @@ public partial class SettingsPage
 
     public override void Dispose()
     {
+        StopScaleScan();
         apiHost?.Dispose();
         base.Dispose();
     }

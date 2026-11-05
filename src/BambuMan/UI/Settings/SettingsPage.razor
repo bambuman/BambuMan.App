@@ -1,5 +1,6 @@
 @page "/settings"
 @inherits ObservingComponentBase
+@using BambuMan.Shared.Scale
 @using BambuMan.UI.Consent
 
 <PageHeader Title="Settings" Icon="Lucide.Settings">
@@ -119,6 +120,75 @@
             }
         </div>
     </div>
+
+    @* Only an editable spool has a weight field to fill. *@
+    @if (Vm.CanEditSpools)
+    {
+        <div class="card">
+            <div class="section-title">Bluetooth scale</div>
+
+            <div class="toggle-list">
+                <ToggleRow Title="Weigh with a Bluetooth scale" Description="Fills in the weight of a read spool from the scale: put the spool on the scale, then hold its tag to the phone. The weight stays editable." Value="Vm.ScaleEnabled" ValueChanged="SetScaleEnabledAsync" />
+            </div>
+
+            @if (Vm.ScaleEnabled)
+            {
+                <div class="stack">
+                    @if (Vm.ScaleDeviceId != null)
+                    {
+                        <div class="list">
+                            <div class="list-row">
+                                <Blazicon Svg="Lucide.Scale" />
+                                <div class="list-row-text">
+                                    <div class="list-row-title">@(string.IsNullOrEmpty(Vm.ScaleDeviceName) ? "Unnamed scale" : Vm.ScaleDeviceName)</div>
+                                    <div class="list-row-sub"><span class="dot @ScaleDot"></span> @ScaleStatusText</div>
+                                </div>
+                                @if (ScaleService is { State: ScaleConnectionState.Connected, LastReading: { } reading })
+                                {
+                                    <span class="pill @(reading.IsStable ? "success" : null)">@ScaleWeight.Round(reading.Grams).ToString("0.0") g</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="card-actions">
+                            @if (ScaleService.CanTare)
+                            {
+                                <button type="button" class="btn btn-outline btn-sm" @onclick="TareScaleAsync"><Blazicon Svg="Lucide.RotateCcw" /> Tare</button>
+                            }
+                            <button type="button" class="btn btn-secondary btn-sm" @onclick="ForgetScaleAsync"><Blazicon Svg="Lucide.Unlink" /> Forget scale</button>
+                        </div>
+                    }
+
+                    <div>
+                        <button type="button" class="btn btn-outline" disabled="@ScaleService.IsScanning" @onclick="FindScalesAsync">
+                            <Blazicon Svg="Lucide.BluetoothSearching" /> @(ScaleService.IsScanning ? "Searching …" : Vm.ScaleDeviceId == null ? "Find scale" : "Find another scale")
+                        </button>
+                    </div>
+
+                    @if (foundScales.Count > 0)
+                    {
+                        <div class="list">
+                            @foreach (var device in foundScales.OrderByDescending(x => x.Rssi))
+                            {
+                                <div class="list-row" @key="device.Id">
+                                    <Blazicon Svg="Lucide.Bluetooth" />
+                                    <div class="list-row-text">
+                                        <div class="list-row-title">@(device.Name ?? "Unnamed scale")</div>
+                                        <div class="list-row-sub">Signal @device.Rssi dBm</div>
+                                    </div>
+                                    <button type="button" class="btn btn-primary btn-sm" @onclick="() => UseScaleAsync(device)">Use</button>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <p class="small subtle">
+                        Works with scales that offer the standard Bluetooth Weight Scale Service, and with DIY scales that speak the BambuMan scale protocol (see the project's docs/scale-protocol.md). Most kitchen scales use their maker's own protocol and are not found.
+                    </p>
+                </div>
+            }
+        </div>
+    }
 
     @* Read spools that are only shown, not kept, have nothing to put the defaults on. *@
     @if (Vm.CanEditSpools)

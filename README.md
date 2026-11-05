@@ -29,6 +29,7 @@ If you use [bambuddy](https://bambuddy.cool) ([GitHub](https://github.com/mazigg
  - **Add spool manually** — for a spool whose tag can't be read (foil bag, damaged tag): search the Bambu Lab filament list by material, name or colour, or enter it as an unknown filament, and save it with its weight, price and location
  - **Inventory tracking** — groups scanned spools by material with AMS tray UID tracking
  - **Quick weighing** — optionally focuses the weight field when a spool is read, and can move already known spools to the default location
+ - **Bluetooth scale** (Android) — fills in a read spool's weight from a Bluetooth LE scale: a DIY scale speaking the [BambuMan scale protocol](docs/scale-protocol.md) (ESP32 + HX711 example included) or a scale with the standard Weight Scale Service
  - **Research Data Contribution** — opt-in NFC tag data upload to the [bambuman.ee](https://bambuman.ee) tag library
  - **QR code scanner** for quick backend URL and API key setup
  - **Configurable import defaults** — buy date, price, lot number, location
@@ -88,6 +89,16 @@ The Android app can inventory into [bambuddy](https://bambuddy.cool). Pick the b
  3. Read `NFC` tags. Stored spools are listed on the **Stored spools** page, where they can be edited, deleted, and exported or imported as CSV.
  4. To move them into bambuddy or Spoolman, set that backend up in settings (see above). The stored spools stay on the device, and **Spools** stays in the menu while there are any. On the **Stored spools** page, **Send to bambuddy / Spoolman** sends the spools the filters show (or open a spool to send just that one). Each goes through the same path as reading its tag — filament matching, and a spool the server already has for that tag is updated rather than added twice — with its stored weight, price, location, buy date and lot nr (bambuddy has no buy date or lot nr). The one exception is the weight of a spool the server already has: when the stored weight would leave more filament on it than the server has (e.g. it was printed from since it was stored), the server keeps its own weight, so a send never adds used filament back. A summary lists what was created, updated (and where the server's weight was kept) or failed and why. Sent spools are kept on the device, marked as sent (the filter can show the ones not sent yet); delete them once you no longer need them. Editing a spool after sending marks it as not sent again.
     - Spoolman has no CSV import, so this is the way to move stored spools into Spoolman. For bambuddy, **Export CSV** and bambuddy's `Inventory` → `Import CSV` still work too.
+
+### Android — Bluetooth scale
+
+ 1. In BambuMan settings, turn on **Weigh with a Bluetooth scale** under **Bluetooth scale** and allow the Bluetooth (*Nearby devices*) permission. On Android 11 and older Android asks for location instead, which it requires for any Bluetooth scan; location services must be on while searching.
+ 2. Turn the scale on, tap **Find scale** and **Use** next to it. BambuMan remembers it, connects whenever it is in reach, and shows its live weight in the settings.
+ 3. Put a spool on the scale, then read its tag: the spool card's weight is filled from the scale (a settled, stable weight is preferred). It stays editable — once you type a weight, the scale no longer changes it.
+	 - The scale should show everything on it — filament **and** spool. That's what the weight field means for every backend; BambuMan takes the *Empty weight* off itself. So tare the scale empty, not with an empty spool on it.
+ 4. Supported are scales that offer the standard Bluetooth **Weight Scale Service**, and DIY scales that speak the **BambuMan scale protocol** — see [docs/scale-protocol.md](docs/scale-protocol.md) for the protocol and an ESP32 + HX711 sketch. Most kitchen scales use their maker's own protocol and are not found.
+
+The Windows desktop app has no Bluetooth scale support.
 
 ### Windows
 
