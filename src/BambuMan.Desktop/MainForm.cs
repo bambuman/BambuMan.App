@@ -534,6 +534,36 @@ public partial class MainForm : Form
         }
     }
 
+    /// <summary>
+    /// A spool whose tag can't be read: pick its filament, then add it with the defaults above, like a scan. Spoolman and
+    /// Bambuddy then open it in the edit panel for its weight; a stored spool is edited from its own list.
+    /// </summary>
+    private async void addSpoolManuallyToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            var manager = ActiveManager;
+
+            if (manager is not { CanEditSpools: true }) return;
+
+            if (!manager.IsInitialized || !manager.IsHealth)
+            {
+                AppendText(LogLevel.Warning, $"Connect to {backend.DisplayName()} first, the spool is saved there.");
+                return;
+            }
+
+            using var form = new ManualSpoolForm(manager.KnownFilaments);
+
+            if (form.ShowDialog(this) != DialogResult.OK || form.Result == null) return;
+
+            await manager.AddManualSpoolAsync(form.Result, new SpoolEditInput(null, null, nudPrice.Value, dtpBuyDate.Value, txtLotNr.Text, txtLocation.Text));
+        }
+        catch (Exception ex)
+        {
+            AppendText(LogLevel.Error, ex.ToString());
+        }
+    }
+
     private void storedSpoolsToolStripMenuItem_Click(object? sender, EventArgs e)
     {
         if (noBackendManager is not { IsStoreLoaded: true }) return;
@@ -663,6 +693,7 @@ public partial class MainForm : Form
         exportCsvToolStripMenuItem.Visible = isNoBackend;
         importCsvToolStripMenuItem.Visible = stored;
         storedSpoolsToolStripMenuItem.Visible = stored;
+        addSpoolManuallyToolStripMenuItem.Visible = ActiveManager?.CanEditSpools == true;
 
         // The server url (and Bambuddy's api key); without a backend there is nothing to connect to.
         lblSpoolmanUrl.Text = isBambuddy ? "Bambuddy Url:" : "Spoolman Url:";

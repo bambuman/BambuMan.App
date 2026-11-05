@@ -6,6 +6,11 @@
         <span class="dot @StatusDot"></span> @StatusText
     </Subtitle>
     <Actions>
+        @* For a spool whose tag can't be read; only where spools are saved somewhere. *@
+        @if (Vm.ShowInventoryOptions)
+        {
+            <button class="btn btn-outline" disabled="@(!Scanner.CanAddManualSpool)" @onclick="AddSpoolManually"><Blazicon Svg="Lucide.PackagePlus" /> Add spool</button>
+        }
         @if (Vm.IsTest)
         {
             <button class="btn btn-outline" @onclick="Scanner.TestTagAsync"><Blazicon Svg="Lucide.FlaskConical" /> Test tag</button>
@@ -126,6 +131,10 @@
                         ? "Bambu Lab spools carry a tag on each side of the reel. The read spool shows up here."
                         : "Turn on NFC in your phone settings to read spool tags.")
                 </div>
+                @if (Vm.ShowInventoryOptions)
+                {
+                    <div class="muted small">Tag can't be read, e.g. still in its foil bag? Use Add spool to pick the filament by hand.</div>
+                }
             </div>
         </div>
     }

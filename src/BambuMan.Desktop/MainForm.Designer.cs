@@ -35,6 +35,7 @@
             exportCsvToolStripMenuItem = new ToolStripMenuItem();
             importCsvToolStripMenuItem = new ToolStripMenuItem();
             storedSpoolsToolStripMenuItem = new ToolStripMenuItem();
+            addSpoolManuallyToolStripMenuItem = new ToolStripMenuItem();
             fileToolStripSeparator = new ToolStripSeparator();
             backendToolStripMenuItem = new ToolStripMenuItem();
             spoolmanBackendToolStripMenuItem = new ToolStripMenuItem();
@@ -107,7 +108,7 @@
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { exportCsvToolStripMenuItem, importCsvToolStripMenuItem, storedSpoolsToolStripMenuItem, fileToolStripSeparator, eXitToolStripMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { addSpoolManuallyToolStripMenuItem, exportCsvToolStripMenuItem, importCsvToolStripMenuItem, storedSpoolsToolStripMenuItem, fileToolStripSeparator, eXitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "File";
@@ -139,7 +140,14 @@
             storedSpoolsToolStripMenuItem.Size = new Size(180, 22);
             storedSpoolsToolStripMenuItem.Text = "Stored spools...";
             storedSpoolsToolStripMenuItem.Click += storedSpoolsToolStripMenuItem_Click;
-            // 
+            //
+            // addSpoolManuallyToolStripMenuItem
+            //
+            addSpoolManuallyToolStripMenuItem.Name = "addSpoolManuallyToolStripMenuItem";
+            addSpoolManuallyToolStripMenuItem.Size = new Size(180, 22);
+            addSpoolManuallyToolStripMenuItem.Text = "Add spool manually...";
+            addSpoolManuallyToolStripMenuItem.Click += addSpoolManuallyToolStripMenuItem_Click;
+            //
             // fileToolStripSeparator
             // 
             fileToolStripSeparator.Name = "fileToolStripSeparator";
@@ -699,6 +707,7 @@
         private ToolStripMenuItem exportCsvToolStripMenuItem;
         private ToolStripMenuItem importCsvToolStripMenuItem;
         private ToolStripMenuItem storedSpoolsToolStripMenuItem;
+        private ToolStripMenuItem addSpoolManuallyToolStripMenuItem;
         private ToolStripSeparator fileToolStripSeparator;
         private ToolStripMenuItem backendToolStripMenuItem;
         private ToolStripMenuItem spoolmanBackendToolStripMenuItem;

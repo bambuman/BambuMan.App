@@ -1,3 +1,4 @@
+using BambuMan.Components.Common;
 using BambuMan.Interfaces;
 using BambuMan.Shared.Enums;
 using BambuMan.Shared.Interfaces;
@@ -140,6 +141,9 @@ namespace BambuMan
 
                     // A backend that can't save edits shows the info card from OnSpoolInfoRead instead.
                     if (!ActiveManager.CanEditSpools) return;
+
+                    // A spool added by hand was saved from its own edit card already; don't open it again.
+                    if (!info.HasTag) return;
 
                     viewModel.ShowSpool(found, info);
 
@@ -589,10 +593,7 @@ namespace BambuMan
         /// <summary>Inventory a read tag against the active backend with the configured defaults, then upload it if opted in.</summary>
         private async Task InventorySpoolAsync(BambuFilamentInfo info)
         {
-            var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
-            var defaultPrice = decimal.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? (decimal?)result : null;
-            string? defaultLotNr = Preferences.Default.Get(SettingsPage.KeyDefaultLotNr, string.Empty);
-            string? defaultLocation = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
+            var (buyDate, defaultPrice, defaultLotNr, defaultLocation) = GetSpoolDefaults();
 
             await viewModel.ClearMessages();
 
@@ -784,6 +785,70 @@ namespace BambuMan
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error in EmailLogsAsync");
+            }
+        }
+
+        #endregion
+
+        #region Manual spools
+
+        /// <summary>The spool defaults from settings, applied to a read spool and prefilled into a spool added by hand.</summary>
+        private static (DateTime? BuyDate, decimal? Price, string? LotNr, string? Location) GetSpoolDefaults()
+        {
+            var buyDate = DateTime.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultBuyDate, string.Empty), CultureInfo.CurrentCulture, out var resultDate) ? (DateTime?)resultDate : null;
+            var price = decimal.TryParse(Preferences.Default.Get(SettingsPage.KeyDefaultPrice, string.Empty), NumberStyles.Any, NumberFormatInfo.CurrentInfo, out var result) ? (decimal?)result : null;
+            string? lotNr = Preferences.Default.Get(SettingsPage.KeyDefaultLotNr, string.Empty);
+            string? location = Preferences.Default.Get(SettingsPage.KeyDefaultLocation, string.Empty);
+
+            return (buyDate, price, lotNr, location);
+        }
+
+        /// <summary>
+        /// Whether the active backend can take a spool added by hand: it must be able to save spools, and be connected.
+        /// Not <see cref="BaseManager.Status"/>: a scan without a catalog match leaves that at Error while the server is fine.
+        /// </summary>
+        public bool CanAddManualSpool => ActiveManager is { CanEditSpools: true, IsInitialized: true, IsHealth: true };
+
+        /// <summary>
+        /// The edit card for a spool added by hand, prefilled with the settings defaults and weighed as a full spool:
+        /// <paramref name="labelWeight"/> plus the empty spool.
+        /// </summary>
+        public SpoolEditModel NewManualSpoolEdit(int labelWeight, decimal? emptyWeight)
+        {
+            var (buyDate, price, lotNr, location) = GetSpoolDefaults();
+            var empty = emptyWeight ?? BambuddyManager.CoreWeight;
+
+            return new SpoolEditModel
+            {
+                Weight = labelWeight + empty,
+                EmptyWeight = empty,
+                Price = price,
+                BuyDate = buyDate,
+                LotNr = string.IsNullOrEmpty(lotNr) ? null : lotNr,
+                Location = string.IsNullOrEmpty(location) ? null : location
+            };
+        }
+
+        /// <summary>Validates the edit card and adds the spool to the active backend; false leaves the card open.</summary>
+        public async Task<bool> AddManualSpoolAsync(ManualSpool spool, SpoolEditModel edit)
+        {
+            try
+            {
+                await viewModel.ClearMessages();
+
+                if (!edit.Validate()) return false;
+
+                var active = ActiveManager;
+
+                SentrySdk.ConfigureScope(s => s.SetTag("inventory.backend", active.Backend.ToString()));
+
+                return await active.AddManualSpoolAsync(spool, edit.ToInput());
+            }
+            catch (Exception ex)
+            {
+                await viewModel.AddLog(LogLevel.Error, "Error adding spool manually. " + ex.Message);
+                logger.LogError(ex, "Error adding spool manually");
+                return false;
             }
         }
 

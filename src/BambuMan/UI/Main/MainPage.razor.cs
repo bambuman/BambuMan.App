@@ -128,6 +128,9 @@ namespace BambuMan.UI.Main
             await Scanner.SaveSpoolAsync();
         }
 
+        /// <summary>A spool whose tag can't be read (foil bag, damaged tag) is added from its own page.</summary>
+        private void AddSpoolManually() => Navigation.NavigateTo("add-spool");
+
         public override void Dispose()
         {
             Scanner.SpoolEditFocusRequested -= OnSpoolEditFocusRequested;

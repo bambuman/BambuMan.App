@@ -32,7 +32,7 @@ else
                     <SpoolSwatch Info="info" />
                     <div class="spool-head-text">
                         <div class="spool-title">@Title</div>
-                        <div class="small subtle">Last scanned @spool.LastScanned.ToString("yyyy-MM-dd HH:mm")</div>
+                        <div class="small subtle">@(spool.IsManual ? "Added manually" : "Last scanned") @spool.LastScanned.ToString("yyyy-MM-dd HH:mm")</div>
                     </div>
                 </div>
 

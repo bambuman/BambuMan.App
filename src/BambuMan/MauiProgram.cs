@@ -137,6 +137,7 @@ namespace BambuMan
             services.AddTransient<LogsPageViewModel>();
             services.AddTransient<ScanPage>();
             services.AddTransient<LocalInventoryPageViewModel>();
+            services.AddTransient<AddSpoolPageViewModel>();
 
             services.AddSingleton<AppNavigation>();
             services.AddSingleton<ToastService>();
