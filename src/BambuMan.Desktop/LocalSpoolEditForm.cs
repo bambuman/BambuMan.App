@@ -68,8 +68,10 @@ public class LocalSpoolEditForm : Form
         // Unchecked is no buy date.
         dtpBuyDate.Format = DateTimePickerFormat.Short;
         dtpBuyDate.ShowCheckBox = true;
-        dtpBuyDate.Value = spool.BuyDate ?? DateTime.Today;
-        dtpBuyDate.Checked = spool.BuyDate != null;
+        // A date outside the picker's range (stored before imports checked it) would throw, so show it as no date.
+        var buyDate = spool.BuyDate >= dtpBuyDate.MinDate && spool.BuyDate <= dtpBuyDate.MaxDate ? spool.BuyDate : null;
+        dtpBuyDate.Value = buyDate ?? DateTime.Today;
+        dtpBuyDate.Checked = buyDate != null;
 
         txtLotNr.Text = spool.LotNr ?? "";
 

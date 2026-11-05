@@ -475,6 +475,23 @@ namespace BambuMan.Shared.Test.LocalInventory
             Assert.StartsWith("Row 5: label_weight", result.Errors[3]);
         }
 
+        [Theory(DisplayName = "A buy date outside 1900-01-01..9998-12-31 is reported and the row skipped")]
+        [InlineData("0026-10-01")]
+        [InlineData("1899-12-31")]
+        [InlineData("9999-01-01")]
+        public void Csv_RejectsFarOffBuyDate(string buyDate)
+        {
+            var result = Import(
+                "Material,Tray UUID,RGBA,Label Weight,Buy Date\n" +
+                $"PLA,AAAABBBBCCCCDDDDEEEEFFFF00001111,ff0000,1000,{buyDate}\n" +
+                "PLA,AAAABBBBCCCCDDDDEEEEFFFF00002222,ff0000,1000,2026-10-01\n");
+
+            var spool = Assert.Single(result.Spools);
+            Assert.Equal("AAAABBBBCCCCDDDDEEEEFFFF00002222", spool.Key);
+            Assert.Equal(new DateTime(2026, 10, 1), spool.BuyDate);
+            Assert.StartsWith("Row 1: buy_date must be between", Assert.Single(result.Errors));
+        }
+
         [Fact(DisplayName = "Without a price column the price comes back from cost_per_kg")]
         public void Csv_PriceFromCostPerKg()
         {
