@@ -13,7 +13,7 @@ namespace BambuMan.Shared.Matcher
     /// </summary>
     public static class FilamentMatchOverrides
     {
-        public const int CurrentVersion = 4;
+        public const int CurrentVersion = 5;
 
         public static FilamentOverrideSet Internal { get; } = new()
         {
