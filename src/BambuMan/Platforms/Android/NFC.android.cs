@@ -346,9 +346,9 @@ namespace BambuMan
         }
 
         /// <summary>
-        /// Reads a single block with up to 3 retries, re-authenticating on failure
+        /// Reads a single block with up to 3 retries, re-authenticating on failure. Null when it couldn't be read.
         /// </summary>
-        byte[] ReadBlockWithRetry(MifareClassic mfc, int blockNum, int sector, byte[] key, int maxRetries = 3)
+        byte[]? ReadBlockWithRetry(MifareClassic mfc, int blockNum, int sector, byte[] key, int maxRetries = 3)
         {
             for (var attempt = 0; attempt < maxRetries; attempt++)
             {
@@ -369,7 +369,7 @@ namespace BambuMan
                 mfc.AuthenticateSectorWithKeyA(sector, key);
             }
 
-            return [16];
+            return null;
         }
 
         /// <summary>
@@ -436,6 +436,14 @@ namespace BambuMan
             if (mfc != null)
             {
                 var showLogs = true;
+                var sectorCount = FullTagScanAndUpload ? 16 : 5;
+                var sectorsAuthenticated = 0;
+                var blocksRead = 0;
+
+                // Reported to the user and to the logs instead of failing silently: some phones (e.g. Pixel) can't
+                // authenticate MIFARE Classic at all, and the scan just beeped with nothing shown.
+                MifareReadFailure Failure(string reason) => new(tag.GetId() ?? [], sectorCount, sectorsAuthenticated, blocksRead,
+                    CurrentContext.PackageManager?.HasSystemFeature("com.nxp.mifare"), reason);
 
                 try
                 {
@@ -469,18 +477,34 @@ namespace BambuMan
                     #region Read Blocks
 
                     var tagReadStart = DateTime.Now;
-                    var sectorCount = FullTagScanAndUpload ? 16 : 5;
                     var blockData = new byte[sectorCount * 4][];
 
+                    // A tag pulled away mid-read leaves blocks unread. ParseData needs every block, so drop a partial read
+                    // and let the next tap read the tag again.
                     for (var i = 0; i < sectorCount; i++)
                     {
                         var blockNum = i * 4;
 
-                        if (!AuthenticateWithRetry(mfc, i, aKeys[i], blockNum)) continue;
+                        if (!AuthenticateWithRetry(mfc, i, aKeys[i], blockNum))
+                        {
+                            Debug.WriteLine($"Sector {i}: authentication failed, tag read aborted");
+                            return Failure(MifareReadFailure.AuthenticationFailed);
+                        }
+
+                        sectorsAuthenticated++;
 
                         for (var ii = 0; ii < 3; ii++)
                         {
-                            blockData[blockNum] = ReadBlockWithRetry(mfc, blockNum, i, aKeys[i]);
+                            var data = ReadBlockWithRetry(mfc, blockNum, i, aKeys[i]);
+
+                            if (data == null)
+                            {
+                                Debug.WriteLine($"b{blockNum}: read failed, tag read aborted");
+                                return Failure("block read failed");
+                            }
+
+                            blockData[blockNum] = data;
+                            blocksRead++;
                             blockNum++;
                         }
                     }
@@ -511,7 +535,7 @@ namespace BambuMan
                 catch (Exception e)
                 {
                     Debug.WriteLine(e.ToString());
-                    return null;
+                    return Failure(e.GetType().Name);
                 }
                 finally
                 {

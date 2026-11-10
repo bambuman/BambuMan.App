@@ -72,11 +72,11 @@ public class LocalInventoryForm : Form
             var info = spool.Info;
             var index = dgvSpools.Rows.Add(
                 "",
-                info.DetailedFilamentType ?? info.FilamentType,
-                spool.Name,
-                spool.Location,
-                spool.Price?.ToString("0.00", CultureInfo.CurrentCulture),
-                info.TrayUid,
+                info.DetailedFilamentType ?? info.FilamentType ?? "",
+                spool.Name ?? "",
+                spool.Location ?? "",
+                spool.Price?.ToString("0.00", CultureInfo.CurrentCulture) ?? "",
+                info.TrayUid ?? "",
                 info.SerialNumber,
                 spool.LastScanned.ToString("yyyy-MM-dd HH:mm", CultureInfo.CurrentCulture));
 

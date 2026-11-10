@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12+ splash icon (windowSplashScreenAnimatedIcon). MAUI's own splash bitmap has maui_splash_color baked in,
+    which the system crops to a circle that stays light in dark mode. splash_logo is the same logo, transparent, so
+    only windowSplashScreenBackground shows behind it.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:width="108dp" android:height="108dp" android:gravity="center">
+        <bitmap android:gravity="fill" android:src="@drawable/splash_logo" android:mipMap="true" />
+    </item>
+</layer-list>

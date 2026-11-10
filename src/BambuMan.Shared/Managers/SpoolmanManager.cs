@@ -257,7 +257,15 @@ namespace BambuMan.Shared.Managers
 
             #endregion
 
-            #region Extra fields
+            if (!await EnsureExtraFieldsAsync()) return;
+
+            await LogAndSetStatus(ManagerStatusType.DefaultsOk, LogLevel.Success, "Spoolman default setting ok");
+        }
+
+        /// <summary>Create the extra fields the app writes that Spoolman doesn't have yet. False when one couldn't be created.</summary>
+        private async Task<bool> EnsureExtraFieldsAsync()
+        {
+            if (ApiHost == null) return false;
 
             var fieldApi = ApiHost.Services.GetRequiredService<IFieldApi>();
 
@@ -305,7 +313,7 @@ namespace BambuMan.Shared.Managers
                         else
                         {
                             await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't add extra field '{extraFieldModel.Key}'. Api response: {addFieldQuery.RawContent.Truncated()}");
-                            return;
+                            return false;
                         }
                     }
 
@@ -314,13 +322,25 @@ namespace BambuMan.Shared.Managers
                 else
                 {
                     await LogAndSetStatus(ManagerStatusType.Error, LogLevel.Error, $"Can't get existing extra fields. Api response: {existingFieldsQuery.RawContent.Truncated()}");
-                    return;
+                    return false;
                 }
             }
 
-            #endregion
+            return true;
+        }
 
-            await LogAndSetStatus(ManagerStatusType.DefaultsOk, LogLevel.Success, "Spoolman default setting ok");
+        /// <summary>
+        /// Spoolman rejects a spool whose extra values name a field it doesn't have. The fields are created at init, but
+        /// the server can lose them while the app stays connected (field deleted, database replaced). True when the
+        /// response was that error and the fields were re-created, so the request can be sent again.
+        /// </summary>
+        private async Task<bool> RecreateMissingExtraFieldsAsync(IBadRequest<Message?> response)
+        {
+            if (!response.TryBadRequest(out var message) || !message.VarMessage.StartsWith("Unknown extra field")) return false;
+
+            await Log(LogLevel.Warning, $"Spoolman reported '{message.VarMessage}', re-creating extra fields");
+
+            return await EnsureExtraFieldsAsync();
         }
 
         private async Task LoadLocalFilaments()
@@ -646,6 +666,8 @@ namespace BambuMan.Shared.Managers
 
                 var spoolAddResult = await spoolApi.AddSpoolSpoolPostAsync(spoolParams);
 
+                if (await RecreateMissingExtraFieldsAsync(spoolAddResult)) spoolAddResult = await spoolApi.AddSpoolSpoolPostAsync(spoolParams);
+
                 if (spoolAddResult.TryOk(out var addedSpool))
                 {
                     UpdateCachedSpool(addedSpool);
@@ -697,6 +719,8 @@ namespace BambuMan.Shared.Managers
                 );
 
                 var spoolUpdateResult = await spoolApi.UpdateSpoolSpoolSpoolIdPatchAsync(currentSpool.Id, spoolUpdateParams);
+
+                if (await RecreateMissingExtraFieldsAsync(spoolUpdateResult)) spoolUpdateResult = await spoolApi.UpdateSpoolSpoolSpoolIdPatchAsync(currentSpool.Id, spoolUpdateParams);
 
                 if (spoolUpdateResult.TryOk(out var updatedSpool))
                 {

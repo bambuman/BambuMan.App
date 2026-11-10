@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Splash window background before Android 12. Same as MAUI's, but with the transparent splash_logo, so the light
+    background baked into MAUI's splash bitmap doesn't show as a square in dark mode.
+-->
+<layer-list android:opacity="opaque" xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/maui_splash_color" />
+    <item>
+        <bitmap android:gravity="center" android:src="@drawable/splash_logo" android:mipMap="true" />
+    </item>
+</layer-list>
