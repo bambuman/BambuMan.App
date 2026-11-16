@@ -92,6 +92,20 @@ namespace BambuMan
         /// <summary>
         /// Starts tags detection
         /// </summary>
+        private static readonly string[][] AllTechLists =
+        [
+            [Java.Lang.Class.FromType(typeof(IsoDep)).Name],
+            [Java.Lang.Class.FromType(typeof(MifareClassic)).Name],
+            [Java.Lang.Class.FromType(typeof(MifareUltralight)).Name],
+            [Java.Lang.Class.FromType(typeof(Ndef)).Name],
+            [Java.Lang.Class.FromType(typeof(NdefFormatable)).Name],
+            [Java.Lang.Class.FromType(typeof(NfcA)).Name],
+            [Java.Lang.Class.FromType(typeof(NfcB)).Name],
+            [Java.Lang.Class.FromType(typeof(NfcBarcode)).Name],
+            [Java.Lang.Class.FromType(typeof(NfcF)).Name],
+            [Java.Lang.Class.FromType(typeof(NfcV)).Name]
+        ];
+
         public void StartListening()
         {
             if (nfcAdapter == null) return;
@@ -121,12 +135,14 @@ namespace BambuMan
             var ndefFilter = new IntentFilter(NfcAdapter.ActionNdefDiscovered);
             ndefFilter.AddDataType("*/*");
 
-            var tagFilter = new IntentFilter(NfcAdapter.ActionTagDiscovered);
-            tagFilter.AddCategory(Intent.CategoryDefault);
+            // ACTION_TAG_DISCOVERED is deprecated (API 37): ACTION_TECH_DISCOVERED with every tag technology listed
+            // catches all tags the same way. Each inner list is one alternative, so any single technology matches.
+            var techFilter = new IntentFilter(NfcAdapter.ActionTechDiscovered);
+            techFilter.AddCategory(Intent.CategoryDefault);
 
-            var filters = new[] { ndefFilter, tagFilter };
+            var filters = new[] { ndefFilter, techFilter };
 
-            nfcAdapter.EnableForegroundDispatch(activity, pendingIntent, filters, null);
+            nfcAdapter.EnableForegroundDispatch(activity, pendingIntent, filters, AllTechLists);
 
             isListening = true;
             OnTagListeningStatusChanged?.Invoke(isListening);
@@ -289,7 +305,7 @@ namespace BambuMan
         {
             if (intent == null) return;
 
-            if (intent.Action == NfcAdapter.ActionTagDiscovered || intent.Action == NfcAdapter.ActionNdefDiscovered)
+            if (intent.Action == NfcAdapter.ActionTechDiscovered || intent.Action == NfcAdapter.ActionNdefDiscovered)
             {
                 if (OperatingSystem.IsAndroidVersionAtLeast(33))
                     currentTag = (Tag?)intent.GetParcelableExtra(NfcAdapter.ExtraTag, Java.Lang.Class.FromType(typeof(Tag)));

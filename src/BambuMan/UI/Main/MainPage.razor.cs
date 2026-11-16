@@ -97,29 +97,39 @@ namespace BambuMan.UI.Main
         {
             try
             {
-                await InvokeAsync(async () =>
-                {
-                    if (focus)
-                    {
-                        // Render first, so the card (and the weight field) exists before it is focused.
-                        StateHasChanged();
-
-                        if (spoolEditForm == null) return;
-
-                        // Native focus first: the field can only take the keyboard once the web view holds focus.
-                        SoftKeyboard.Show();
-                        await spoolEditForm.FocusWeightAsync();
-                    }
-                    else
-                    {
-                        await Js.InvokeVoidAsync("bambuman.blur");
-                        SoftKeyboard.Hide();
-                    }
-                });
+                await InvokeAsync(() => ApplySpoolEditFocusAsync(focus));
             }
             catch (Exception e)
             {
                 Logger.LogError(e, "Error in OnSpoolEditFocusRequested");
+            }
+        }
+
+        private async Task ApplySpoolEditFocusAsync(bool focus)
+        {
+            if (focus)
+            {
+                // Render first, so the card (and the weight field) exists before it is focused.
+                StateHasChanged();
+
+                if (spoolEditForm == null) return;
+
+                // Native focus first: the field can only take the keyboard once the web view holds focus.
+                SoftKeyboard.Show();
+                await spoolEditForm.FocusWeightAsync();
+            }
+            else
+            {
+                try
+                {
+                    await Js.InvokeVoidAsync("bambuman.blur");
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(e, "Error blurring the web view");
+                }
+
+                SoftKeyboard.Hide();
             }
         }
 
