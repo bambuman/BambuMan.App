@@ -32,10 +32,10 @@ namespace BambuMan
         private readonly TagApiService tagApiService;
         private readonly IFilamentOverrideService filamentOverrides;
         private readonly ToastService toasts;
+        private bool localNetworkDeniedShown;
 
 #if !GOOGLE_PLAY
         private bool versionChecked;
-        private bool localNetworkDeniedShown;
 #endif
 
         public ScannerService(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<ScannerService> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IFilamentOverrideService filamentOverrides, ToastService toasts)
