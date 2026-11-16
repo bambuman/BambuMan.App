@@ -32,6 +32,7 @@ namespace BambuMan
         private readonly TagApiService tagApiService;
         private readonly IFilamentOverrideService filamentOverrides;
         private readonly ToastService toasts;
+        private bool localNetworkDeniedShown;
 
 #if !GOOGLE_PLAY
         private bool versionChecked;
@@ -332,6 +333,14 @@ namespace BambuMan
 
             try
             {
+                // A server backend may live on the LAN — ask for local network access before connecting (Android 17+)
+                if (active.Backend != InventoryBackend.NoBackend && !await LocalNetworkPermission.EnsureAsync() && !localNetworkDeniedShown)
+                {
+                    localNetworkDeniedShown = true;
+                    logger.LogWarning("Local network permission denied");
+                    toasts.Show(LocalNetworkPermission.DeniedMessage, ToastKind.Error, true);
+                }
+
                 await active.Init();
             }
             catch (Exception e)

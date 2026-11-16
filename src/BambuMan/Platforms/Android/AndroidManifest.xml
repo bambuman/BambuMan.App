@@ -3,6 +3,8 @@
 	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true" package="com.noismaster.bambuman" android:hardwareAccelerated="true"></application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
+	<!-- Android 17 (API 37): reach a self-hosted Spoolman / Bambuddy server on the LAN. Requested at runtime by LocalNetworkPermission -->
+	<uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
 	<uses-permission android:name="android.permission.NFC" />
 	<uses-permission android:name="android.permission.CAMERA" />
 	<uses-permission android:name="android.permission.VIBRATE" />

@@ -187,8 +187,6 @@ namespace BambuMan
                 .Filter.ByExcluding(e => e.Level == LogEventLevel.Warning && e.Properties.TryGetValue("SourceContext", out var ctx) && ctx.ToString().Contains("SpoolmanManager"))
                 .WriteTo.Sentry(o =>
                 {
-                    o.InitializeSdk = false;
-
                     // Debug and higher are stored as breadcrumbs (default is Information)
 #if DEBUG
                     o.MinimumBreadcrumbLevel = LogEventLevel.Debug;
