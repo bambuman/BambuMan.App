@@ -90,7 +90,7 @@ namespace BambuMan.UI.Scan
             }
         }
 
-        private async void CameraView_OnDetectionFinished(object sender, OnDetectionFinishedEventArg e)
+        private async void CameraView_OnDetectionFinished(object? sender, OnDetectionFinishedEventArg e)
         {
             try
             {
@@ -112,7 +112,7 @@ namespace BambuMan.UI.Scan
             }
         }
 
-        private async void BackButton_Clicked(object sender, EventArgs e)
+        private async void BackButton_Clicked(object? sender, EventArgs e)
         {
             try
             {

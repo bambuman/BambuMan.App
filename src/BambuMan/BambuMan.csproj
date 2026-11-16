@@ -74,6 +74,14 @@
 		<PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
 	</ItemGroup>
 
+	<!-- XA4301 "APK already contains the item lib/<abi>/*.so; ignoring": BarcodeScanning.Native.Maui's own .aar bundles copies of
+	     ML Kit's libbarhopper_v3.so and CameraX's libimage_processing_util_jni.so / libsurface_util_jni.so, which those packages
+	     ship too (and two ML Kit barcode .aars both carry libbarhopper_v3.so). The copies are byte-identical, so the packager keeps
+	     one and nothing is lost. Upstream packaging issue (3.1.0 is the latest version); remove when it no longer duplicates them. -->
+	<PropertyGroup Condition="$(TargetFramework.Contains('android'))">
+		<NoWarn>$(NoWarn);XA4301</NoWarn>
+	</PropertyGroup>
+
 	<ItemGroup Condition="'$(TargetFramework)' == 'net11.0-android' OR $(TargetFramework.Contains('android'))">
 		<AndroidAsset Include="Platforms\Android\Assets\adi-registration.properties" />
 		<ProguardConfiguration Include="Platforms\Android\proguard.cfg" />

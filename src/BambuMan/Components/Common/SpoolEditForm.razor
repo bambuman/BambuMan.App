@@ -1,4 +1,6 @@
 @inject IJSRuntime Js
+@inject ILogger<SpoolEditForm> Logger
+@using Microsoft.Extensions.Logging
 
 <form class="form-grid" @onsubmit="OnSave" @onsubmit:preventDefault>
     <FormField Label="Weight (g)" Icon="Lucide.Weight" Error="@Model.WeightError">
@@ -65,5 +67,15 @@
     /// Focuses the weight field with its value selected, and scrolls the card to the top of the screen so the
     /// keyboard that opens next doesn't cover it.
     /// </summary>
-    public ValueTask FocusWeightAsync() => Js.InvokeVoidAsync("bambuman.focusSpoolEdit", weightInput);
+    public async Task FocusWeightAsync()
+    {
+        try
+        {
+            await Js.InvokeVoidAsync("bambuman.focusSpoolEdit", weightInput);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error focusing the weight field");
+        }
+    }
 }
