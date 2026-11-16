@@ -1,11 +1,11 @@
 # Repository Defaults
 
 ## Environment
-- .NET 10.0 C#
+- .NET 11.0 C#
 - Nullable is set to **enable**
 
 ## Technology Stack
-- **MAUI 10.0 Blazor Hybrid** — Cross-platform mobile framework (Android primary, iOS configured); the UI is Razor components in a `BlazorWebView`
+- **MAUI 11.0 Blazor Hybrid** — Cross-platform mobile framework (Android primary, iOS configured); the UI is Razor components in a `BlazorWebView`
 - **Windows Forms** — Desktop companion app
 - **CommunityToolkit.Mvvm** — MVVM pattern with `[ObservableProperty]`, `ObservableObject`
 - **CommunityToolkit.Maui** — MAUI extensions (status bar colour)
@@ -91,16 +91,15 @@ Note this repo is a git submodule of BambuMan.Web — a policy revision is a sep
 
 Per-SKU matching exceptions are data, not code branches: `src/BambuMan.Shared/FilamentMatchOverrides.cs`. Add corrections there rather than adding `if` chains to `ExternalFilamentMatcher.FindExternalFilament`, and **bump `FilamentMatchOverrides.CurrentVersion`** — clients that cached an older set key off it. The BambuMan API serves its compiled copy of the same file, so a correction reaches existing installs on an API redeploy and the next app release inherits it automatically.
 
-## Pending: .NET 11 / Android 17 upgrade
-When the Android target moves to `net11.0-android` (or the target SDK otherwise reaches **API 37 / Android 17**), handle Android 17's local network protection in the same change. Apps targeting API 37+ can't reach LAN addresses (private IP ranges, `.local` hosts) without the new permission, and users usually self-host Spoolman / Bambuddy on their LAN.
+## Android 17 local network access
+The app targets `net11.0-android` (API 37 / Android 17), whose local network protection blocks LAN addresses (private IP ranges, `.local` hosts) without `ACCESS_LOCAL_NETWORK`. The permission is declared in `Platforms/Android/AndroidManifest.xml` and requested by `Shared/LocalNetworkPermission.cs` before the active server backend connects (`ScannerService.InitializeBackendsAsync`) and before a settings connection test. A denial shows a toast but still attempts the connection — public hosts and VPN addresses don't need the permission.
 
-- Add `<uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />` to `src/BambuMan/Platforms/Android/AndroidManifest.xml` (check the exact name against the API 37 docs)
-- Request it at runtime (Nearby devices group) before the first server connection/test, and show a clear message when it's denied
+### Pending (manual)
 - Play Console: submit the **Local Network permission** declaration. Justification: connects to the user's self-hosted Spoolman / Bambuddy server on their local network; a device picker can't select a user-entered HTTP server
-- Privacy policy: add a revision in BambuMan.Web if it doesn't already state that the app connects to servers on the local network
-- Test a LAN IP, a `.local` host, a public HTTPS domain and a VPN address (e.g. Tailscale) once it's built against API 37
+- Test on an Android 17 device: a LAN IP, a `.local` host, a public HTTPS domain and a VPN address (e.g. Tailscale)
+- After the first .NET 11 release (Sentry 7, newer AndroidX): check Play Console → Android vitals that **DEX code optimization → Obfuscation** is still above Google's 25% threshold (deadline Feb 2027). `private-members` is the strongest `AndroidR8ObfuscationMode` on .NET 11, so a drop can only be fixed by trimming Java dependencies or a newer dotnet/android (see dotnet/android#12814)
 
-Remove this section once it's done.
+Remove the pending list once all are done.
 
 ## Git
 - Commit messages must **not** include `Co-Authored-By` lines

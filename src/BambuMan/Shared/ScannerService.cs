@@ -35,6 +35,7 @@ namespace BambuMan
 
 #if !GOOGLE_PLAY
         private bool versionChecked;
+        private bool localNetworkDeniedShown;
 #endif
 
         public ScannerService(MainPageViewModel viewModel, IInventoryBackendResolver backends, ILogger<ScannerService> logger, IToneGenerator toneGenerator, IInvokeIndent invokeIndent, TagApiService tagApiService, IFilamentOverrideService filamentOverrides, ToastService toasts)
@@ -332,6 +333,14 @@ namespace BambuMan
 
             try
             {
+                // A server backend may live on the LAN — ask for local network access before connecting (Android 17+)
+                if (active.Backend != InventoryBackend.NoBackend && !await LocalNetworkPermission.EnsureAsync() && !localNetworkDeniedShown)
+                {
+                    localNetworkDeniedShown = true;
+                    logger.LogWarning("Local network permission denied");
+                    toasts.Show(LocalNetworkPermission.DeniedMessage, ToastKind.Error, true);
+                }
+
                 await active.Init();
             }
             catch (Exception e)

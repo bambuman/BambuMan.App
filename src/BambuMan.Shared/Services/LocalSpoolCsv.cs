@@ -1,7 +1,6 @@
 using BambuMan.Shared.Managers;
 using BambuMan.Shared.Models;
 using CsvHelper;
-using CsvHelper.Configuration;
 using System.Globalization;
 using System.Text;
 
@@ -76,17 +75,17 @@ namespace BambuMan.Shared.Services
 
         public static void Write(TextWriter writer, IEnumerable<LocalSpool> spools)
         {
-            using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture, leaveOpen: true);
+            using var csv = CsvWriter.Create(writer, CsvWriterOptions.Default, leaveOpen: true);
 
             foreach (var column in Columns) csv.WriteField(column);
-            csv.NextRecord();
+            csv.EndRecord();
 
             foreach (var spool in spools)
             {
                 var row = ToRow(spool);
 
                 foreach (var column in Columns) csv.WriteField(Sanitize(row.GetValueOrDefault(column)));
-                csv.NextRecord();
+                csv.EndRecord();
             }
 
             csv.Flush();
@@ -198,23 +197,21 @@ namespace BambuMan.Shared.Services
             var spools = new List<LocalSpool>();
             var errors = new List<string>();
 
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            var options = new CsvReaderOptions
             {
-                PrepareHeaderForMatch = args => NormalizeHeader(args.Header),
-                MissingFieldFound = null,
-                HeaderValidated = null,
-                BadDataFound = null
+                Separator = ',',
+                NormalizeHeaderName = NormalizeHeader
             };
 
-            using var csv = new CsvReader(reader, config, leaveOpen: true);
+            using var csv = CsvReader.Create(reader, options, leaveOpen: true);
 
-            if (!csv.Read() || !csv.ReadHeader())
+            if (csv.Headers.Count == 0)
             {
                 errors.Add("The file is empty.");
                 return new LocalSpoolCsvReadResult(spools, errors);
             }
 
-            var headers = (csv.HeaderRecord ?? []).Select(NormalizeHeader).ToHashSet();
+            var headers = csv.Headers.Select(NormalizeHeader).ToHashSet();
 
             if (!headers.Contains("tag_uid") && !headers.Contains("tray_uuid"))
             {
@@ -228,7 +225,7 @@ namespace BambuMan.Shared.Services
             {
                 rowNumber++;
 
-                string? Cell(string column) => csv.TryGetField<string>(column, out var value) && !string.IsNullOrWhiteSpace(value) ? Desanitize(value.Trim()) : null;
+                string? Cell(string column) => csv.TryGetFieldIndex(column, out var index) && csv.GetString(index) is var value && !string.IsNullOrWhiteSpace(value) ? Desanitize(value.Trim()) : null;
 
                 try
                 {

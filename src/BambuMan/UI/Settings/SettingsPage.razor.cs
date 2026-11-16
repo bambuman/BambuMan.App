@@ -350,6 +350,9 @@ public partial class SettingsPage
                 return;
             }
 
+            // A server on the LAN needs local network access (Android 17+); a public one still works without it
+            if (!await LocalNetworkPermission.EnsureAsync()) Toasts.Show(LocalNetworkPermission.DeniedMessage, ToastKind.Error, true);
+
             if (Vm.IsBambuddy) await TestBambuddyUrlAsync();
             else await TestSpoolmanUrlAsync();
         }

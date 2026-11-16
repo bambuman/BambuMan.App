@@ -275,12 +275,10 @@ namespace BambuMan.Shared.Test.LocalInventory
             using var writer = new StringWriter();
             LocalSpoolCsv.Write(writer, [spool]);
 
-            using var csv = new CsvReader(new StringReader(writer.ToString()), CultureInfo.InvariantCulture);
-            csv.Read();
-            csv.ReadHeader();
+            using var csv = CsvReader.Create(new StringReader(writer.ToString()), CsvReaderOptions.Default, leaveOpen: false);
             csv.Read();
 
-            return csv.HeaderRecord!.ToDictionary(x => x, x => csv.GetField(x)!);
+            return csv.Headers.ToDictionary(x => x, x => csv.GetString(x));
         }
 
         private static LocalSpoolCsvReadResult Import(string csv) => LocalSpoolCsv.Read(new StringReader(csv));
