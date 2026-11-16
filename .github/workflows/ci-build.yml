@@ -58,7 +58,7 @@ jobs:
         run: dotnet workload install maui --ignore-failed-sources
 
       - name: Restore Dependencies
-        run: dotnet restore src/BambuMan/BambuMan.csproj
+        run: dotnet restore src/BambuMan/BambuMan.csproj -p:Configuration=Release
         
       - name: Build MAUI Android APK
         run: dotnet publish src/BambuMan/BambuMan.csproj -c Release -p:DefineConstants="BUILD_TYPE_LIVE" -p:GITHUB_CI=1 -p:GITHUB_VERSION_CODE="${{ env.GITHUB_VERSION_CODE }}" -p:GITHUB_VERSION="${{ env.GITHUB_VERSION }}" -p:AndroidKeyStore=True -p:AndroidSigningKeyStore="${{ github.workspace }}/bambuman.keystore" -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYPASSWORD }} -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEYSTOREALIAS }} -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTOREPASSWORD }} -f net11.0-android --no-restore
@@ -76,7 +76,7 @@ jobs:
         run: dotnet clean src/BambuMan/BambuMan.csproj -c Release -f net11.0-android
 
       - name: Restore for AAB build
-        run: dotnet restore src/BambuMan/BambuMan.csproj
+        run: dotnet restore src/BambuMan/BambuMan.csproj -p:Configuration=Release
 
       - name: Build MAUI Android AAB
         run: dotnet publish src/BambuMan/BambuMan.csproj -c Release -p:DefineConstants="BUILD_TYPE_LIVE%3BGOOGLE_PLAY" -p:GITHUB_CI=1 -p:GITHUB_VERSION_CODE="${{ env.GITHUB_VERSION_CODE }}" -p:GITHUB_VERSION="${{ env.GITHUB_VERSION }}" -p:AndroidPackageFormat=aab -p:AndroidKeyStore=True -p:AndroidSigningKeyStore="${{ github.workspace }}/bambuman.keystore" -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYPASSWORD }} -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEYSTOREALIAS }} -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTOREPASSWORD }} -f net11.0-android
